@@ -1,0 +1,41 @@
+// Organization
+The project is organized into 2 folders:
+
+- backend (The go project housing all the backend logic)
+  - Use echo v4 as the HTTP framework
+  - Use gorm.io + Postgres as the database layer
+  - Use Rivier + Postgres as the job queueing solution
+  - Use REST APIs + JSON API for all API schemas
+    - This means all requests and response should have the rough structure: { "data": { ... } } or { "data": [ {}, ... ] }
+    - Use PATCH when possible (for partial updates to resources), otherwise use PUT when updating objects.
+    - Use POST to create resources
+- frontend (The sveltekit project housing all the frontend logic)
+  - Use svelte 5 (the latest version of svelte)
+  - Use runes ($state, $derived, etc.)
+  - Use tailwind + DaisyUI for styling
+
+The project also has a docker-compose.yml file to run all of the infrastructure and a Makefile to make it easier to build and run the project.
+
+// Authentication
+Authentication uses a user-organization model. This means that there are users, organizations, and organization memberships that map a user to an organization with a specific role.
+
+Whenever an API request is made you should make sure that the user belongs to the organization and has the correct role within the organization to access the resource. Admins should be allowed to read and write anything, where as standard members should only be able to read and write non-administrative resources.
+
+When an organization is created, the user who created the organization will be assigned membership to the organization with the default role of admin.
+
+// Backend
+
+Place all database models under the backend/internal/models directory. The gorm.io ORM is used to define database models and to perform database operations. When writing new models make sure to use correct database modeling practices for relational databases.
+
+Echo is used for the API. All requests should have a JSON API compatible schema and the requests should all be validated using the validator logic in backend/internal/api/validator.go.
+
+When creating a new domain, create a new folder under backend/internal and give it the new domain name, for example backend/internal/users. The file structure within the folder is as follows:
+
+- service.go - All service-layer functionality. For example, writing to the database, executing any third-party API calls, enqueuing any background jobs, executing side-effect logic etc.
+- controller.go - All exposed REST API functionality. For example, this should only include public functions which are used as the callback in the echo handlers.
+
+// Frontend
+
+Use +page.ts to fetch data when loading a page. This will ensure that the data is fetched on both the server side during SSR and on the client side during routing changes.
+
+Use +page.server.ts for any server actions that require cookies, or session information. Otherwise, you can make a client-side request to use a mutating API.

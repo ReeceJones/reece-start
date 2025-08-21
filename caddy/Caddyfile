@@ -1,0 +1,41 @@
+{
+    # Enable automatic HTTPS in production
+    auto_https off  # Railway handles HTTPS termination
+}
+
+:4040 {
+    # Frontend routing
+    route /* {
+        request_body {
+            max_size 64MB
+        }
+        
+        reverse_proxy {env.FRONTEND_URL} {
+            header_up Host {env.FRONTEND_HOST}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+
+    # API routing with path rewrite
+    handle_path /api {
+        request_body {
+            max_size 64MB
+        }
+        
+        reverse_proxy {env.API_URL} {
+            header_up Host {env.API_HOST}
+            header_up X-Real-IP {remote_host}   
+        }
+    }
+
+    handle_path /api/* {
+        request_body {
+            max_size 64MB
+        }
+
+        reverse_proxy {env.API_URL} {
+            header_up Host {env.API_HOST}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+} 
