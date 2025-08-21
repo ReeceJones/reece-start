@@ -1,6 +1,6 @@
 # reece-start
 
-This is a repo that I use as a starting point for new projects. It is based on SvelteKit + Go.
+This is a repo that I use as a starting point for new projects. It is based on SvelteKit + Go, and adopts a cloud-native approach for deployments.
 
 ## Features
 
