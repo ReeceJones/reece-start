@@ -2,8 +2,8 @@
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
-	import clsx from 'clsx/lite';
 	import { invalidate } from '$app/navigation';
+	import LogoCrop from '$lib/components/LogoCrop.svelte';
 
 	let { data, form }: PageProps = $props();
 
@@ -13,6 +13,15 @@
 	let userProfile = $state(data.user.data);
 	let password = $state('');
 	let confirmPassword = $state('');
+	let logoInput: HTMLInputElement | null = null;
+	let logo = $state<FileList | null | undefined>(undefined);
+	let uncroppedLogo = $state<FileList | null | undefined>(undefined);
+	let logoCropModal: HTMLDialogElement | null = null;
+
+	// Simple derived state that just returns the appropriate URL
+	const logoPreview = $derived(
+		logo && logo.length > 0 ? URL.createObjectURL(logo[0]) : data.user.data.meta.logoDistributionUrl
+	);
 
 	let canSubmit = $derived.by(() => {
 		if (!name || !email) {
@@ -29,6 +38,17 @@
 
 		return true;
 	});
+
+	function resetLogoUpload() {
+		logo = undefined;
+		uncroppedLogo = undefined;
+		// reset the logo input
+		if (logoInput) {
+			// Completely reset the value of the input
+			logoInput.value = '';
+			logoInput.files = null;
+		}
+	}
 </script>
 
 <form
@@ -48,12 +68,22 @@
 
 	<fieldset class="fieldset">
 		<legend class="fieldset-legend">Profile picture</legend>
-		<img
-			src={data.user.data.meta.logoDistributionUrl}
-			alt="User profile logo"
-			class="aspect-square w-48 rounded-full"
+		<img src={logoPreview} alt="User profile logo" class="rounded-box aspect-square w-48" />
+		<input
+			type="file"
+			name="logo"
+			class="file-input"
+			accept="image/*"
+			multiple={false}
+			bind:this={logoInput}
+			onchange={(e: Event) => {
+				const target = e.target as HTMLInputElement;
+				uncroppedLogo = target.files;
+				if (logoCropModal) {
+					logoCropModal.showModal();
+				}
+			}}
 		/>
-		<input type="file" name="logo" class="file-input" accept="image/*" />
 		<p class="fieldset-label">Upload your profile picture</p>
 	</fieldset>
 
@@ -89,3 +119,43 @@
 		</button>
 	</div>
 </form>
+
+<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
+	<div class="modal-box">
+		<h3 class="text-lg font-bold">Update image</h3>
+		<p class="py-4">Edit the image to your liking and click save.</p>
+		{#if uncroppedLogo && uncroppedLogo.length > 0}
+			<LogoCrop
+				imageFile={uncroppedLogo[0]}
+				onCancel={() => {
+					resetLogoUpload();
+					if (logoCropModal) {
+						logoCropModal.close();
+					}
+				}}
+				onSave={(file) => {
+					console.log('Cropped file received:', file);
+					console.log('File size:', file.size);
+					console.log('File type:', file.type);
+
+					const dt = new DataTransfer();
+					dt.items.add(file);
+					logo = dt.files;
+					uncroppedLogo = undefined;
+
+					// set the value of the input to the new cropped image
+					if (logoInput) {
+						logoInput.files = dt.files;
+					}
+
+					if (logoCropModal) {
+						logoCropModal.close();
+					}
+				}}
+			/>
+		{/if}
+	</div>
+	<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
+		<button>close</button>
+	</form>
+</dialog>

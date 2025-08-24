@@ -38,6 +38,7 @@
 		"vite-plugin-devtools-json": "^0.2.0"
 	},
 	"dependencies": {
+		"cropperjs": "2.0.1",
 		"daisyui": "5.0.50",
 		"dotenv": "17.2.1",
 		"jwt-decode": "4.0.0",
