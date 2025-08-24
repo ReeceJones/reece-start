@@ -5,11 +5,12 @@ This is a repo that I use as a starting point for new projects. It is based on S
 ## Features
 
 - Organization-Member-User authentication model
-- Manage user profile settings
-- Manage organization settings (TODO)
+- User settings page
+- Organization settings page (TODO)
 - Organization-based billing with free and paid membership tiers (TODO)
 - Stripe connect support (TODO)
 - Email and SMS notification APIs (TODO)
+- Posthog integration (TODO)
 
 ## Getting started
 
