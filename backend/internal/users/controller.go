@@ -5,11 +5,10 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"reece.start/internal/api"
-	"reece.start/internal/authentication"
 	"reece.start/internal/constants"
 	"reece.start/internal/middleware"
-	"reece.start/internal/models"
 )
 
 // API Types
@@ -36,7 +35,8 @@ type UpdateUserAttributes struct {
 }
 
 type UserMeta struct {
-	Token string `json:"token"`
+	Token string `json:"token,omitempty"`
+	LogoDistributionUrl string `json:"logoDistributionUrl,omitempty"`
 }
 
 type UserData struct {
@@ -56,7 +56,7 @@ type CreateUserRequest struct {
 	} `json:"data"`
 }
 
-type CreateUserResponse struct {
+type UserResponse struct {
 	Data UserDataWithMeta `json:"data"`
 }
 
@@ -66,18 +66,10 @@ type LoginUserRequest struct {
 	} `json:"data"`
 }
 
-type LoginUserResponse struct {
-	Data UserDataWithMeta `json:"data"`
-}
-
 type UpdateUserRequest struct {
 	Data struct {
 		Attributes UpdateUserAttributes `json:"attributes"`
 	} `json:"data"`
-}
-
-type UpdateUserResponse struct {
-	Data UserData `json:"data"`
 }
 
 func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
@@ -91,6 +83,7 @@ func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 			Password: req.Data.Attributes.Password,
 		},
 		Tx: db,
+		Config: config,
 	})
 
 	if err != nil {
@@ -100,24 +93,13 @@ func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 		})
 	}
 
-	// Generate JWT token for the new user
-	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-		UserId: user.ID,
-	})
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: "Failed to generate authentication token",
-		})
-	}
-
-	return c.JSON(http.StatusCreated, userToResponse(user, token))
+	return c.JSON(http.StatusCreated, mapUserToResponse(user))
 }
 
 func LoginEndpoint(c echo.Context, req LoginUserRequest) error {
 	config := middleware.GetConfig(c)
 	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
 
 	user, err := loginUser(LoginUserServiceRequest{
 		Params: LoginUserParams{
@@ -125,6 +107,8 @@ func LoginEndpoint(c echo.Context, req LoginUserRequest) error {
 			Password: req.Data.Attributes.Password,
 		},
 		Tx: db,
+		Config: config,
+		MinioClient: minioClient,
 	})
 
 	if err != nil {
@@ -134,19 +118,7 @@ func LoginEndpoint(c echo.Context, req LoginUserRequest) error {
 		})
 	}
 
-	// Generate JWT token for the authenticated user
-	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-		UserId: user.ID,
-	})
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: "Failed to generate authentication token",
-		})
-	}
-
-	return c.JSON(http.StatusOK, userToResponse(user, token))
+	return c.JSON(http.StatusOK, mapUserToResponse(user))
 }
 
 func GetAuthenticatedUserEndpoint(c echo.Context) error {
@@ -159,10 +131,12 @@ func GetAuthenticatedUserEndpoint(c echo.Context) error {
 	}
 
 	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
 
 	user, err := getUserByID(GetUserByIDServiceRequest{
 		UserID: userID,
 		Tx:     db,
+		MinioClient: minioClient,
 	})
 
 	if err != nil {
@@ -172,7 +146,7 @@ func GetAuthenticatedUserEndpoint(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, userToResponseWithoutToken(user))
+	return c.JSON(http.StatusOK, mapUserToResponse(user))
 }
 
 func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
@@ -217,42 +191,31 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 	})
 
 	if err != nil {
+		log.Error(err)
 		return c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    constants.ErrorCodeInternalServerError,
 			Message: err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, userToResponseWithoutToken(user))
+	return c.JSON(http.StatusOK, mapUserToResponse(user))
 }
 
 // Type mappers
-func userToResponse(user *models.User, token string) CreateUserResponse {
-	return CreateUserResponse{
+func mapUserToResponse(params *UserDto) UserResponse {
+	return UserResponse{
 		Data: UserDataWithMeta{
 			UserData: UserData{
-				Id: strconv.FormatUint(uint64(user.ID), 10),
+				Id: strconv.FormatUint(uint64(params.User.ID), 10),
 				Type: constants.ApiTypeUser,
 				Attributes: UserAttributes{
-					Name: user.Name,
-					Email: user.Email,
+					Name: params.User.Name,
+					Email: params.User.Email,
 				},
 			},
 			Meta: UserMeta{
-				Token: token,
-			},
-		},
-	}
-}
-
-func userToResponseWithoutToken(user *models.User) UpdateUserResponse {
-	return UpdateUserResponse{
-		Data: UserData{
-			Id: strconv.FormatUint(uint64(user.ID), 10),
-			Type: constants.ApiTypeUser,
-			Attributes: UserAttributes{
-				Name: user.Name,
-				Email: user.Email,
+				Token: params.Token,
+				LogoDistributionUrl: params.LogoDistributionUrl,
 			},
 		},
 	}

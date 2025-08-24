@@ -1,20 +1,9 @@
-import type { PageLoad } from './$types';
+import type { LayoutLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { z } from 'zod';
 import { ApiError, get } from '$lib';
+import { getSelfUserResponseSchema } from '$lib/schemas/user';
 
-const getSelfUserResponseSchema = z.object({
-	data: z.object({
-		id: z.string(),
-		type: z.literal('user'),
-		attributes: z.object({
-			name: z.string(),
-			email: z.string()
-		})
-	})
-});
-
-export const load: PageLoad = async ({ fetch }) => {
+export const load: LayoutLoad = async ({ fetch }) => {
 	try {
 		const user = await get('/api/users/me', {
 			fetch,

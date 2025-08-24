@@ -120,12 +120,12 @@ func main() {
 	protected.Use(appMiddleware.JwtAuthMiddleware(config))
 
 	protected.GET("/users/me", users.GetAuthenticatedUserEndpoint)
-	protected.PUT("/users/:id", api.Validated(users.UpdateUserEndpoint))
+	protected.PATCH("/users/:id", api.Validated(users.UpdateUserEndpoint))
 
 	protected.GET("/organizations", organizations.GetOrganizationsEndpoint)
 	protected.POST("/organizations", api.Validated(organizations.CreateOrganizationEndpoint))
 	protected.GET("/organizations/:id", organizations.GetOrganizationEndpoint)
-	protected.PUT("/organizations/:id", api.Validated(organizations.UpdateOrganizationEndpoint))
+	protected.PATCH("/organizations/:id", api.Validated(organizations.UpdateOrganizationEndpoint))
 	protected.DELETE("/organizations/:id", organizations.DeleteOrganizationEndpoint)
 
 	// Start http server

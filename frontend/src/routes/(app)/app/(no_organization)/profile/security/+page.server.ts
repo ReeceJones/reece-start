@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { ApiError, base64Encode, patch } from '$lib';
+import { ApiError, patch } from '$lib';
 import type { Actions } from './$types';
 import { authenticate } from '$lib/server/auth';
 import { updateUserRequestSchema, updateUserResponseSchema } from '$lib/schemas/user';
@@ -12,22 +12,20 @@ export const actions = {
 	default: async ({ request, fetch }) => {
 		const data = await request.formData();
 		const userId = data.get('userId') as string;
-		const name = data.get('name') as string;
-		const logo = data.get('logo') as File;
-		let logoData: string | undefined = undefined;
+		const email = data.get('email') as string;
+		const password = data.get('password') as string;
+		const confirmPassword = data.get('confirmPassword') as string;
 
-		if (!userId || !name) {
+		if (!userId || !email) {
 			return fail(400, { success: false, message: 'Please fill out all the fields correctly.' });
 		}
 
-		if (logo.size > 3_000_000) {
-			return fail(400, { success: false, message: 'Logo must be less than 3MB.' });
+		if (password && password !== confirmPassword) {
+			return fail(400, { success: false, message: 'Passwords do not match.' });
 		}
 
-		if (logo.size > 0) {
-			// need to base64 encode the logo content
-			const logoBuffer = await logo.arrayBuffer();
-			logoData = base64Encode(logoBuffer);
+		if (password && password.length < 8) {
+			return fail(400, { success: false, message: 'Password must be at least 8 characters long.' });
 		}
 
 		try {
@@ -38,8 +36,8 @@ export const actions = {
 						id: userId,
 						type: 'user',
 						attributes: {
-							name,
-							logo: logoData
+							email,
+							password
 						}
 					}
 				},

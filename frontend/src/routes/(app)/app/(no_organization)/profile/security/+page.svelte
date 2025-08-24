@@ -8,17 +8,12 @@
 	let { data, form }: PageProps = $props();
 
 	let submitting = $state(false);
-	let name = $state(data.user.data.attributes.name);
 	let email = $state(data.user.data.attributes.email);
 	let userProfile = $state(data.user.data);
 	let password = $state('');
 	let confirmPassword = $state('');
 
 	let canSubmit = $derived.by(() => {
-		if (!name || !email) {
-			return false;
-		}
-
 		if (password !== '' && password.length < 8) {
 			return false;
 		}
@@ -47,21 +42,50 @@
 	<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
 
 	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Profile picture</legend>
-		<img
-			src={data.user.data.meta.logoDistributionUrl}
-			alt="User profile logo"
-			class="aspect-square w-48 rounded-full"
+		<legend class="fieldset-legend">Email</legend>
+		<input
+			type="email"
+			name="email"
+			required
+			class="input"
+			placeholder="Email"
+			bind:value={email}
 		/>
-		<input type="file" name="logo" class="file-input" accept="image/*" />
-		<p class="fieldset-label">Upload your profile picture</p>
+		<p class="fieldset-label">
+			The email you use to log into your account and receive notifications
+		</p>
 	</fieldset>
 
 	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Name</legend>
-		<input type="text" name="name" required class="input" placeholder="Name" bind:value={name} />
-		<p class="fieldset-label">What should we call you?</p>
+		<legend class="fieldset-legend">Update Password</legend>
+		<input
+			type="password"
+			name="password"
+			class="input"
+			placeholder="Password"
+			bind:value={password}
+		/>
+		<p class="fieldset-label">Update your password used to sign in to your account</p>
+		{#if password.length > 0 && password.length < 8}
+			<p class="fieldset-label text-error">Password must be at least 8 characters long.</p>
+		{/if}
 	</fieldset>
+
+	{#if password !== ''}
+		<fieldset class="fieldset">
+			<legend class="fieldset-legend">Confirm password</legend>
+			<input
+				type="password"
+				name="confirmPassword"
+				class={clsx('input', password !== confirmPassword && 'input-error')}
+				placeholder="Confirm password"
+				bind:value={confirmPassword}
+			/>
+			{#if password !== confirmPassword}
+				<p class={clsx('fieldset-label', 'text-error')}>Passwords do not match.</p>
+			{/if}
+		</fieldset>
+	{/if}
 
 	{#if form?.success}
 		<div role="alert" class="alert alert-success mt-3">

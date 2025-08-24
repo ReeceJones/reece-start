@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 	"reece.start/internal/authentication"
+	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
 )
@@ -26,6 +29,7 @@ type CreateUserParams struct {
 type CreateUserServiceRequest struct {
 	Params CreateUserParams
 	Tx     *gorm.DB
+	Config *configuration.Config
 }
 
 type LoginUserParams struct {
@@ -36,11 +40,14 @@ type LoginUserParams struct {
 type LoginUserServiceRequest struct {
 	Params LoginUserParams
 	Tx     *gorm.DB
+	Config *configuration.Config
+	MinioClient *minio.Client
 }
 
 type GetUserByIDServiceRequest struct {
 	UserID uint
 	Tx     *gorm.DB
+	MinioClient *minio.Client
 }
 
 type UpdateUserParams struct {
@@ -57,9 +64,22 @@ type UpdateUserServiceRequest struct {
 	MinioClient *minio.Client
 }
 
-func createUser(request CreateUserServiceRequest) (*models.User, error) {
+type GetUserLogoDistributionUrlServiceRequest struct {
+	UserID uint
+	Tx     *gorm.DB
+	MinioClient *minio.Client
+}
+
+type UserDto struct {
+	User *models.User
+	Token string
+	LogoDistributionUrl string
+}
+
+func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	tx := request.Tx
 	params := request.Params
+	config := request.Config
 
 	hashedPassword, err := authentication.HashPassword(params.Password)
 	if err != nil {
@@ -72,17 +92,30 @@ func createUser(request CreateUserServiceRequest) (*models.User, error) {
 		HashedPassword: hashedPassword,
 	}
 
-	err = tx.Create(&user).Error
+	if err := tx.Create(&user).Error; err != nil {
+		return nil, err
+	}
+
+	// Generate JWT token for the new user
+	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
+		UserId: user.ID,
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return &UserDto{
+		User: user,
+		Token: token,
+	}, nil
 }
 
-func loginUser(request LoginUserServiceRequest) (*models.User, error) {
+func loginUser(request LoginUserServiceRequest) (*UserDto, error) {
 	tx := request.Tx
 	params := request.Params
+	config := request.Config
+	minioClient := request.MinioClient
 
 	var user models.User
 	err := tx.Where("email = ?", params.Email).First(&user).Error
@@ -98,12 +131,35 @@ func loginUser(request LoginUserServiceRequest) (*models.User, error) {
 		return nil, errors.New("invalid email or password")
 	}
 
-	return &user, nil
+	// Generate the JWT token for the user
+	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
+		UserId: user.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the logo distribution URL for the user
+	logoDistributionUrl, err := getUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+		UserID: user.ID,
+		Tx:     tx,
+		MinioClient: minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserDto{
+		User: &user,
+		Token: token,
+		LogoDistributionUrl: logoDistributionUrl,
+	}, nil
 }
 
-func getUserByID(request GetUserByIDServiceRequest) (*models.User, error) {
+func getUserByID(request GetUserByIDServiceRequest) (*UserDto, error) {
 	tx := request.Tx
 	userID := request.UserID
+	minioClient := request.MinioClient
 
 	var user models.User
 	err := tx.First(&user, userID).Error
@@ -114,20 +170,30 @@ func getUserByID(request GetUserByIDServiceRequest) (*models.User, error) {
 		return nil, err
 	}
 
-	return &user, nil
+	// get the logo distribution URL for the user
+	logoDistributionUrl, err := getUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+		UserID: user.ID,
+		Tx:     tx,
+		MinioClient: minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserDto{
+		User: &user,
+		LogoDistributionUrl: logoDistributionUrl,
+	}, nil
 }
 
-func updateUser(request UpdateUserServiceRequest) (*models.User, error) {
+func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 	tx := request.Tx
 	params := request.Params
 	minioClient := request.MinioClient
 
 	// Get the existing user
-	user, err := getUserByID(GetUserByIDServiceRequest{
-		UserID: params.UserID,
-		Tx:     tx,
-	})
-	if err != nil {
+	var user models.User
+	if err := tx.First(&user, params.UserID).Error; err != nil {
 		return nil, err
 	}
 
@@ -174,13 +240,47 @@ func updateUser(request UpdateUserServiceRequest) (*models.User, error) {
 		}
 
 		log.Printf("Updated logo for user %d\n", user.ID)
+
+		user.LogoFileStorageKey = objectName
 	}
 
 	// Save the updated user
-	err = tx.Save(user).Error
+	if err := tx.Save(&user).Error; err != nil {
+		return nil, err
+	}
+
+	logoDistributionUrl, err := getUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+		UserID: user.ID,
+		Tx:     tx,
+		MinioClient: minioClient,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return &UserDto{
+		User: &user,
+		LogoDistributionUrl: logoDistributionUrl,
+	}, nil
+}
+
+func getUserLogoDistributionUrl(request GetUserLogoDistributionUrlServiceRequest) (string, error) {
+	tx := request.Tx
+	minioClient := request.MinioClient
+	userID := request.UserID
+
+	var user models.User
+	err := tx.First(&user, userID).Error
+	if err != nil {
+		return "", err
+	}
+
+	objectName := user.LogoFileStorageKey
+
+	presignedUrl, err := minioClient.PresignedGetObject(context.Background(), string(constants.StorageBucketUserLogos), objectName, time.Hour*24, url.Values{})
+	if err != nil {
+		return "", err
+	}
+
+	return presignedUrl.String(), nil
 }
