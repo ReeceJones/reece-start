@@ -1,9 +1,17 @@
 package organizations
 
 import (
+	"bytes"
+	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
+	"net/http"
+	"net/url"
+	"time"
 
+	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
@@ -14,32 +22,38 @@ type CreateOrganizationParams struct {
 	Name   string
 	Description string
 	UserID uint
+	Logo   string
 }
 
 type CreateOrganizationServiceRequest struct {
 	Params CreateOrganizationParams
 	Tx     *gorm.DB
+	MinioClient *minio.Client
 }
 
 type GetOrganizationsByUserIDServiceRequest struct {
 	UserID uint
 	Tx     *gorm.DB
+	MinioClient *minio.Client
 }
 
 type GetOrganizationByIDServiceRequest struct {
 	OrganizationID uint
 	Tx             *gorm.DB
+	MinioClient    *minio.Client
 }
 
 type UpdateOrganizationParams struct {
 	OrganizationID uint
 	Name           *string
 	Description    *string
+	Logo           *string
 }
 
 type UpdateOrganizationServiceRequest struct {
 	Params UpdateOrganizationParams
 	Tx     *gorm.DB
+	MinioClient *minio.Client
 }
 
 type DeleteOrganizationServiceRequest struct {
@@ -59,8 +73,19 @@ type CheckUserOrganizationAdminAccessServiceRequest struct {
 	Tx             *gorm.DB
 }
 
+type GetOrganizationLogoDistributionUrlServiceRequest struct {
+	OrganizationID uint
+	Tx             *gorm.DB
+	MinioClient    *minio.Client
+}
+
+type OrganizationDto struct {
+	Organization        *models.Organization
+	LogoDistributionUrl string
+}
+
 // Service functions
-func createOrganization(request CreateOrganizationServiceRequest) (*models.Organization, error) {
+func createOrganization(request CreateOrganizationServiceRequest) (*OrganizationDto, error) {
 	tx := request.Tx
 	params := request.Params
 
@@ -89,12 +114,63 @@ func createOrganization(request CreateOrganizationServiceRequest) (*models.Organ
 		return nil, err
 	}
 
-	return organization, nil
+	// Handle logo upload if provided
+	if params.Logo != "" {
+		// decode the image from base64 to a binary file
+		decodedImage, err := base64.StdEncoding.DecodeString(params.Logo)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Printf("Uploading logo for organization %d of length %d\n", organization.ID, len(decodedImage))
+
+		// Get the mime type from the image
+		mimeType := http.DetectContentType(decodedImage)
+
+		log.Printf("Detected logo mime type: %s\n", mimeType)
+
+		objectName := fmt.Sprintf("%d", organization.ID)
+
+		// upload the image to minio
+		_, err = request.MinioClient.PutObject(context.Background(), string(constants.StorageBucketOrganizationLogos), objectName, bytes.NewReader(decodedImage), int64(len(decodedImage)), minio.PutObjectOptions{
+			ContentType: mimeType,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		log.Printf("Uploaded logo for organization %d\n", organization.ID)
+
+		organization.LogoFileStorageKey = objectName
+
+		// Save the updated organization with logo key
+		err = tx.Save(organization).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Get the logo distribution URL for the new organization
+	logoDistributionUrl, err := getOrganizationLogoDistributionUrl(GetOrganizationLogoDistributionUrlServiceRequest{
+		OrganizationID: organization.ID,
+		Tx:             tx,
+		MinioClient:    request.MinioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &OrganizationDto{
+		Organization:        organization,
+		LogoDistributionUrl: logoDistributionUrl,
+	}, nil
 }
 
-func getOrganizationsByUserID(request GetOrganizationsByUserIDServiceRequest) ([]models.Organization, error) {
+func getOrganizationsByUserID(request GetOrganizationsByUserIDServiceRequest) ([]*OrganizationDto, error) {
 	tx := request.Tx
 	userID := request.UserID
+	minioClient := request.MinioClient
 
 	var organizations []models.Organization
 	err := tx.Model(&models.Organization{}).
@@ -105,13 +181,31 @@ func getOrganizationsByUserID(request GetOrganizationsByUserIDServiceRequest) ([
 		return nil, err
 	}
 
+	// Convert to DTOs with logo distribution URLs
+	var orgDtos []*OrganizationDto
+	for _, org := range organizations {
+		logoDistributionUrl, err := getOrganizationLogoDistributionUrl(GetOrganizationLogoDistributionUrlServiceRequest{
+			OrganizationID: org.ID,
+			Tx:             tx,
+			MinioClient:    minioClient,
+		})
+		if err != nil {
+			return nil, err
+		}
 
-	return organizations, nil
+		orgDtos = append(orgDtos, &OrganizationDto{
+			Organization:        &org,
+			LogoDistributionUrl: logoDistributionUrl,
+		})
+	}
+
+	return orgDtos, nil
 }
 
-func getOrganizationByID(request GetOrganizationByIDServiceRequest) (*models.Organization, error) {
+func getOrganizationByID(request GetOrganizationByIDServiceRequest) (*OrganizationDto, error) {
 	tx := request.Tx
 	organizationID := request.OrganizationID
+	minioClient := request.MinioClient
 
 	var organization models.Organization
 	err := tx.First(&organization, organizationID).Error
@@ -122,21 +216,38 @@ func getOrganizationByID(request GetOrganizationByIDServiceRequest) (*models.Org
 		return nil, err
 	}
 
-	return &organization, nil
-}
-
-func updateOrganization(request UpdateOrganizationServiceRequest) (*models.Organization, error) {
-	tx := request.Tx
-	params := request.Params
-
-	// Get the existing organization
-	organization, err := getOrganizationByID(GetOrganizationByIDServiceRequest{
-		OrganizationID: params.OrganizationID,
+	// Get the logo distribution URL for the organization
+	logoDistributionUrl, err := getOrganizationLogoDistributionUrl(GetOrganizationLogoDistributionUrlServiceRequest{
+		OrganizationID: organization.ID,
 		Tx:             tx,
+		MinioClient:    minioClient,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	return &OrganizationDto{
+		Organization:        &organization,
+		LogoDistributionUrl: logoDistributionUrl,
+	}, nil
+}
+
+func updateOrganization(request UpdateOrganizationServiceRequest) (*OrganizationDto, error) {
+	tx := request.Tx
+	params := request.Params
+	minioClient := request.MinioClient
+
+	// Get the existing organization
+	orgDto, err := getOrganizationByID(GetOrganizationByIDServiceRequest{
+		OrganizationID: params.OrganizationID,
+		Tx:             tx,
+		MinioClient:    minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	organization := orgDto.Organization
 
 	// Update fields if provided
 	if params.Name != nil {
@@ -147,13 +258,56 @@ func updateOrganization(request UpdateOrganizationServiceRequest) (*models.Organ
 		organization.Description = *params.Description
 	}
 
+	if params.Logo != nil && *params.Logo != "" {
+		// decode the image from base64 to a binary file
+		decodedImage, err := base64.StdEncoding.DecodeString(*params.Logo)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Printf("Uploading logo for organization %d of length %d\n", organization.ID, len(decodedImage))
+
+		// Get the mime type from the image
+		mimeType := http.DetectContentType(decodedImage)
+
+		log.Printf("Detected logo mime type: %s\n", mimeType)
+
+		objectName := fmt.Sprintf("%d", organization.ID)
+
+		// upload the image to minio
+		_, err = minioClient.PutObject(context.Background(), string(constants.StorageBucketOrganizationLogos), objectName, bytes.NewReader(decodedImage), int64(len(decodedImage)), minio.PutObjectOptions{
+			ContentType: mimeType,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		log.Printf("Updated logo for organization %d\n", organization.ID)
+
+		organization.LogoFileStorageKey = objectName
+	}
+
 	// Save the updated organization
 	err = tx.Save(organization).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return organization, nil
+	// Get the logo distribution URL for the updated organization
+	logoDistributionUrl, err := getOrganizationLogoDistributionUrl(GetOrganizationLogoDistributionUrlServiceRequest{
+		OrganizationID: organization.ID,
+		Tx:             tx,
+		MinioClient:    minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &OrganizationDto{
+		Organization:        organization,
+		LogoDistributionUrl: logoDistributionUrl,
+	}, nil
 }
 
 func deleteOrganization(request DeleteOrganizationServiceRequest) error {
@@ -209,4 +363,28 @@ func checkUserOrganizationAdminAccess(request CheckUserOrganizationAdminAccessSe
 	}
 
 	return membership.Role == string(constants.OrganizationRoleAdmin), nil
+}
+
+func getOrganizationLogoDistributionUrl(request GetOrganizationLogoDistributionUrlServiceRequest) (string, error) {
+	tx := request.Tx
+	minioClient := request.MinioClient
+	organizationID := request.OrganizationID
+
+	var organization models.Organization
+	err := tx.First(&organization, organizationID).Error
+	if err != nil {
+		return "", err
+	}
+
+	objectName := organization.LogoFileStorageKey
+	if objectName == "" {
+		return "", nil
+	}
+
+	presignedUrl, err := minioClient.PresignedGetObject(context.Background(), string(constants.StorageBucketOrganizationLogos), objectName, time.Hour*24, url.Values{})
+	if err != nil {
+		return "", err
+	}
+
+	return presignedUrl.String(), nil
 }

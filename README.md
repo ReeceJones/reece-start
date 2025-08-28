@@ -1,6 +1,6 @@
 # reece-start
 
-This is a repo that I use as a starting point for new projects. It is based on SvelteKit + Go, and adopts a cloud-native approach for deployments.
+This is a repo that I use as a starting point for new projects. It is based on SvelteKit + Go, and adopts a (mostly) cloud-native approach for deployments.
 
 ## Features
 
@@ -9,8 +9,10 @@ This is a repo that I use as a starting point for new projects. It is based on S
 - Organization settings page (TODO)
 - Organization-based billing with free and paid membership tiers (TODO)
 - Stripe connect support (TODO)
+- Landing, pricing, and feature page templates (TODO)
 - Email and SMS notification APIs (TODO)
 - Posthog integration (TODO)
+- Sentry integration (TODO)
 
 ## Getting started
 

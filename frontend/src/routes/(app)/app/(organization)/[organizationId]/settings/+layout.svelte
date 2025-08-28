@@ -1,21 +1,34 @@
 <script lang="ts">
-	const { children } = $props();
+	import { DollarSign, Receipt, Settings, Users } from 'lucide-svelte';
+	import type { LayoutProps } from './$types';
 	import { page } from '$app/state';
 	import clsx from 'clsx/lite';
-	import { User, Lock } from 'lucide-svelte';
+	// TODO: refactor this into common component since it is also used in user settings
 
+	const { children, params }: LayoutProps = $props();
 	const url = $derived(page.url.pathname);
+
 	const activeClass = 'bg-base-300 rounded-md';
 	const routes = [
 		{
-			name: 'Profile',
-			icon: User,
-			href: '/app/profile'
+			name: 'General',
+			icon: Settings,
+			href: `/app/${params.organizationId}/settings`
 		},
 		{
-			name: 'Security',
-			icon: Lock,
-			href: '/app/profile/security'
+			name: 'Members',
+			icon: Users,
+			href: `/app/${params.organizationId}/settings/members`
+		},
+		{
+			name: 'Billing',
+			icon: Receipt,
+			href: `/app/${params.organizationId}/settings/billing`
+		},
+		{
+			name: 'Payments',
+			icon: DollarSign,
+			href: `/app/${params.organizationId}/settings/payments`
 		}
 	];
 

@@ -2,19 +2,21 @@
 	import UserNav from '$lib/components/UserNav.svelte';
 	import OrganizationNav from '$lib/components/OrganizationNav.svelte';
 
-	const { children } = $props();
+	const { children, data } = $props();
+
+	const { user, organization } = data;
 </script>
 
-<div class="container mx-auto">
-	<div class="flex justify-between">
+<div class="max-w-screen flex h-screen flex-row gap-4">
+	<div class="border-base-300 bg-base-200 flex h-full w-56 flex-col justify-between border-r">
 		<div>
-			<OrganizationNav />
+			<OrganizationNav {organization} />
 		</div>
 		<div>
-			<UserNav />
+			<UserNav {user} />
 		</div>
 	</div>
-	<main class="mt-8">
+	<main class="container mx-auto mr-4 mt-4 flex-1">
 		{@render children?.()}
 	</main>
 </div>

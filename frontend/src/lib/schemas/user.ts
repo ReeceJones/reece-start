@@ -14,6 +14,8 @@ export const getSelfUserResponseSchema = z.object({
 	})
 });
 
+export type User = z.infer<typeof getSelfUserResponseSchema>;
+
 export const updateUserRequestSchema = z.object({
 	data: z.object({
 		id: z.string(),

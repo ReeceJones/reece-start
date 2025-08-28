@@ -9,7 +9,6 @@ import (
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
 	"reece.start/internal/middleware"
-	"reece.start/internal/models"
 )
 
 // API Types
@@ -20,17 +19,28 @@ type OrganizationAttributes struct {
 
 type CreateOrganizationAttributes struct {
 	OrganizationAttributes
+	Logo string `json:"logo,omitempty" validate:"omitempty,base64"`
 }
 
 type UpdateOrganizationAttributes struct {
 	Name *string `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
 	Description *string `json:"description,omitempty" validate:"omitempty,min=1,max=255"`
+	Logo *string `json:"logo,omitempty" validate:"omitempty,base64"`
+}
+
+type OrganizationMeta struct {
+	LogoDistributionUrl string `json:"logoDistributionUrl,omitempty"`
 }
 
 type OrganizationData struct {
 	Id         string                `json:"id"`
 	Type       constants.ApiType     `json:"type"`
 	Attributes OrganizationAttributes `json:"attributes"`
+}
+
+type OrganizationDataWithMeta struct {
+	OrganizationData
+	Meta OrganizationMeta `json:"meta"`
 }
 
 type CreateOrganizationRequest struct {
@@ -40,7 +50,7 @@ type CreateOrganizationRequest struct {
 }
 
 type CreateOrganizationResponse struct {
-	Data OrganizationData `json:"data"`
+	Data OrganizationDataWithMeta `json:"data"`
 }
 
 type UpdateOrganizationRequest struct {
@@ -50,15 +60,15 @@ type UpdateOrganizationRequest struct {
 }
 
 type UpdateOrganizationResponse struct {
-	Data OrganizationData `json:"data"`
+	Data OrganizationDataWithMeta `json:"data"`
 }
 
 type GetOrganizationsResponse struct {
-	Data []OrganizationData `json:"data"`
+	Data []OrganizationDataWithMeta `json:"data"`
 }
 
 type GetOrganizationResponse struct {
-	Data OrganizationData `json:"data"`
+	Data OrganizationDataWithMeta `json:"data"`
 }
 
 func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) error {
@@ -71,6 +81,7 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 	}
 
 	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
 
 	var response CreateOrganizationResponse
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
@@ -79,8 +90,10 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 				Name:        req.Data.Attributes.Name,
 				Description: req.Data.Attributes.Description,
 				UserID: userID,
+				Logo: req.Data.Attributes.Logo,
 			},
 			Tx: db,
+			MinioClient: minioClient,
 		})
 
 		if err != nil {
@@ -91,7 +104,7 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 		}
 
 		response = CreateOrganizationResponse{
-			Data: mapOrganizationToApiData(organization),
+			Data: mapOrganizationToResponse(organization),
 		}
 
 		return nil
@@ -114,10 +127,12 @@ func GetOrganizationsEndpoint(c echo.Context) error {
 	}
 
 	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
 
 	organizations, err := getOrganizationsByUserID(GetOrganizationsByUserIDServiceRequest{
 		UserID: userID,
 		Tx:     db,
+		MinioClient: minioClient,
 	})
 
 	if err != nil {
@@ -149,6 +164,7 @@ func GetOrganizationEndpoint(c echo.Context) error {
 	}
 
 	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
 
 	// Check if user has access to this organization
 	hasAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
@@ -174,6 +190,7 @@ func GetOrganizationEndpoint(c echo.Context) error {
 	organization, err := getOrganizationByID(GetOrganizationByIDServiceRequest{
 		OrganizationID: uint(paramOrgID),
 		Tx:             db,
+		MinioClient:    minioClient,
 	})
 
 	if err != nil {
@@ -183,7 +200,9 @@ func GetOrganizationEndpoint(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, mapOrganizationToApiData(organization))
+	return c.JSON(http.StatusOK, GetOrganizationResponse{
+		Data: mapOrganizationToResponse(organization),
+	})
 }
 
 func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) error {
@@ -205,6 +224,7 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 	}
 
 	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
 
 	var response UpdateOrganizationResponse
 
@@ -235,8 +255,10 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 				OrganizationID: uint(paramOrgID),
 				Name:           req.Data.Attributes.Name,
 				Description:    req.Data.Attributes.Description,
+				Logo:           req.Data.Attributes.Logo,
 			},
 			Tx: db,
+			MinioClient: minioClient,
 		})
 
 		if err != nil {
@@ -247,7 +269,7 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 		}
 
 		response = UpdateOrganizationResponse{
-			Data: mapOrganizationToApiData(organization),
+			Data: mapOrganizationToResponse(organization),
 		}
 
 		return nil
@@ -317,21 +339,26 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 }
 
 // Type mappers
-func mapOrganizationToApiData(organization *models.Organization) OrganizationData {
-	return OrganizationData{
-		Id:   strconv.FormatUint(uint64(organization.ID), 10),
-		Type: constants.ApiTypeOrganization,
-		Attributes: OrganizationAttributes{
-			Name: organization.Name,
-			Description: organization.Description,
+func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta {
+	return OrganizationDataWithMeta{
+		OrganizationData: OrganizationData{
+			Id:   strconv.FormatUint(uint64(params.Organization.ID), 10),
+			Type: constants.ApiTypeOrganization,
+			Attributes: OrganizationAttributes{
+				Name: params.Organization.Name,
+				Description: params.Organization.Description,
+			},
+		},
+		Meta: OrganizationMeta{
+			LogoDistributionUrl: params.LogoDistributionUrl,
 		},
 	}
 }
 
-func organizationsToResponse(organizations []models.Organization) GetOrganizationsResponse {
-	data := []OrganizationData{}
+func organizationsToResponse(organizations []*OrganizationDto) GetOrganizationsResponse {
+	data := []OrganizationDataWithMeta{}
 	for _, org := range organizations {
-		data = append(data, mapOrganizationToApiData(&org))
+		data = append(data, mapOrganizationToResponse(org))
 	}
 	return GetOrganizationsResponse{Data: data}
 }

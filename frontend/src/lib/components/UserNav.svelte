@@ -1,12 +1,38 @@
 <script lang="ts">
-	import { User } from 'lucide-svelte';
+	import { LogOut, Settings, User } from 'lucide-svelte';
+	import type { User as UserType } from '$lib/schemas/user';
+
+	const { user }: { user: UserType } = $props();
 </script>
 
-<ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box mt-2 w-full">
-	<li>
-		<a href="/app/profile">
-			<User class="h-4 w-4" />
-			Profile
-		</a>
+<ul class="menu menu-vertical w-full">
+	<li class="w-full">
+		<div class="dropdown dropdown-top dropdown-start w-full p-0">
+			<div tabindex="0" role="button" class="flex w-full gap-2 px-3 py-1.5">
+				{#if user.data.meta.logoDistributionUrl}
+					<img src={user.data.meta.logoDistributionUrl} alt="User logo" class="size-6 rounded-sm" />
+				{:else}
+					<User class="size-5" />
+				{/if}
+				{user.data.attributes.name ?? 'Profile'}
+			</div>
+			<ul
+				tabindex="0"
+				class="dropdown-content menu bg-base-100 rounded-box z-1 -ml-3 w-52 -translate-y-1.5 p-2 shadow-sm"
+			>
+				<li>
+					<a href="/app/profile">
+						<Settings class="size-4" />
+						Settings
+					</a>
+				</li>
+				<li>
+					<a href="/signout" class="text-error">
+						<LogOut class="size-4" />
+						Logout
+					</a>
+				</li>
+			</ul>
+		</div>
 	</li>
 </ul>

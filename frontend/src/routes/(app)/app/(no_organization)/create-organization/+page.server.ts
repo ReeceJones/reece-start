@@ -1,28 +1,12 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { ApiError, post } from '$lib';
+import { base64Encode } from '$lib/base64';
+import {
+	createOrganizationRequestSchema,
+	organizationResponseSchema
+} from '$lib/schemas/organization';
 import type { Actions } from './$types';
 import { z } from 'zod';
-
-const createOrganizationRequestSchema = z.object({
-	data: z.object({
-		type: z.literal('organization'),
-		attributes: z.object({
-			name: z.string().min(1).max(100),
-			description: z.string().optional()
-		})
-	})
-});
-
-const createOrganizationResponseSchema = z.object({
-	data: z.object({
-		type: z.literal('organization'),
-		id: z.string(),
-		attributes: z.object({
-			name: z.string(),
-			description: z.string().optional()
-		})
-	})
-});
 
 export const actions = {
 	default: async ({ request, fetch }) => {
@@ -30,11 +14,24 @@ export const actions = {
 
 		const name = data.get('name') as string;
 		const description = data.get('description') as string;
+		const logoFile = data.get('logo') as File | undefined;
+
 		if (!name) {
 			return fail(400, { success: false, message: 'Please fill out all the fields correctly.' });
 		}
 
-		let organization: z.infer<typeof createOrganizationResponseSchema>;
+		// Convert logo file to base64 if provided
+		let logoBase64 = undefined;
+		if (logoFile && logoFile.size > 0) {
+			try {
+				const arrayBuffer = await logoFile.arrayBuffer();
+				logoBase64 = base64Encode(arrayBuffer);
+			} catch (error) {
+				return fail(400, { success: false, message: 'Error processing logo file.' });
+			}
+		}
+
+		let organization: z.infer<typeof organizationResponseSchema>;
 		try {
 			organization = await post(
 				'/api/organizations',
@@ -43,13 +40,14 @@ export const actions = {
 						type: 'organization',
 						attributes: {
 							name,
-							description
+							description,
+							...(logoBase64 && { logo: logoBase64 })
 						}
 					}
 				},
 				{
 					fetch,
-					responseSchema: createOrganizationResponseSchema,
+					responseSchema: organizationResponseSchema,
 					requestSchema: createOrganizationRequestSchema
 				}
 			);

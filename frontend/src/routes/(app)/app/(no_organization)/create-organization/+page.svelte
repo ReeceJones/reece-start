@@ -1,14 +1,33 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
-	import { CircleCheck, CircleX, Plus, Save } from 'lucide-svelte';
+	import { CircleCheck, CircleX, Plus } from 'lucide-svelte';
+	import LogoCrop from '$lib/components/LogoCrop.svelte';
 
 	let { form }: PageProps = $props();
 
 	let submitting = $state(false);
 	let name = $state('');
 	let description = $state('');
+	let logoInput: HTMLInputElement | null = null;
+	let logo = $state<FileList | null | undefined>(undefined);
+	let uncroppedLogo = $state<FileList | null | undefined>(undefined);
+	let logoCropModal: HTMLDialogElement | null = null;
 	let dirty = $derived(name !== '');
+
+	// Simple derived state that returns a preview URL or placeholder
+	const logoPreview = $derived(logo && logo.length > 0 ? URL.createObjectURL(logo[0]) : undefined);
+
+	function resetLogoUpload() {
+		logo = undefined;
+		uncroppedLogo = undefined;
+		// reset the logo input
+		if (logoInput) {
+			// Completely reset the value of the input
+			logoInput.value = '';
+			logoInput.files = null;
+		}
+	}
 </script>
 
 <div class="card bg-base-200 shadow-sm">
@@ -30,8 +49,35 @@
 		>
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">Logo</legend>
-				<input type="file" name="logo" class="file-input" accept="image/*" />
-				<p class="fieldset-label">Upload your organization's logo</p>
+				{#if logoPreview}
+					<img
+						src={logoPreview}
+						alt="Organization logo preview"
+						class="rounded-box mb-4 aspect-square w-48"
+					/>
+				{:else}
+					<div
+						class="rounded-box bg-base-300 text-base-content/50 mb-4 flex aspect-square w-48 items-center justify-center"
+					>
+						<span>No logo selected</span>
+					</div>
+				{/if}
+				<input
+					type="file"
+					name="logo"
+					class="file-input"
+					accept="image/*"
+					multiple={false}
+					bind:this={logoInput}
+					onchange={(e) => {
+						const target = e.target as HTMLInputElement;
+						uncroppedLogo = target.files;
+						if (logoCropModal) {
+							logoCropModal.showModal();
+						}
+					}}
+				/>
+				<p class="fieldset-label">Upload your organization's logo (optional)</p>
 			</fieldset>
 
 			<fieldset class="fieldset">
@@ -74,3 +120,43 @@
 		</form>
 	</div>
 </div>
+
+<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
+	<div class="modal-box">
+		<h3 class="text-lg font-bold">Update logo</h3>
+		<p class="py-4">Edit the logo to your liking and click save.</p>
+		{#if uncroppedLogo && uncroppedLogo.length > 0}
+			<LogoCrop
+				imageFile={uncroppedLogo[0]}
+				onCancel={() => {
+					resetLogoUpload();
+					if (logoCropModal) {
+						logoCropModal.close();
+					}
+				}}
+				onSave={(file) => {
+					console.log('Cropped file received:', file);
+					console.log('File size:', file.size);
+					console.log('File type:', file.type);
+
+					const dt = new DataTransfer();
+					dt.items.add(file);
+					logo = dt.files;
+					uncroppedLogo = undefined;
+
+					// set the value of the input to the new cropped image
+					if (logoInput) {
+						logoInput.files = dt.files;
+					}
+
+					if (logoCropModal) {
+						logoCropModal.close();
+					}
+				}}
+			/>
+		{/if}
+	</div>
+	<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
+		<button>close</button>
+	</form>
+</dialog>

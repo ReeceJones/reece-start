@@ -13,10 +13,12 @@ export function performAuthenticationCheck(requestEvent: RequestEvent) {
 	if (url.pathname.startsWith('/app')) {
 		// get the token from the cookies and check if the exp claim is still valid
 		const token = cookies.get('app-session-token');
+		const currentPath = url.href;
+		const redirectUrl = `/signin?redirect=${encodeURIComponent(currentPath)}`;
 
 		if (!token) {
 			console.log('User token not found, redirecting');
-			redirect(303, '/signin');
+			redirect(303, redirectUrl);
 		}
 
 		// parse the token
@@ -27,7 +29,7 @@ export function performAuthenticationCheck(requestEvent: RequestEvent) {
 
 			if (tokenExpirationDate < new Date()) {
 				console.log('User token expired, redirecting');
-				redirect(303, '/signin');
+				redirect(303, redirectUrl);
 			}
 		}
 	}

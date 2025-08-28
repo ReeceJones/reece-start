@@ -57,9 +57,9 @@
 		submitting = true;
 
 		return ({ result }) => {
+			invalidate('/api/users/me');
 			applyAction(result);
 			submitting = false;
-			invalidate('/api/users/me');
 		};
 	}}
 	enctype="multipart/form-data"
