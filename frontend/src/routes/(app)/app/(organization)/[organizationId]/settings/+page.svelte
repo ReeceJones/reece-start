@@ -2,7 +2,7 @@
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
-	import { invalidate } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 	import LogoCrop from '$lib/components/LogoCrop.svelte';
 
 	let { data, form }: PageProps = $props();
@@ -10,7 +10,6 @@
 	let submitting = $state(false);
 	let name = $state(data.organization.data.attributes.name);
 	let description = $state(data.organization.data.attributes.description || '');
-	let organizationData = $state(data.organization.data);
 	let logoInput: HTMLInputElement | null = null;
 	let logo = $state<FileList | null | undefined>(undefined);
 	let uncroppedLogo = $state<FileList | null | undefined>(undefined);
@@ -49,15 +48,13 @@
 		submitting = true;
 
 		return ({ result }) => {
-			invalidate(`/api/organizations/${organizationData.id}`);
+			invalidateAll();
 			applyAction(result);
 			submitting = false;
 		};
 	}}
 	enctype="multipart/form-data"
 >
-	<input type="hidden" tabindex="-1" name="organizationId" value={organizationData.id} />
-
 	<fieldset class="fieldset">
 		<legend class="fieldset-legend">Organization logo</legend>
 		{#if logoPreview}

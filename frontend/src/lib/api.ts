@@ -35,8 +35,9 @@ export async function post<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 	});
 
 	if (!response.ok) {
+		const json = await response.json();
 		throw new ApiError(
-			`Request failed with invalid status code: ${response.status}`,
+			json.message ?? `Request failed with invalid status code: ${response.status}`,
 			response.status
 		);
 	}
@@ -120,18 +121,27 @@ export async function patch<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 	return options.responseSchema.parse(parsedData);
 }
 
-export async function get<T extends z.ZodTypeAny>(
+export async function get<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 	path: string,
 	options: {
 		fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 		responseSchema: T;
+		paramsSchema?: K;
+		params?: z.infer<K>;
 	}
 ): Promise<z.infer<T>> {
 	const headers = {
 		'Content-Type': 'application/json'
 	};
 
-	const response = await options.fetch(path, {
+	let paramsString = '';
+
+	if (options.params && options.paramsSchema) {
+		options.paramsSchema.parse(options.params);
+		paramsString = `?${new URLSearchParams(options.params).toString()}`;
+	}
+
+	const response = await options.fetch(`${path}${paramsString}`, {
 		headers
 	});
 

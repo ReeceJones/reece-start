@@ -22,7 +22,7 @@
 			</div>
 			<ul
 				tabindex="0"
-				class="dropdown-content menu bg-base-100 rounded-box z-1 -ml-3 w-52 -translate-y-1.5 p-2 shadow-sm"
+				class="dropdown-content menu bg-base-100 rounded-box z-1 ml-0 w-52 -translate-y-0.5 p-2 shadow-sm"
 			>
 				<li>
 					<a href="/app/{organization.data.id}/settings">

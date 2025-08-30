@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/minio/minio-go/v7"
+	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
@@ -15,6 +16,7 @@ type AppDependencies struct {
 	DB *gorm.DB
 	MinioClient *minio.Client
 	RiverClient *river.Client[*sql.Tx]
+	ResendClient *resend.Client
 }
 
 // Middleware to inject config and database into context

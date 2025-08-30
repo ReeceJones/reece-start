@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { API_TYPES } from './api';
 
 // Request schemas
 export const createOrganizationRequestSchema = z.object({
 	data: z.object({
-		type: z.literal('organization'),
+		type: z.literal(API_TYPES.organization),
 		attributes: z.object({
 			name: z.string().min(1).max(100),
 			description: z.string().optional(),
@@ -14,7 +15,7 @@ export const createOrganizationRequestSchema = z.object({
 
 export const updateOrganizationRequestSchema = z.object({
 	data: z.object({
-		type: z.literal('organization'),
+		type: z.literal(API_TYPES.organization),
 		attributes: z.object({
 			name: z.string().min(1).max(100).optional(),
 			description: z.string().optional(),
@@ -26,7 +27,7 @@ export const updateOrganizationRequestSchema = z.object({
 // Response schemas
 const organizationSchema = z.object({
 	id: z.string(),
-	type: z.literal('organization'),
+	type: z.literal(API_TYPES.organization),
 	attributes: z.object({
 		name: z.string(),
 		description: z.string().optional()

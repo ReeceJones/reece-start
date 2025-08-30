@@ -14,7 +14,7 @@ export const load = async () => {
 export const actions = {
 	default: async ({ request, fetch, params }) => {
 		const data = await request.formData();
-		const organizationId = data.get('organizationId') as string;
+		const { organizationId } = params;
 		const name = data.get('name') as string;
 		const description = data.get('description') as string;
 		const logo = data.get('logo') as File;
@@ -25,11 +25,6 @@ export const actions = {
 				success: false,
 				message: 'Please fill out all the required fields correctly.'
 			});
-		}
-
-		// Verify the organizationId matches the URL param
-		if (organizationId !== params.organizationId) {
-			return fail(400, { success: false, message: 'Invalid organization ID.' });
 		}
 
 		if (logo.size > 3_000_000) {

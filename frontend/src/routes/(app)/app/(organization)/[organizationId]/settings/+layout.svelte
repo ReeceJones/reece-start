@@ -13,35 +13,44 @@
 		{
 			name: 'General',
 			icon: Settings,
-			href: `/app/${params.organizationId}/settings`
+			href: `/app/${params.organizationId}/settings`,
+			exact: true
 		},
 		{
 			name: 'Members',
 			icon: Users,
-			href: `/app/${params.organizationId}/settings/members`
+			href: `/app/${params.organizationId}/settings/members`,
+			exact: false
 		},
 		{
 			name: 'Billing',
 			icon: Receipt,
-			href: `/app/${params.organizationId}/settings/billing`
+			href: `/app/${params.organizationId}/settings/billing`,
+			exact: false
 		},
 		{
 			name: 'Payments',
 			icon: DollarSign,
-			href: `/app/${params.organizationId}/settings/payments`
+			href: `/app/${params.organizationId}/settings/payments`,
+			exact: false
 		}
 	];
 
 	const activeRoute = $derived(routes.find((route) => url === route.href));
 </script>
 
-<div class="flex flex-col gap-6 lg:flex-row">
-	<div>
+<div class="flex flex-col gap-8">
+	<div class="space-y-4">
+		<h1 class="text-3xl font-bold">Settings</h1>
 		<ul
-			class="menu menu-horizontal lg:menu-vertical rounded-box bg-base-200 gap-1 shadow-sm lg:w-56"
+			class="menu menu-horizontal rounded-box bg-base-200 max-w-full flex-nowrap gap-1 overflow-auto shadow-sm"
 		>
 			{#each routes as route}
-				<li class={clsx(url === route.href && activeClass)}>
+				<li
+					class={clsx(
+						(url === route.href || (!route.exact && url.startsWith(route.href))) && activeClass
+					)}
+				>
 					<a href={route.href}>
 						<route.icon class="size-5" />
 						<span>{route.name}</span>
@@ -50,7 +59,7 @@
 			{/each}
 		</ul>
 	</div>
-	<div class="card rounded-box bg-base-200 flex-1 shadow-sm">
+	<div class="card rounded-box bg-base-200 shadow-sm">
 		<div class="card-body">
 			{#if activeRoute}
 				<p class="card-title">{activeRoute?.name}</p>

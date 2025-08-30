@@ -140,7 +140,7 @@ func loginUser(request LoginUserServiceRequest) (*UserDto, error) {
 	}
 
 	// Get the logo distribution URL for the user
-	logoDistributionUrl, err := getUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
 		UserID: user.ID,
 		Tx:     tx,
 		MinioClient: minioClient,
@@ -171,7 +171,7 @@ func getUserByID(request GetUserByIDServiceRequest) (*UserDto, error) {
 	}
 
 	// get the logo distribution URL for the user
-	logoDistributionUrl, err := getUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
 		UserID: user.ID,
 		Tx:     tx,
 		MinioClient: minioClient,
@@ -249,7 +249,7 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 		return nil, err
 	}
 
-	logoDistributionUrl, err := getUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
 		UserID: user.ID,
 		Tx:     tx,
 		MinioClient: minioClient,
@@ -264,7 +264,7 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 	}, nil
 }
 
-func getUserLogoDistributionUrl(request GetUserLogoDistributionUrlServiceRequest) (string, error) {
+func GetUserLogoDistributionUrl(request GetUserLogoDistributionUrlServiceRequest) (string, error) {
 	tx := request.Tx
 	minioClient := request.MinioClient
 	userID := request.UserID

@@ -64,8 +64,6 @@ export const actions = {
 				path: '/',
 				maxAge: 60 * 60 * 24 * 30 // 30 days
 			});
-
-			console.log('Logged in user', userWithToken);
 		} catch (error) {
 			if (error instanceof ApiError) {
 				if (error.code === 401) {

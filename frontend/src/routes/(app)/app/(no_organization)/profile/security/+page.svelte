@@ -3,7 +3,7 @@
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
 	import clsx from 'clsx/lite';
-	import { invalidate } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data, form }: PageProps = $props();
 
@@ -32,7 +32,7 @@
 		submitting = true;
 
 		return ({ result }) => {
-			invalidate('/api/users/me');
+			invalidateAll();
 			applyAction(result);
 			submitting = false;
 		};

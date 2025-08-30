@@ -2,7 +2,7 @@
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
-	import { invalidate } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 	import LogoCrop from '$lib/components/LogoCrop.svelte';
 
 	let { data, form }: PageProps = $props();
@@ -57,7 +57,7 @@
 		submitting = true;
 
 		return ({ result }) => {
-			invalidate('/api/users/me');
+			invalidateAll();
 			applyAction(result);
 			submitting = false;
 		};

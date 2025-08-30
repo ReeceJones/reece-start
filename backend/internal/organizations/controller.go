@@ -1,6 +1,7 @@
 package organizations
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -71,13 +72,136 @@ type GetOrganizationResponse struct {
 	Data OrganizationDataWithMeta `json:"data"`
 }
 
+// Organization Membership API Types
+type OrganizationMembershipAttributes struct {
+	Role string `json:"role" validate:"required,oneof=admin member"`
+}
+
+type UpdateOrganizationMembershipAttributes struct {
+	Role *string `json:"role,omitempty" validate:"omitempty,oneof=admin member"`
+}
+
+type UserRelationshipDataObject struct {
+	Id   string            `json:"id" validate:"required"`
+	Type constants.ApiType `json:"type" validate:"required,oneof=user"`
+}
+
+type OrganizationRelationshipDataObject struct {
+	Id   string            `json:"id" validate:"required"`
+	Type constants.ApiType `json:"type" validate:"required,oneof=organization"`
+}
+
+type UserRelationshipData struct {
+	Data UserRelationshipDataObject `json:"data" validate:"required"`
+}
+
+type OrganizationRelationshipData struct {
+	Data OrganizationRelationshipDataObject `json:"data" validate:"required"`
+}
+
+type OrganizationMembershipRelationships struct {
+	User         UserRelationshipData         `json:"user"`
+	Organization OrganizationRelationshipData `json:"organization"`
+}
+
+type CreateOrganizationMembershipRelationships struct {
+	User         UserRelationshipData         `json:"user" validate:"required"`
+	Organization OrganizationRelationshipData `json:"organization" validate:"required"`
+}
+
+type OrganizationMembershipData struct {
+	Id            string                              `json:"id"`
+	Type          constants.ApiType                   `json:"type"`
+	Attributes    OrganizationMembershipAttributes    `json:"attributes"`
+	Relationships OrganizationMembershipRelationships `json:"relationships"`
+}
+
+type CreateOrganizationMembershipRequest struct {
+	Data struct {
+		Attributes    OrganizationMembershipAttributes           `json:"attributes"`
+		Relationships CreateOrganizationMembershipRelationships `json:"relationships"`
+	} `json:"data"`
+}
+
+type CreateOrganizationMembershipResponse struct {
+	Data OrganizationMembershipData `json:"data"`
+}
+
+type UpdateOrganizationMembershipRequest struct {
+	Data struct {
+		Attributes UpdateOrganizationMembershipAttributes `json:"attributes"`
+	} `json:"data"`
+}
+
+type UpdateOrganizationMembershipResponse struct {
+	Data OrganizationMembershipData `json:"data"`
+}
+
+type GetOrganizationMembershipsResponse struct {
+	Data     []OrganizationMembershipData `json:"data"`
+	Included []interface{}                `json:"included,omitempty"`
+}
+
+type GetOrganizationMembershipResponse struct {
+	Data     OrganizationMembershipData `json:"data"`
+	Included []interface{}              `json:"included,omitempty"`
+}
+
+type GetOrganizationMembershipsQuery struct {
+	OrganizationID uint `query:"organizationId" validate:"required,min=1"`
+}
+
+type InviteToOrganizationRelationships struct {
+	Organization OrganizationRelationshipData `json:"organization" validate:"required"`
+}
+
+type InviteToOrganizationRequest struct {
+	Data struct {
+		Type          constants.ApiType                   `json:"type" validate:"required,oneof=organization-invitation"`
+		Attributes    InviteToOrganizationAttributes    `json:"attributes"`
+		Relationships InviteToOrganizationRelationships `json:"relationships"`
+	} `json:"data"`
+}
+
+// User data for included section
+type UserIncludedAttributes struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type UserIncludedMeta struct {
+	LogoDistributionUrl string `json:"logoDistributionUrl,omitempty"`
+}
+
+type UserIncludedData struct {
+	Id         string                 `json:"id"`
+	Type       constants.ApiType      `json:"type"`
+	Attributes UserIncludedAttributes `json:"attributes"`
+	Meta       UserIncludedMeta       `json:"meta,omitempty"`
+}
+
+type OrganizationInvitationAttributes struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type OrganizationInvitationData struct {
+	Id         string                `json:"id"`
+	Type       constants.ApiType     `json:"type" validate:"required,oneof=organization-invitation"`
+	Attributes OrganizationInvitationAttributes `json:"attributes"`
+}
+
+type InviteToOrganizationAttributes struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type InviteToOrganizationResponse struct {
+	Data OrganizationInvitationData `json:"data"`
+}
+
 func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	userID, err := middleware.HandleJWTError(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -118,12 +242,9 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 }
 
 func GetOrganizationsEndpoint(c echo.Context) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	userID, err := middleware.HandleJWTError(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -136,31 +257,22 @@ func GetOrganizationsEndpoint(c echo.Context) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: err.Error(),
-		})
+		return err
 	}
 
 	return c.JSON(http.StatusOK, organizationsToResponse(organizations))
 }
 
 func GetOrganizationEndpoint(c echo.Context) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	userID, err := middleware.HandleJWTError(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
+		return err
 	}
 
 	// Parse the organization ID from the URL parameter
-	paramOrgID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	paramOrgID, err := middleware.ParseOrganizationID(c)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid organization ID",
-		})
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -169,35 +281,26 @@ func GetOrganizationEndpoint(c echo.Context) error {
 	// Check if user has access to this organization
 	hasAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
 		UserID:         userID,
-		OrganizationID: uint(paramOrgID),
+		OrganizationID: paramOrgID,
 		Tx:             db,
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: err.Error(),
-		})
+		return err
 	}
 
 	if !hasAccess {
-		return c.JSON(http.StatusForbidden, api.ApiError{
-			Code:    constants.ErrorCodeForbidden,
-			Message: "You don't have access to this organization",
-		})
+		return api.ErrForbiddenNoAdminAccess
 	}
 
 	organization, err := getOrganizationByID(GetOrganizationByIDServiceRequest{
-		OrganizationID: uint(paramOrgID),
+		OrganizationID: paramOrgID,
 		Tx:             db,
 		MinioClient:    minioClient,
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusNotFound, api.ApiError{
-			Code:    constants.ErrorCodeNotFound,
-			Message: "Organization not found",
-		})
+		return err
 	}
 
 	return c.JSON(http.StatusOK, GetOrganizationResponse{
@@ -237,17 +340,11 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 		})
 
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, api.ApiError{
-				Code:    constants.ErrorCodeInternalServerError,
-				Message: err.Error(),
-			})
+			return err
 		}
 
 		if !hasAdminAccess {
-			return c.JSON(http.StatusForbidden, api.ApiError{
-				Code:    constants.ErrorCodeForbidden,
-				Message: "You don't have admin access to this organization",
-			})
+			return api.ErrForbiddenNoAdminAccess
 		}
 
 		organization, err := updateOrganization(UpdateOrganizationServiceRequest{
@@ -262,10 +359,7 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 		})
 
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, api.ApiError{
-				Code:    constants.ErrorCodeInternalServerError,
-				Message: err.Error(),
-			})
+			return err
 		}
 
 		response = UpdateOrganizationResponse{
@@ -276,7 +370,7 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 	})
 
 	if err != nil {
-		return err
+		return err // Middleware will handle all error types
 	}
 
 	return c.JSON(http.StatusOK, response)
@@ -310,10 +404,7 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: err.Error(),
-		})
+		return err
 	}
 
 	if !hasAdminAccess {
@@ -329,13 +420,386 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: err.Error(),
-		})
+		return err
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// Organization Membership Endpoints
+func GetOrganizationMembershipsEndpoint(c echo.Context, query GetOrganizationMembershipsQuery) error {
+	userID, err := middleware.GetUserIDFromJWT(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ApiError{
+			Code:    constants.ErrorCodeUnauthorized,
+			Message: "Invalid user token",
+		})
+	}
+
+	db := middleware.GetDB(c)
+
+	// Check if user has access to this organization
+	hasAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
+		UserID:         userID,
+		OrganizationID: query.OrganizationID,
+		Tx:             db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !hasAccess {
+		return c.JSON(http.StatusForbidden, api.ApiError{
+			Code:    constants.ErrorCodeForbidden,
+			Message: "You don't have access to this organization",
+		})
+	}
+
+	memberships, err := getOrganizationMemberships(GetOrganizationMembershipsServiceRequest{
+		OrganizationID: query.OrganizationID,
+		Tx:             db,
+		MinioClient:    middleware.GetMinioClient(c),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, mapMembershipsToResponseWithIncluded(memberships))
+}
+
+func GetOrganizationMembershipEndpoint(c echo.Context) error {
+	userID, err := middleware.GetUserIDFromJWT(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ApiError{
+			Code:    constants.ErrorCodeUnauthorized,
+			Message: "Invalid user token",
+		})
+	}
+
+	// Parse the membership ID from the URL parameter
+	paramMembershipID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    constants.ErrorCodeBadRequest,
+			Message: "Invalid membership ID",
+		})
+	}
+
+	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
+
+	// First get the membership to check the organization
+	membership, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
+		MembershipID: uint(paramMembershipID),
+		Tx:           db,
+		MinioClient:  minioClient,
+	})
+
+	if err != nil {
+		return c.JSON(http.StatusNotFound, api.ApiError{
+			Code:    constants.ErrorCodeNotFound,
+			Message: "Membership not found",
+		})
+	}
+
+	// Check if user has access to this organization
+	hasAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
+		UserID:         userID,
+		OrganizationID: membership.Membership.OrganizationID,
+		Tx:             db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !hasAccess {
+		return c.JSON(http.StatusNotFound, api.ApiError{
+			Code:    constants.ErrorCodeNotFound,
+			Message: "Membership not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, GetOrganizationMembershipResponse{
+		Data:     mapMembershipToResponse(membership),
+		Included: []interface{}{mapUserToIncludedData(membership)},
+	})
+}
+
+func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganizationMembershipRequest) error {
+	userID, err := middleware.GetUserIDFromJWT(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ApiError{
+			Code:    constants.ErrorCodeUnauthorized,
+			Message: "Invalid user token",
+		})
+	}
+
+	paramOrgID, err := strconv.ParseUint(req.Data.Relationships.Organization.Data.Id, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    constants.ErrorCodeBadRequest,
+			Message: "Invalid organization ID",
+		})
+	}
+
+	paramUserID, err := strconv.ParseUint(req.Data.Relationships.User.Data.Id, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    constants.ErrorCodeBadRequest,
+			Message: "Invalid user ID",
+		})
+	}
+
+	db := middleware.GetDB(c)
+
+	var response CreateOrganizationMembershipResponse
+
+	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+		// Check if user has admin access to this organization
+		hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
+			UserID:         userID,
+			OrganizationID: uint(paramOrgID),
+			Tx:             tx,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if !hasAdminAccess {
+			return api.ErrForbiddenNoAdminAccess
+		}
+
+		membership, err := createOrganizationMembership(CreateOrganizationMembershipServiceRequest{
+			Params: CreateOrganizationMembershipParams{
+				UserID:         uint(paramUserID),
+				OrganizationID: uint(paramOrgID),
+				Role:           req.Data.Attributes.Role,
+			},
+			Tx: tx,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		response = CreateOrganizationMembershipResponse{
+			Data: mapMembershipToResponse(membership),
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err // Middleware will handle all error types
+	}
+
+	return c.JSON(http.StatusCreated, response)
+}
+
+func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganizationMembershipRequest) error {
+	userID, err := middleware.GetUserIDFromJWT(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ApiError{
+			Code:    constants.ErrorCodeUnauthorized,
+			Message: "Invalid user token",
+		})
+	}
+
+	paramMembershipID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    constants.ErrorCodeBadRequest,
+			Message: "Invalid membership ID",
+		})
+	}
+
+	db := middleware.GetDB(c)
+
+	var response UpdateOrganizationMembershipResponse
+
+	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+		// First get the membership to check the organization
+		membership, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
+			MembershipID: uint(paramMembershipID),
+			Tx:           tx,
+			MinioClient:  nil, // Not needed for update operation
+		})
+
+		if err != nil {
+			return api.ErrMembershipNotFound
+		}
+
+		// Check if user has admin access to this organization
+		hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
+			UserID:         userID,
+			OrganizationID: membership.Membership.OrganizationID,
+			Tx:             tx,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if !hasAdminAccess {
+			return api.ErrForbiddenNoAdminAccess
+		}
+
+		updatedMembership, err := updateOrganizationMembership(UpdateOrganizationMembershipServiceRequest{
+			Params: UpdateOrganizationMembershipParams{
+				MembershipID: uint(paramMembershipID),
+				Role:         req.Data.Attributes.Role,
+			},
+			Tx: tx,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		response = UpdateOrganizationMembershipResponse{
+			Data: mapMembershipToResponse(updatedMembership),
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err // Middleware will handle all error types
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
+	userID, err := middleware.GetUserIDFromJWT(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ApiError{
+			Code:    constants.ErrorCodeUnauthorized,
+			Message: "Invalid user token",
+		})
+	}
+
+	paramMembershipID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    constants.ErrorCodeBadRequest,
+			Message: "Invalid membership ID",
+		})
+	}
+
+	db := middleware.GetDB(c)
+
+	// First get the membership to check the organization
+	membership, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
+		MembershipID: uint(paramMembershipID),
+		Tx:           db,
+		MinioClient:  nil, // Not needed for delete operation
+	})
+
+	if err != nil {
+		return c.JSON(http.StatusNotFound, api.ApiError{
+			Code:    constants.ErrorCodeNotFound,
+			Message: "Membership not found",
+		})
+	}
+
+	// Check if user has admin access to this organization
+	hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
+		UserID:         userID,
+		OrganizationID: membership.Membership.OrganizationID,
+		Tx:             db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !hasAdminAccess {
+		return c.JSON(http.StatusForbidden, api.ApiError{
+			Code:    constants.ErrorCodeForbidden,
+			Message: "You don't have admin access to this organization",
+		})
+	}
+
+	err = deleteOrganizationMembership(DeleteOrganizationMembershipServiceRequest{
+		MembershipID: uint(paramMembershipID),
+		Tx:           db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationRequest) error {
+	userID, err := middleware.HandleJWTError(c)
+	if err != nil {
+		return err
+	}
+
+	// Parse the organization ID from the relationships
+	paramOrgID, err := middleware.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
+	if err != nil {
+		return err
+	}
+
+	db := middleware.GetDB(c)
+	riverClient := middleware.GetRiverClient(c)
+
+	var response InviteToOrganizationResponse
+
+	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+		// Check if user has admin access to this organization
+		hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
+			UserID:         userID,
+			OrganizationID: uint(paramOrgID),
+			Tx:             tx,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if !hasAdminAccess {
+			return api.ErrForbiddenNoAdminAccess
+		}
+
+		invitation, err := createOrganizationInvitation(CreateOrganizationInvitationServiceRequest{
+			Params: CreateOrganizationInvitationParams{
+				Email:          req.Data.Attributes.Email,
+				OrganizationID: uint(paramOrgID),
+				InvitingUserID: userID,
+			},
+			Tx:          tx,
+			RiverClient: riverClient,
+		})
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return api.ErrInvitationAlreadyExists
+			}
+
+			return err
+		}
+
+		response = InviteToOrganizationResponse{
+			Data: mapInvitationToResponse(invitation),
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err // Middleware will handle all error types
+	}
+
+	return c.JSON(http.StatusCreated, response)
 }
 
 // Type mappers
@@ -361,4 +825,75 @@ func organizationsToResponse(organizations []*OrganizationDto) GetOrganizationsR
 		data = append(data, mapOrganizationToResponse(org))
 	}
 	return GetOrganizationsResponse{Data: data}
+}
+
+func mapMembershipToResponse(membershipDto *OrganizationMembershipDto) OrganizationMembershipData {
+	return OrganizationMembershipData{
+		Id:   strconv.FormatUint(uint64(membershipDto.Membership.ID), 10),
+		Type: constants.ApiTypeOrganizationMembership,
+		Attributes: OrganizationMembershipAttributes{
+			Role: membershipDto.Membership.Role,
+		},
+		Relationships: OrganizationMembershipRelationships{
+			User: UserRelationshipData{
+				Data: UserRelationshipDataObject{
+					Id:   strconv.FormatUint(uint64(membershipDto.User.ID), 10),
+					Type: constants.ApiTypeUser,
+				},
+			},
+			Organization: OrganizationRelationshipData{
+				Data: OrganizationRelationshipDataObject{
+					Id:   strconv.FormatUint(uint64(membershipDto.Organization.ID), 10),
+					Type: constants.ApiTypeOrganization,
+				},
+			},
+		},
+	}
+}
+
+func mapUserToIncludedData(membershipDto *OrganizationMembershipDto) UserIncludedData {
+	return UserIncludedData{
+		Id:   strconv.FormatUint(uint64(membershipDto.User.ID), 10),
+		Type: constants.ApiTypeUser,
+		Attributes: UserIncludedAttributes{
+			Name:  membershipDto.User.Name,
+			Email: membershipDto.User.Email,
+		},
+		Meta: UserIncludedMeta{
+			LogoDistributionUrl: membershipDto.UserLogoDistributionUrl,
+		},
+	}
+}
+
+func mapMembershipsToResponseWithIncluded(membershipDtos []*OrganizationMembershipDto) GetOrganizationMembershipsResponse {
+	data := []OrganizationMembershipData{}
+	included := []interface{}{}
+	userMap := make(map[string]bool) // To avoid duplicate users in included section
+
+	for _, membershipDto := range membershipDtos {
+		data = append(data, mapMembershipToResponse(membershipDto))
+
+		// Add user to included section if not already added
+		userID := strconv.FormatUint(uint64(membershipDto.User.ID), 10)
+		if !userMap[userID] {
+			userIncluded := mapUserToIncludedData(membershipDto)
+			included = append(included, userIncluded)
+			userMap[userID] = true
+		}
+	}
+
+	return GetOrganizationMembershipsResponse{
+		Data:     data,
+		Included: included,
+	}
+}
+
+func mapInvitationToResponse(invitationDto *OrganizationInvitationDto) OrganizationInvitationData {
+	return OrganizationInvitationData{
+		Id:   strconv.FormatUint(uint64(invitationDto.Invitation.ID), 10),
+		Type: constants.ApiTypeOrganizationInvitation,
+		Attributes: OrganizationInvitationAttributes{
+			Email: invitationDto.Invitation.Email,
+		},
+	}
 }

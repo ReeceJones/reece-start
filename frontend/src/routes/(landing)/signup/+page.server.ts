@@ -1,32 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { z } from 'zod';
 import { post } from '$lib';
 import { env } from '$env/dynamic/private';
-
-const createUserRequestSchema = z.object({
-	data: z.object({
-		attributes: z.object({
-			name: z.string().min(1),
-			email: z.string().min(1),
-			password: z.string().min(1)
-		})
-	})
-});
-
-const createUserResponseSchema = z.object({
-	data: z.object({
-		id: z.string(),
-		type: z.literal('user'),
-		attributes: z.object({
-			name: z.string(),
-			email: z.string()
-		}),
-		meta: z.object({
-			token: z.string()
-		})
-	})
-});
+import { createUserRequestSchema, createUserResponseSchema } from '$lib/schemas/user';
 
 export const actions = {
 	default: async ({ cookies, request, fetch }) => {
@@ -64,8 +40,6 @@ export const actions = {
 			path: '/',
 			maxAge: 60 * 60 * 24 * 30 // 30 days
 		});
-
-		console.log('Created user', userWithToken);
 
 		redirect(302, '/app');
 	}

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { LogOut, Settings, User } from 'lucide-svelte';
-	import type { User as UserType } from '$lib/schemas/user';
+	import { getSelfUserResponseSchema } from '$lib/schemas/user';
+	import type { z } from 'zod';
 
-	const { user }: { user: UserType } = $props();
+	const { user }: { user: z.infer<typeof getSelfUserResponseSchema> } = $props();
 </script>
 
 <ul class="menu menu-vertical w-full">
@@ -18,7 +19,7 @@
 			</div>
 			<ul
 				tabindex="0"
-				class="dropdown-content menu bg-base-100 rounded-box z-1 -ml-3 w-52 -translate-y-1.5 p-2 shadow-sm"
+				class="dropdown-content menu bg-base-100 rounded-box z-1 ml-0 w-52 -translate-y-1.5 p-2 shadow-sm"
 			>
 				<li>
 					<a href="/app/profile">

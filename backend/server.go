@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	"gorm.io/driver/postgres"
@@ -42,15 +44,17 @@ func main() {
 		log.Fatalf("Error connecting to database, %s", err)
 	}
 
+	log.Printf("Database connected\n")
+
 	// Run database migrations
 	err = database.Migrate(db)
 	if err != nil {
 		log.Fatalf("Error migrating database, %s", err)
 	}
 
-	// Create minio client (Storage)
-	log.Printf("Using storage access key id: %s", config.StorageAccessKeyId)
+	log.Printf("Database migrated\n")
 
+	// Create minio client (Storage)
 	minioClient, err := minio.New(config.StorageEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.StorageAccessKeyId, config.StorageSecretAccessKey, ""),
 		Secure: config.StorageUseSSL,
@@ -59,13 +63,20 @@ func main() {
 		log.Fatalf("Error creating minio client, %s", err)
 	}
 
+	log.Printf("Minio client created\n")
+
+	// Create resend client (Email)
+    resendClient := resend.NewClient(config.ResendApiKey)
+
+	log.Printf("Resend client created\n")
+
 	// Create river client (Background jobs)
 	workers := river.NewWorkers()
-	// river.AddWorker(workers, &invoices.InvoiceUploadJobWorker{
-	// 	DB:          db,
-	// 	Config:      config,
-	// 	MinioClient: minioClient,
-	// })
+	river.AddWorker(workers, &organizations.OrganizationInvitationEmailJobWorker{
+		DB:          db,
+		Config:      config,
+		ResendClient: resendClient,
+	})
 
 	riverClient, err := river.NewClient(riverdatabasesql.New(conn), &river.Config{
 		Queues: map[string]river.QueueConfig{
@@ -77,12 +88,14 @@ func main() {
 		log.Fatalf("Error creating river client, %s", err)
 	}
 
-	// err = riverClient.Start(context.Background())
-	// if err != nil {
-	// 	log.Fatalf("Error starting river client, %s", err)
-	// }
+	log.Printf("River client created\n")
 
-	// log.Printf("River client started\n")
+	err = riverClient.Start(context.Background())
+	if err != nil {
+		log.Fatalf("Error starting river client, %s", err)
+	}
+
+	log.Printf("River client started\n")
 
 	e := echo.New()
 
@@ -104,7 +117,11 @@ func main() {
 		DB: db,
 		MinioClient: minioClient,
 		RiverClient: riverClient,
+		ResendClient: resendClient,
 	}))
+	
+	// Add error handling middleware
+	e.Use(appMiddleware.ErrorHandlingMiddleware)
 
 	// health check
 	e.GET("/", func(c echo.Context) error {
@@ -127,6 +144,14 @@ func main() {
 	protected.GET("/organizations/:id", organizations.GetOrganizationEndpoint)
 	protected.PATCH("/organizations/:id", api.Validated(organizations.UpdateOrganizationEndpoint))
 	protected.DELETE("/organizations/:id", organizations.DeleteOrganizationEndpoint)
+
+	protected.GET("/organization-memberships", api.ValidatedQuery(organizations.GetOrganizationMembershipsEndpoint))
+	protected.GET("/organization-memberships/:id", organizations.GetOrganizationMembershipEndpoint)
+	protected.POST("/organization-memberships", api.Validated(organizations.CreateOrganizationMembershipEndpoint))
+	protected.PATCH("/organization-memberships/:id", api.Validated(organizations.UpdateOrganizationMembershipEndpoint))
+	protected.DELETE("/organization-memberships/:id", organizations.DeleteOrganizationMembershipEndpoint)
+
+	protected.POST("/organization-invitations", api.Validated(organizations.InviteToOrganizationEndpoint))
 
 	// Start http server
 	e.Logger.Fatal(e.Start(":8080"))

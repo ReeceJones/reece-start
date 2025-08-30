@@ -3,7 +3,10 @@ package organizations
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -12,9 +15,13 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/riverqueue/river"
 	"gorm.io/gorm"
+	"reece.start/internal/api"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
+	"reece.start/internal/users"
+	"reece.start/internal/utils"
 )
 
 // Service request/response types
@@ -82,6 +89,69 @@ type GetOrganizationLogoDistributionUrlServiceRequest struct {
 type OrganizationDto struct {
 	Organization        *models.Organization
 	LogoDistributionUrl string
+}
+
+type OrganizationMembershipDto struct {
+	Membership          *models.OrganizationMembership
+	User                *models.User
+	UserLogoDistributionUrl string
+	Organization        *models.Organization
+}
+
+// Organization Membership Service Types
+type CreateOrganizationMembershipParams struct {
+	UserID         uint
+	OrganizationID uint
+	Role           string
+}
+
+type CreateOrganizationMembershipServiceRequest struct {
+	Params CreateOrganizationMembershipParams
+	Tx     *gorm.DB
+}
+
+type GetOrganizationMembershipsServiceRequest struct {
+	OrganizationID uint
+	Tx             *gorm.DB
+	MinioClient    *minio.Client
+}
+
+type GetOrganizationMembershipByIDServiceRequest struct {
+	MembershipID uint
+	Tx           *gorm.DB
+	MinioClient  *minio.Client
+}
+
+type UpdateOrganizationMembershipParams struct {
+	MembershipID uint
+	Role         *string
+}
+
+type UpdateOrganizationMembershipServiceRequest struct {
+	Params UpdateOrganizationMembershipParams
+	Tx     *gorm.DB
+}
+
+type DeleteOrganizationMembershipServiceRequest struct {
+	MembershipID uint
+	Tx           *gorm.DB
+}
+
+// Organization Invitation Service Types
+type CreateOrganizationInvitationParams struct {
+	Email          string
+	OrganizationID uint
+	InvitingUserID uint
+}
+
+type CreateOrganizationInvitationServiceRequest struct {
+	Params      CreateOrganizationInvitationParams
+	Tx          *gorm.DB
+	RiverClient *river.Client[*sql.Tx]
+}
+
+type OrganizationInvitationDto struct {
+	Invitation *models.OrganizationInvitation
 }
 
 // Service functions
@@ -387,4 +457,227 @@ func getOrganizationLogoDistributionUrl(request GetOrganizationLogoDistributionU
 	}
 
 	return presignedUrl.String(), nil
+}
+
+// Organization Membership Service Functions
+func createOrganizationMembership(request CreateOrganizationMembershipServiceRequest) (*OrganizationMembershipDto, error) {
+	tx := request.Tx
+	params := request.Params
+
+	// Check if membership already exists
+	var existingMembership models.OrganizationMembership
+	err := tx.Where("user_id = ? AND organization_id = ?", params.UserID, params.OrganizationID).
+		First(&existingMembership).Error
+	
+	if err == nil {
+		return nil, api.ErrInvitationAlreadyExists
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	// Create the organization membership
+	membership := &models.OrganizationMembership{
+		UserID:         params.UserID,
+		OrganizationID: params.OrganizationID,
+		Role:           params.Role,
+	}
+
+	err = tx.Create(&membership).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Reload with preloaded relationships
+	err = tx.Preload("User").Preload("Organization").First(&membership, membership.ID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &OrganizationMembershipDto{
+		Membership:   membership,
+		User:         &membership.User,
+		Organization: &membership.Organization,
+	}, nil
+}
+
+func getOrganizationMemberships(request GetOrganizationMembershipsServiceRequest) ([]*OrganizationMembershipDto, error) {
+	tx := request.Tx
+	organizationID := request.OrganizationID
+	minioClient := request.MinioClient
+
+	var memberships []models.OrganizationMembership
+	err := tx.Preload("User").Preload("Organization").Where("organization_id = ?", organizationID).Find(&memberships).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var membershipDtos []*OrganizationMembershipDto
+	for _, membership := range memberships {
+		// Get user logo distribution URL
+		userLogoDistributionUrl, err := users.GetUserLogoDistributionUrl(users.GetUserLogoDistributionUrlServiceRequest{
+			UserID:      membership.User.ID,
+			Tx:          tx,
+			MinioClient: minioClient,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		membershipDtos = append(membershipDtos, &OrganizationMembershipDto{
+			Membership:              &membership,
+			User:                    &membership.User,
+			UserLogoDistributionUrl: userLogoDistributionUrl,
+			Organization:            &membership.Organization,
+		})
+	}
+
+	return membershipDtos, nil
+}
+
+func getOrganizationMembershipByID(request GetOrganizationMembershipByIDServiceRequest) (*OrganizationMembershipDto, error) {
+	tx := request.Tx
+	membershipID := request.MembershipID
+	minioClient := request.MinioClient
+
+	var membership models.OrganizationMembership
+	err := tx.Preload("User").Preload("Organization").First(&membership, membershipID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("membership not found")
+		}
+		return nil, err
+	}
+
+	// Get user logo distribution URL if MinioClient is provided
+	var userLogoDistributionUrl string
+	if minioClient != nil {
+		userLogoDistributionUrl, err = users.GetUserLogoDistributionUrl(users.GetUserLogoDistributionUrlServiceRequest{
+			UserID:      membership.User.ID,
+			Tx:          tx,
+			MinioClient: minioClient,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &OrganizationMembershipDto{
+		Membership:              &membership,
+		User:                    &membership.User,
+		UserLogoDistributionUrl: userLogoDistributionUrl,
+		Organization:            &membership.Organization,
+	}, nil
+}
+
+func updateOrganizationMembership(request UpdateOrganizationMembershipServiceRequest) (*OrganizationMembershipDto, error) {
+	tx := request.Tx
+	params := request.Params
+
+	// Get the existing membership
+	membershipDto, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
+		MembershipID: params.MembershipID,
+		Tx:           tx,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	membership := membershipDto.Membership
+
+	// Update fields if provided
+	if params.Role != nil {
+		membership.Role = *params.Role
+	}
+
+	// Save the updated membership
+	err = tx.Save(membership).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Return updated DTO
+	return &OrganizationMembershipDto{
+		Membership:   membership,
+		User:         membershipDto.User,
+		Organization: membershipDto.Organization,
+	}, nil
+}
+
+func deleteOrganizationMembership(request DeleteOrganizationMembershipServiceRequest) error {
+	tx := request.Tx
+	membershipID := request.MembershipID
+
+	// Delete the membership
+	err := tx.Delete(&models.OrganizationMembership{}, membershipID).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// generateSecureToken generates a cryptographically secure random token
+func generateSecureToken() (string, error) {
+	bytes := make([]byte, 32) // 32 bytes = 256 bits
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
+// Organization Invitation Service Functions
+func createOrganizationInvitation(request CreateOrganizationInvitationServiceRequest) (*OrganizationInvitationDto, error) {
+	tx := request.Tx
+	params := request.Params
+	riverClient := request.RiverClient
+
+	// Generate a secure random invitation token
+	invitationToken, err := generateSecureToken()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate invitation token: %w", err)
+	}
+
+	// Check if there's already a pending invitation for this email and organization
+	var existingInvitation models.OrganizationInvitation
+	err = tx.Where("email = ? AND organization_id = ?", params.Email, params.OrganizationID).
+		First(&existingInvitation).Error
+	
+	if err == nil {
+		return nil, api.ErrInvitationAlreadyExists
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	// Create the organization invitation
+	invitation := &models.OrganizationInvitation{
+		Email:           params.Email,
+		InvitationToken: invitationToken,
+		OrganizationID:  params.OrganizationID,
+		InvitingUserID:  params.InvitingUserID,
+	}
+
+	err = tx.Create(&invitation).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Enqueue background job to send invitation email
+	sqlTx := utils.GetGormSQLTx(tx)
+	_, err = riverClient.InsertTx(tx.Statement.Context, sqlTx, OrganizationInvitationEmailJobArgs{
+		InvitationId: invitation.ID,
+	}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to enqueue invitation email job: %w", err)
+	}
+
+	log.Printf("Created organization invitation %d and enqueued email job", invitation.ID)
+
+	return &OrganizationInvitationDto{
+		Invitation: invitation,
+	}, nil
 }

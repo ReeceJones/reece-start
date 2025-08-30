@@ -1,0 +1,15 @@
+<p>
+  {{.InvitingUser.Name}} invited you to join {{.Organization.Name}} on
+  {{.ServiceName}}
+</p>
+
+<p>
+  Click
+  <a
+    href="{{.FrontendUrl}}/invitations/{{.Invitation.ID}}?token={{.Invitation.InvitationToken}}"
+    >here</a
+  >
+  to accept the invitation
+</p>
+
+<p>{{.ServiceDescription}}</p>

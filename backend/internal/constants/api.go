@@ -10,6 +10,7 @@ const (
 	ErrorCodeUnauthorized ErrorCode = "unauthorized"
 	ErrorCodeNotFound ErrorCode = "not_found"
 	ErrorCodeForbidden ErrorCode = "forbidden"
+	ErrorCodeConflict ErrorCode = "conflict"
 )
 
 type ApiType string
@@ -17,4 +18,6 @@ type ApiType string
 const (
 	ApiTypeUser ApiType = "user"
 	ApiTypeOrganization ApiType = "organization"
+	ApiTypeOrganizationMembership ApiType = "organization-membership"
+	ApiTypeOrganizationInvitation ApiType = "organization-invitation"
 )

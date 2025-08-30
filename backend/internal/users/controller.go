@@ -87,10 +87,7 @@ func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: err.Error(),
-		})
+		return err // Middleware will handle the error response
 	}
 
 	return c.JSON(http.StatusCreated, mapUserToResponse(user))
@@ -112,22 +109,16 @@ func LoginEndpoint(c echo.Context, req LoginUserRequest) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid email or password",
-		})
+		return api.ErrUnauthorizedInvalidLogin // Middleware will handle the error response
 	}
 
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
 }
 
 func GetAuthenticatedUserEndpoint(c echo.Context) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	userID, err := middleware.HandleJWTError(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
+		return err // Middleware will handle the error response
 	}
 
 	db := middleware.GetDB(c)
@@ -140,39 +131,27 @@ func GetAuthenticatedUserEndpoint(c echo.Context) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusNotFound, api.ApiError{
-			Code:    constants.ErrorCodeNotFound,
-			Message: "User not found",
-		})
+		return err // Middleware will handle the error response
 	}
 
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
 }
 
 func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	userID, err := middleware.HandleJWTError(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
+		return err // Middleware will handle the error response
 	}
 
 	// Parse the user ID from the URL parameter
-	paramUserID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	paramUserID, err := middleware.ParseUserIDFromString(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid user ID",
-		})
+		return err // Middleware will handle the error response
 	}
 
 	// Ensure users can only update their own profile
-	if uint(paramUserID) != userID {
-		return c.JSON(http.StatusForbidden, api.ApiError{
-			Code:    constants.ErrorCodeForbidden,
-			Message: "You can only update your own profile",
-		})
+	if paramUserID != userID {
+		return api.ErrForbiddenOwnProfileOnly // Middleware will handle the error response
 	}
 
 	db := middleware.GetDB(c)
@@ -192,10 +171,7 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 
 	if err != nil {
 		log.Error(err)
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
-			Message: err.Error(),
-		})
+		return err // Middleware will handle the error response
 	}
 
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
