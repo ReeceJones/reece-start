@@ -13,6 +13,7 @@ var (
 	ErrInvalidOrganizationID = errors.New("invalid organization ID")
 	ErrInvalidUserID         = errors.New("invalid user ID")
 	ErrInvalidMembershipID   = errors.New("invalid membership ID")
+	ErrInvalidInvitationID   = errors.New("invalid invitation ID")
 )
 
 // Helper functions for controllers to use instead of direct parsing
@@ -60,4 +61,13 @@ func ParseMembershipID(c echo.Context) (uint, error) {
 		return 0, ErrInvalidMembershipID
 	}
 	return uint(paramMembershipID), nil
+}
+
+// ParseOrganizationInvitationID parses invitation ID from URL parameter
+func ParseOrganizationInvitationID(c echo.Context) (uint, error) {
+	paramInvitationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return 0, ErrInvalidInvitationID
+	}
+	return uint(paramInvitationID), nil
 }

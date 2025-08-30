@@ -1,9 +1,14 @@
 <script lang="ts">
-	import { CircleCheck, SquarePen, User } from 'lucide-svelte';
+	import { CircleCheck, SquarePen, Trash, User } from 'lucide-svelte';
 	import clsx, { type ClassValue } from 'clsx/lite';
+	import { del } from '$lib';
 	import type { PageProps } from './$types';
-	import InviteMember from '$lib/components/InviteMember.svelte';
+	import InviteMember from '$lib/components/Organizations/InviteMember.svelte';
 	import type { OrganizationMembershipRole } from '$lib/schemas/organization-membership';
+	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
+	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
+	import { invalidateAll } from '$app/navigation';
+	import InvitationRow from '$lib/components/Organizations/InvitationRow.svelte';
 
 	const { data, params }: PageProps = $props();
 	let invitedMemberEmail = $state('');
@@ -27,74 +32,116 @@
 				return 'badge-neutral';
 		}
 	}
+
+	async function deleteInvitation(invitationId: string) {
+		await del(`/api/organization-invitations/${invitationId}`, {
+			fetch
+		});
+		invalidateAll();
+	}
 </script>
 
-<InviteMember
-	organizationId={params.organizationId}
-	onMemberInvited={(email) => (invitedMemberEmail = email)}
-/>
+<SettingsCard>
+	<SettingsCardTitle>Members</SettingsCardTitle>
+	<InviteMember
+		organizationId={params.organizationId}
+		onMemberInvited={(email) => (invitedMemberEmail = email)}
+	/>
 
-{#if invitedMemberEmail}
-	<div class="alert alert-success my-1">
-		<CircleCheck class="size-4" />
-		<span>
-			We've sent an email to
-			<strong><a href={`mailto:${invitedMemberEmail}`} class="link">{invitedMemberEmail}</a></strong
-			> with instructions to join your organization.
-		</span>
-	</div>
-{/if}
+	{#if invitedMemberEmail}
+		<div class="alert alert-success my-1">
+			<CircleCheck class="size-4" />
+			<span>
+				We've sent an email to
+				<strong
+					><a href={`mailto:${invitedMemberEmail}`} class="link">{invitedMemberEmail}</a></strong
+				> with instructions to join your organization.
+			</span>
+		</div>
+	{/if}
 
-<div class="overflow-auto">
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Role</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each memberships as membership}
-				<tr class="hover:bg-base-300">
-					<td class="flex items-center gap-3">
-						{#if membership.user?.meta.logoDistributionUrl}
-							<img
-								src={membership.user?.meta.logoDistributionUrl}
-								alt={membership.user?.attributes.name}
-								class="rounded-box size-10"
-							/>
-						{:else}
-							<User class="size-10" />
-						{/if}
-						<div class="flex flex-col">
-							<div>{membership.user?.attributes.name}</div>
-							<a
-								href={`mailto:${membership.user?.attributes.email}`}
-								class="link text-sm text-gray-500"
-							>
-								{membership.user?.attributes.email}
-							</a>
-						</div>
-					</td>
-					<td>
-						<div class={clsx('badge', getBadgeColorForRole(membership.membership.attributes.role))}>
-							{membership.membership.attributes.role.charAt(0).toUpperCase() +
-								membership.membership.attributes.role.slice(1)}
-						</div>
-					</td>
-					<td>
-						<div class="flex items-center justify-end">
-							<a
-								class="btn btn-ghost btn-sm btn-square"
-								href={`/app/${params.organizationId}/settings/members/${membership.membership.id}`}
-							>
-								<SquarePen class="size-4" />
-							</a>
-						</div>
-					</td>
+	<div class="overflow-auto">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Role</th>
+					<th></th>
 				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>
+			</thead>
+			<tbody>
+				{#if memberships.length === 0}
+					<tr>
+						<td colspan="3" class="text-center">No memberships found</td>
+					</tr>
+				{/if}
+				{#each memberships as membership}
+					<tr class="hover:bg-base-300">
+						<td class="flex items-center gap-3">
+							{#if membership.user?.meta.logoDistributionUrl}
+								<img
+									src={membership.user?.meta.logoDistributionUrl}
+									alt={membership.user?.attributes.name}
+									class="rounded-box size-10"
+								/>
+							{:else}
+								<User class="size-10" />
+							{/if}
+							<div class="flex flex-col">
+								<div class="font-semibold">{membership.user?.attributes.name}</div>
+								<a
+									href={`mailto:${membership.user?.attributes.email}`}
+									class="link text-sm text-gray-500"
+								>
+									{membership.user?.attributes.email}
+								</a>
+							</div>
+						</td>
+						<td>
+							<div
+								class={clsx('badge', getBadgeColorForRole(membership.membership.attributes.role))}
+							>
+								{membership.membership.attributes.role.charAt(0).toUpperCase() +
+									membership.membership.attributes.role.slice(1)}
+							</div>
+						</td>
+						<td>
+							<div class="flex items-center justify-end">
+								<a
+									class="btn btn-ghost btn-sm btn-square"
+									href={`/app/${params.organizationId}/settings/members/${membership.membership.id}`}
+								>
+									<SquarePen class="size-4" />
+								</a>
+							</div>
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
+</SettingsCard>
+
+<SettingsCard>
+	<SettingsCardTitle>Pending Invitations</SettingsCardTitle>
+	<div class="overflow-auto">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Email</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{#if data.invitations.data.length === 0}
+					<tr>
+						<td colspan="2" class="text-center">No invitations found</td>
+					</tr>
+				{/if}
+				{#each data.invitations.data as invitation}
+					<InvitationRow {invitation} />
+				{/each}
+			</tbody>
+		</table>
+	</div>
+</SettingsCard>

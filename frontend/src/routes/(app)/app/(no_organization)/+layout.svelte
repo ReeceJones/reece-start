@@ -1,6 +1,6 @@
 <script lang="ts">
-	import UserNav from '$lib/components/UserNav.svelte';
-	import IndexNav from '$lib/components/IndexNav.svelte';
+	import UserNav from '$lib/components/Nav/UserNav.svelte';
+	import IndexNav from '$lib/components/Nav/IndexNav.svelte';
 
 	const { children, data } = $props();
 

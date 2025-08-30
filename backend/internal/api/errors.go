@@ -12,5 +12,6 @@ var (
 
 	// Resource not found errors
 	ErrMembershipNotFound      = errors.New("Membership not found")
+	ErrInvitationNotFound      = errors.New("Invitation not found")
 	ErrInvitationAlreadyExists = errors.New("An invitation already exists for this email and organization")
 )

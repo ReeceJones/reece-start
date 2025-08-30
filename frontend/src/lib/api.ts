@@ -156,3 +156,26 @@ export async function get<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 
 	return options.responseSchema.parse(parsedData);
 }
+
+export async function del(
+	path: string,
+	options: {
+		fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+	}
+): Promise<void> {
+	const headers = {
+		'Content-Type': 'application/json'
+	};
+
+	const response = await options.fetch(path, {
+		method: 'DELETE',
+		headers
+	});
+
+	if (!response.ok) {
+		throw new ApiError(
+			`Request failed with invalid status code: ${response.status}`,
+			response.status
+		);
+	}
+}

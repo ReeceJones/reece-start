@@ -59,12 +59,5 @@
 			{/each}
 		</ul>
 	</div>
-	<div class="card rounded-box bg-base-200 shadow-sm">
-		<div class="card-body">
-			{#if activeRoute}
-				<p class="card-title">{activeRoute?.name}</p>
-			{/if}
-			{@render children?.()}
-		</div>
-	</div>
+	{@render children?.()}
 </div>

@@ -2,7 +2,7 @@
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Plus } from 'lucide-svelte';
-	import LogoCrop from '$lib/components/LogoCrop.svelte';
+	import LogoCrop from '$lib/components/Logo/LogoCrop.svelte';
 
 	let { form }: PageProps = $props();
 

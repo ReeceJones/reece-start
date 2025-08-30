@@ -4,8 +4,10 @@ import type { Actions } from './$types';
 import { authenticate } from '$lib/server/auth';
 import {
 	updateOrganizationRequestSchema,
-	organizationResponseSchema
+	organizationResponseSchema,
+	organizationFormSchema
 } from '$lib/schemas/organization';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 export const load = async () => {
 	authenticate();
@@ -13,11 +15,15 @@ export const load = async () => {
 
 export const actions = {
 	default: async ({ request, fetch, params }) => {
-		const data = await request.formData();
+		const formData = await parseFormData(request, organizationFormSchema);
+
+		if (!isParseSuccess(formData)) {
+			return formData;
+		}
+
 		const { organizationId } = params;
-		const name = data.get('name') as string;
-		const description = data.get('description') as string;
-		const logo = data.get('logo') as File;
+		const { name, description, logo } = formData;
+
 		let logoData: string | undefined = undefined;
 
 		if (!organizationId || !name) {
@@ -27,14 +33,18 @@ export const actions = {
 			});
 		}
 
-		if (logo.size > 3_000_000) {
-			return fail(400, { success: false, message: 'Logo must be less than 3MB.' });
-		}
+		if (logo) {
+			const logoFile = logo as unknown as File;
 
-		if (logo.size > 0) {
-			// need to base64 encode the logo content
-			const logoBuffer = await logo.arrayBuffer();
-			logoData = base64Encode(logoBuffer);
+			if (logoFile.size > 3_000_000) {
+				return fail(400, { success: false, message: 'Logo must be less than 3MB.' });
+			}
+
+			if (logoFile.size > 0) {
+				// need to base64 encode the logo content
+				const logoBuffer = await logoFile.arrayBuffer();
+				logoData = base64Encode(logoBuffer);
+			}
 		}
 
 		try {

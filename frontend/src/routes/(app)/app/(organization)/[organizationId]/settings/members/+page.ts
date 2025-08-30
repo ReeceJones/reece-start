@@ -1,5 +1,9 @@
 import { get } from '$lib';
 import {
+	getOrganizationInvitationsQuerySchema,
+	getOrganizationInvitationsResponseSchema
+} from '$lib/schemas/organization-invitation';
+import {
 	getOrganizationMembershipsQuerySchema,
 	getOrganizationMembershipsResponseSchema
 } from '$lib/schemas/organization-membership';
@@ -16,8 +20,18 @@ export const load = async ({ params, fetch }) => {
 		}
 	});
 
+	const invitations = await get(`/api/organization-invitations`, {
+		fetch: fetch,
+		responseSchema: getOrganizationInvitationsResponseSchema,
+		paramsSchema: getOrganizationInvitationsQuerySchema,
+		params: {
+			organizationId
+		}
+	});
+
 	return {
 		organizationId,
-		memberships: memberships
+		memberships,
+		invitations
 	};
 };

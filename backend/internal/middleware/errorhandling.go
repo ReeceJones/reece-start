@@ -48,6 +48,13 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
+		if errors.Is(err, api.ErrInvitationNotFound) {
+			return c.JSON(http.StatusNotFound, api.ApiError{
+				Code:    constants.ErrorCodeNotFound,
+				Message: err.Error(),
+			})
+		}
+
 		if errors.Is(err, api.ErrInvitationAlreadyExists) {
 			return c.JSON(http.StatusConflict, api.ApiError{
 				Code:    constants.ErrorCodeConflict,
@@ -81,6 +88,13 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
 				Code:    constants.ErrorCodeBadRequest,
 				Message: "Invalid membership ID",
+			})
+		}
+
+		if errors.Is(err, ErrInvalidInvitationID) {
+			return c.JSON(http.StatusBadRequest, api.ApiError{
+				Code:    constants.ErrorCodeBadRequest,
+				Message: "Invalid invitation ID",
 			})
 		}
 

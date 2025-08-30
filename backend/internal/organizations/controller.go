@@ -151,6 +151,10 @@ type GetOrganizationMembershipsQuery struct {
 	OrganizationID uint `query:"organizationId" validate:"required,min=1"`
 }
 
+type GetOrganizationInvitationsQuery struct {
+	OrganizationID uint `query:"organizationId" validate:"required,min=1"`
+}
+
 type InviteToOrganizationRelationships struct {
 	Organization OrganizationRelationshipData `json:"organization" validate:"required"`
 }
@@ -182,20 +186,32 @@ type UserIncludedData struct {
 
 type OrganizationInvitationAttributes struct {
 	Email string `json:"email" validate:"required,email"`
+	Role string `json:"role" validate:"required,oneof=admin member"`
+}
+
+type OrganizationInvitationRelationships struct {
+	Organization OrganizationRelationshipData `json:"organization" validate:"required"`
+	InvitingUser UserRelationshipData `json:"invitingUser" validate:"required"`
 }
 
 type OrganizationInvitationData struct {
 	Id         string                `json:"id"`
 	Type       constants.ApiType     `json:"type" validate:"required,oneof=organization-invitation"`
 	Attributes OrganizationInvitationAttributes `json:"attributes"`
+	Relationships OrganizationInvitationRelationships `json:"relationships"`
 }
 
 type InviteToOrganizationAttributes struct {
 	Email string `json:"email" validate:"required,email"`
+	Role string `json:"role" validate:"required,oneof=admin member"`
 }
 
 type InviteToOrganizationResponse struct {
 	Data OrganizationInvitationData `json:"data"`
+}
+
+type GetOrganizationInvitationsResponse struct {
+	Data []OrganizationInvitationData `json:"data"`
 }
 
 func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) error {
@@ -773,6 +789,7 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 		invitation, err := createOrganizationInvitation(CreateOrganizationInvitationServiceRequest{
 			Params: CreateOrganizationInvitationParams{
 				Email:          req.Data.Attributes.Email,
+				Role:           req.Data.Attributes.Role,
 				OrganizationID: uint(paramOrgID),
 				InvitingUserID: userID,
 			},
@@ -800,6 +817,92 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 	}
 
 	return c.JSON(http.StatusCreated, response)
+}
+
+func GetOrganizationInvitationsEndpoint(c echo.Context, query GetOrganizationInvitationsQuery) error {
+	userID, err := middleware.HandleJWTError(c)
+	if err != nil {
+		return err
+	}
+
+	db := middleware.GetDB(c)
+
+	// Check if user has admin access to this organization
+	hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
+		UserID:         userID,
+		OrganizationID: query.OrganizationID,
+		Tx:             db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !hasAdminAccess {
+		return api.ErrForbiddenNoAdminAccess
+	}
+
+	invitations, err := getOrganizationInvitations(GetOrganizationInvitationsServiceRequest{
+		OrganizationID: query.OrganizationID,
+		Tx:             db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, mapInvitationsToResponse(invitations))
+}
+
+func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
+	userID, err := middleware.HandleJWTError(c)
+	if err != nil {
+		return err
+	}
+
+	// Parse the invitation ID from the URL parameter
+	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	if err != nil {
+		return err
+	}
+
+	db := middleware.GetDB(c)
+
+	// First get the invitation to check the organization
+	invitation, err := getOrganizationInvitationByID(GetOrganizationInvitationByIDServiceRequest{
+		InvitationID: uint(paramInvitationID),
+		Tx:           db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Check if user has admin access to this organization
+	hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
+		UserID:         userID,
+		OrganizationID: invitation.Invitation.OrganizationID,
+		Tx:             db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !hasAdminAccess {
+		return api.ErrForbiddenNoAdminAccess
+	}
+
+	err = deleteOrganizationInvitation(DeleteOrganizationInvitationServiceRequest{
+		InvitationID: uint(paramInvitationID),
+		Tx:           db,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 // Type mappers
@@ -894,6 +997,29 @@ func mapInvitationToResponse(invitationDto *OrganizationInvitationDto) Organizat
 		Type: constants.ApiTypeOrganizationInvitation,
 		Attributes: OrganizationInvitationAttributes{
 			Email: invitationDto.Invitation.Email,
+			Role: invitationDto.Invitation.Role,
+		},
+		Relationships: OrganizationInvitationRelationships{
+			Organization: OrganizationRelationshipData{
+				Data: OrganizationRelationshipDataObject{
+					Id:   strconv.FormatUint(uint64(invitationDto.Invitation.OrganizationID), 10),
+					Type: constants.ApiTypeOrganization,
+				},
+			},
+			InvitingUser: UserRelationshipData{
+				Data: UserRelationshipDataObject{
+					Id:   strconv.FormatUint(uint64(invitationDto.Invitation.InvitingUserID), 10),
+					Type: constants.ApiTypeUser,
+				},
+			},
 		},
 	}
+}
+
+func mapInvitationsToResponse(invitations []*OrganizationInvitationDto) GetOrganizationInvitationsResponse {
+	data := []OrganizationInvitationData{}
+	for _, invitation := range invitations {
+		data = append(data, mapInvitationToResponse(invitation))
+	}
+	return GetOrganizationInvitationsResponse{Data: data}
 }

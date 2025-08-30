@@ -46,3 +46,19 @@ export type Organization = z.infer<typeof organizationResponseSchema>;
 export const organizationsResponseSchema = z.object({
 	data: z.array(organizationSchema)
 });
+
+export const organizationFormSchema = z.object({
+	name: z.string().min(1).max(100),
+	description: z.string(),
+	logo: z.custom<FileList>().nullish()
+});
+
+export type OrganizationFormData = z.infer<typeof organizationFormSchema>;
+
+export function getFormDataFromOrganization(organization: Organization): OrganizationFormData {
+	return {
+		name: organization.data.attributes.name,
+		description: organization.data.attributes.description || '',
+		logo: undefined
+	};
+}

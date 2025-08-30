@@ -21,7 +21,6 @@ import (
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
 	"reece.start/internal/users"
-	"reece.start/internal/utils"
 )
 
 // Service request/response types
@@ -140,6 +139,7 @@ type DeleteOrganizationMembershipServiceRequest struct {
 // Organization Invitation Service Types
 type CreateOrganizationInvitationParams struct {
 	Email          string
+	Role           string
 	OrganizationID uint
 	InvitingUserID uint
 }
@@ -152,6 +152,21 @@ type CreateOrganizationInvitationServiceRequest struct {
 
 type OrganizationInvitationDto struct {
 	Invitation *models.OrganizationInvitation
+}
+
+type GetOrganizationInvitationsServiceRequest struct {
+	OrganizationID uint
+	Tx             *gorm.DB
+}
+
+type GetOrganizationInvitationByIDServiceRequest struct {
+	InvitationID uint
+	Tx           *gorm.DB
+}
+
+type DeleteOrganizationInvitationServiceRequest struct {
+	InvitationID uint
+	Tx           *gorm.DB
 }
 
 // Service functions
@@ -632,7 +647,7 @@ func generateSecureToken() (string, error) {
 func createOrganizationInvitation(request CreateOrganizationInvitationServiceRequest) (*OrganizationInvitationDto, error) {
 	tx := request.Tx
 	params := request.Params
-	riverClient := request.RiverClient
+	// riverClient := request.RiverClient
 
 	// Generate a secure random invitation token
 	invitationToken, err := generateSecureToken()
@@ -659,6 +674,7 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 		InvitationToken: invitationToken,
 		OrganizationID:  params.OrganizationID,
 		InvitingUserID:  params.InvitingUserID,
+		Role:            params.Role,
 	}
 
 	err = tx.Create(&invitation).Error
@@ -667,17 +683,68 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 	}
 
 	// Enqueue background job to send invitation email
-	sqlTx := utils.GetGormSQLTx(tx)
-	_, err = riverClient.InsertTx(tx.Statement.Context, sqlTx, OrganizationInvitationEmailJobArgs{
-		InvitationId: invitation.ID,
-	}, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to enqueue invitation email job: %w", err)
-	}
+	// sqlTx := utils.GetGormSQLTx(tx)
+	// _, err = riverClient.InsertTx(tx.Statement.Context, sqlTx, OrganizationInvitationEmailJobArgs{
+	// 	InvitationId: invitation.ID,
+	// }, nil)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to enqueue invitation email job: %w", err)
+	// }
 
 	log.Printf("Created organization invitation %d and enqueued email job", invitation.ID)
 
 	return &OrganizationInvitationDto{
 		Invitation: invitation,
 	}, nil
+}
+
+func getOrganizationInvitations(request GetOrganizationInvitationsServiceRequest) ([]*OrganizationInvitationDto, error) {
+	tx := request.Tx
+	organizationID := request.OrganizationID
+
+	var invitations []models.OrganizationInvitation
+	err := tx.Where("organization_id = ?", organizationID).Find(&invitations).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var invitationDtos []*OrganizationInvitationDto
+	for _, invitation := range invitations {
+		invitationDtos = append(invitationDtos, &OrganizationInvitationDto{
+			Invitation: &invitation,
+		})
+	}
+
+	return invitationDtos, nil
+}
+
+func getOrganizationInvitationByID(request GetOrganizationInvitationByIDServiceRequest) (*OrganizationInvitationDto, error) {
+	tx := request.Tx
+	invitationID := request.InvitationID
+
+	var invitation models.OrganizationInvitation
+	err := tx.First(&invitation, invitationID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, api.ErrInvitationNotFound
+		}
+		return nil, err
+	}
+
+	return &OrganizationInvitationDto{
+		Invitation: &invitation,
+	}, nil
+}
+
+func deleteOrganizationInvitation(request DeleteOrganizationInvitationServiceRequest) error {
+	tx := request.Tx
+	invitationID := request.InvitationID
+
+	// Delete the invitation
+	err := tx.Delete(&models.OrganizationInvitation{}, invitationID).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -22,6 +22,7 @@
 		"@tailwindcss/forms": "^0.5.9",
 		"@tailwindcss/typography": "^0.5.15",
 		"@tailwindcss/vite": "4.1.12",
+		"@types/deep-equal": "1.0.4",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
@@ -40,6 +41,7 @@
 	"dependencies": {
 		"cropperjs": "2.0.1",
 		"daisyui": "5.0.50",
+		"deep-equal": "2.2.3",
 		"dotenv": "17.2.1",
 		"jwt-decode": "4.0.0",
 		"lucide-svelte": "0.539.0",

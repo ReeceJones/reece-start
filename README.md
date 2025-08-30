@@ -14,7 +14,7 @@ This is a repo that I use as a starting point for new projects. It is based on S
 - Stripe connect support (TODO)
 - Landing, pricing, and feature page templates (TODO)
 - Email and SMS notification APIs (WIP)
-  - TODO: SMS, Email template API
+  - TODO: SMS
 - Posthog integration (TODO)
 - Sentry integration (TODO)
 

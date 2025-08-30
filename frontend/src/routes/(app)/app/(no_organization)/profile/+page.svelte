@@ -3,7 +3,7 @@
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
-	import LogoCrop from '$lib/components/LogoCrop.svelte';
+	import LogoCrop from '$lib/components/Logo/LogoCrop.svelte';
 
 	let { data, form }: PageProps = $props();
 
