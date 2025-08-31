@@ -3,6 +3,7 @@ package constants
 type OrganizationScope string
 
 const (
+	// Organization
 	OrganizationScopeRead OrganizationScope = "organization:read"
 	OrganizationScopeUpdate OrganizationScope = "organization:update"
 	OrganizationScopeDelete OrganizationScope = "organization:delete"

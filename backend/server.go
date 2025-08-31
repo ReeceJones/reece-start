@@ -142,6 +142,7 @@ func main() {
 	protected.GET("/organizations", organizations.GetOrganizationsEndpoint)
 	protected.POST("/organizations", api.Validated(organizations.CreateOrganizationEndpoint))
 	protected.GET("/organizations/:id", organizations.GetOrganizationEndpoint)
+	// protected.GET("/organizations/:id/token", organizations.GetOrganizationTokenEndpoint) // Re-issue a new JWT token with the organization details in its claims
 	protected.PATCH("/organizations/:id", api.Validated(organizations.UpdateOrganizationEndpoint))
 	protected.DELETE("/organizations/:id", organizations.DeleteOrganizationEndpoint)
 
