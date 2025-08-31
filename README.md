@@ -8,8 +8,7 @@ This is a repo that I use as a starting point for new projects. It is based on S
   - TODO: Refactor auth check functions, add scopes
 - User settings page (WIP)
   - TODO: show within organization context
-- Organization settings page (WIP)
-  - TODO: invite user, remove member
+- Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)
 - Stripe connect support (TODO)
 - Landing, pricing, and feature page templates (TODO)

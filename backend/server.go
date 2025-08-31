@@ -152,7 +152,10 @@ func main() {
 	protected.DELETE("/organization-memberships/:id", organizations.DeleteOrganizationMembershipEndpoint)
 
 	protected.POST("/organization-invitations", api.Validated(organizations.InviteToOrganizationEndpoint))
+	protected.POST("/organization-invitations/:id/accept", api.Validated(organizations.AcceptOrganizationInvitationEndpoint))
+	protected.POST("/organization-invitations/:id/decline", api.Validated(organizations.DeclineOrganizationInvitationEndpoint))
 	protected.GET("/organization-invitations", api.ValidatedQuery(organizations.GetOrganizationInvitationsEndpoint))
+	protected.GET("/organization-invitations/:id", organizations.GetOrganizationInvitationEndpoint)
 	protected.DELETE("/organization-invitations/:id", organizations.DeleteOrganizationInvitationEndpoint)
 
 	// Start http server

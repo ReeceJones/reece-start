@@ -14,9 +14,11 @@ export const userDataSchema = z.object({
 		email: z.string()
 	}),
 	meta: z.object({
-		logoDistributionUrl: z.string()
+		logoDistributionUrl: z.string().optional()
 	})
 });
+
+export type UserData = z.infer<typeof userDataSchema>;
 
 export const getSelfUserResponseSchema = z.object({
 	data: userDataSchema

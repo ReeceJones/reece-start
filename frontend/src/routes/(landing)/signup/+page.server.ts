@@ -11,6 +11,9 @@ export const actions = {
 		const email = data.get('email') as string;
 		const password = data.get('password') as string;
 
+		const searchParams = new URLSearchParams(request.url.slice(request.url.indexOf('?')));
+		const redirectUrl = searchParams.get('redirect') ?? '/app';
+
 		if (!name || !email || !password) {
 			return fail(400, { success: false, message: 'Please fill out all the fields correctly.' });
 		}
@@ -41,6 +44,6 @@ export const actions = {
 			maxAge: 60 * 60 * 24 * 30 // 30 days
 		});
 
-		redirect(302, '/app');
+		redirect(302, redirectUrl);
 	}
 } satisfies Actions;

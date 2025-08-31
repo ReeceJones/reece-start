@@ -2,9 +2,11 @@
 	import { CircleCheck, CircleX, LogIn } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
+	import { page } from '$app/state';
 
 	let { form }: PageProps = $props();
 	let submitting = $state(false);
+	const redirect = $derived(page.url.searchParams.get('redirect'));
 </script>
 
 <main class="card card-border bg-base-200 mx-auto my-8 max-w-80 shadow-sm">
@@ -78,7 +80,12 @@
 				{/if}
 
 				<div class="mt-3 text-center text-sm">
-					<p>Already have an account? <a href="/signin" class="link">Sign in</a></p>
+					<p>
+						Already have an account? <a
+							href="/signin{redirect ? `?redirect=${redirect}` : ''}"
+							class="link">Sign in</a
+						>
+					</p>
 				</div>
 			</div>
 		</form>

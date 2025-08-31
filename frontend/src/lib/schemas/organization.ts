@@ -25,7 +25,7 @@ export const updateOrganizationRequestSchema = z.object({
 });
 
 // Response schemas
-const organizationSchema = z.object({
+export const organizationDataSchema = z.object({
 	id: z.string(),
 	type: z.literal(API_TYPES.organization),
 	attributes: z.object({
@@ -37,14 +37,16 @@ const organizationSchema = z.object({
 	})
 });
 
+export type OrganizationData = z.infer<typeof organizationDataSchema>;
+
 export const organizationResponseSchema = z.object({
-	data: organizationSchema
+	data: organizationDataSchema
 });
 
 export type Organization = z.infer<typeof organizationResponseSchema>;
 
 export const organizationsResponseSchema = z.object({
-	data: z.array(organizationSchema)
+	data: z.array(organizationDataSchema)
 });
 
 export const organizationFormSchema = z.object({

@@ -184,9 +184,27 @@ type UserIncludedData struct {
 	Meta       UserIncludedMeta       `json:"meta,omitempty"`
 }
 
+// Organization data for included section
+type OrganizationIncludedAttributes struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type OrganizationIncludedMeta struct {
+	LogoDistributionUrl string `json:"logoDistributionUrl,omitempty"`
+}
+
+type OrganizationIncludedData struct {
+	Id         string                          `json:"id"`
+	Type       constants.ApiType               `json:"type"`
+	Attributes OrganizationIncludedAttributes `json:"attributes"`
+	Meta       OrganizationIncludedMeta       `json:"meta,omitempty"`
+}
+
 type OrganizationInvitationAttributes struct {
 	Email string `json:"email" validate:"required,email"`
 	Role string `json:"role" validate:"required,oneof=admin member"`
+	Status string `json:"status" validate:"required,oneof=pending accepted declined expired revoked"`
 }
 
 type OrganizationInvitationRelationships struct {
@@ -212,6 +230,34 @@ type InviteToOrganizationResponse struct {
 
 type GetOrganizationInvitationsResponse struct {
 	Data []OrganizationInvitationData `json:"data"`
+}
+
+type GetOrganizationInvitationResponse struct {
+	Data     OrganizationInvitationData `json:"data"`
+	Included []interface{}              `json:"included,omitempty"`
+}
+
+type OrganizationInvitationIdentifier struct {
+	Id   string            `json:"id" validate:"required"`
+	Type constants.ApiType `json:"type" validate:"required,oneof=organization-invitation"`
+}
+
+type AcceptOrganizationInvitationRequest struct {
+	Data OrganizationInvitationIdentifier `json:"data" validate:"required"`
+}
+
+type DeclineOrganizationInvitationRequest struct {
+	Data OrganizationInvitationIdentifier `json:"data" validate:"required"`
+}
+
+type AcceptOrganizationInvitationResponse struct {
+	Data     OrganizationInvitationData `json:"data"`
+	Included []interface{}              `json:"included,omitempty"`
+}
+
+type DeclineOrganizationInvitationResponse struct {
+	Data     OrganizationInvitationData `json:"data"`
+	Included []interface{}              `json:"included,omitempty"`
 }
 
 func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) error {
@@ -828,7 +874,7 @@ func GetOrganizationInvitationsEndpoint(c echo.Context, query GetOrganizationInv
 	db := middleware.GetDB(c)
 
 	// Check if user has admin access to this organization
-	hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
+	hasAdminAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
 		UserID:         userID,
 		OrganizationID: query.OrganizationID,
 		Tx:             db,
@@ -854,6 +900,39 @@ func GetOrganizationInvitationsEndpoint(c echo.Context, query GetOrganizationInv
 	return c.JSON(http.StatusOK, mapInvitationsToResponse(invitations))
 }
 
+func GetOrganizationInvitationEndpoint(c echo.Context) error {
+	// Parse the invitation ID from the URL parameter
+	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	if err != nil {
+		return err
+	}
+
+	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
+
+	// First get the invitation to check the organization
+	invitation, err := getOrganizationInvitationByID(GetOrganizationInvitationByIDServiceRequest{
+		InvitationID: paramInvitationID,
+		Tx:           db,
+		MinioClient:  minioClient,
+	})
+
+	if err != nil {
+		return err
+	}
+
+
+	included := []interface{}{
+		mapOrganizationToIncludedData(invitation.Organization),
+		mapInvitingUserToIncludedData(invitation.InvitingUser),
+	}
+
+	return c.JSON(http.StatusOK, GetOrganizationInvitationResponse{
+		Data:     mapInvitationToResponse(invitation),
+		Included: included,
+	})
+}
+
 func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 	userID, err := middleware.HandleJWTError(c)
 	if err != nil {
@@ -867,11 +946,13 @@ func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 	}
 
 	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
 
 	// First get the invitation to check the organization
 	invitation, err := getOrganizationInvitationByID(GetOrganizationInvitationByIDServiceRequest{
-		InvitationID: uint(paramInvitationID),
+		InvitationID: paramInvitationID,
 		Tx:           db,
+		MinioClient:  minioClient,
 	})
 
 	if err != nil {
@@ -894,7 +975,7 @@ func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 	}
 
 	err = deleteOrganizationInvitation(DeleteOrganizationInvitationServiceRequest{
-		InvitationID: uint(paramInvitationID),
+		InvitationID: paramInvitationID,
 		Tx:           db,
 	})
 
@@ -903,6 +984,120 @@ func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func AcceptOrganizationInvitationEndpoint(c echo.Context, req AcceptOrganizationInvitationRequest) error {
+	userID, err := middleware.HandleJWTError(c)
+	if err != nil {
+		return err
+	}
+
+	// Parse the invitation ID from the URL parameter
+	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	if err != nil {
+		return err
+	}
+
+	// Validate that the request body ID matches the URL parameter
+	if req.Data.Id != paramInvitationID.String() {
+		return c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    constants.ErrorCodeBadRequest,
+			Message: "Request body ID must match URL parameter",
+		})
+	}
+
+	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
+
+	var response AcceptOrganizationInvitationResponse
+
+	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+		invitation, err := acceptOrganizationInvitation(AcceptOrganizationInvitationServiceRequest{
+			InvitationID: paramInvitationID,
+			UserID:       userID,
+			Tx:           tx,
+			MinioClient:  minioClient,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		included := []interface{}{
+			mapOrganizationToIncludedData(invitation.Organization),
+			mapInvitingUserToIncludedData(invitation.InvitingUser),
+		}
+
+		response = AcceptOrganizationInvitationResponse{
+			Data:     mapInvitationToResponse(invitation),
+			Included: included,
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err // Middleware will handle all error types
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func DeclineOrganizationInvitationEndpoint(c echo.Context, req DeclineOrganizationInvitationRequest) error {
+	userID, err := middleware.HandleJWTError(c)
+	if err != nil {
+		return err
+	}
+
+	// Parse the invitation ID from the URL parameter
+	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	if err != nil {
+		return err
+	}
+
+	// Validate that the request body ID matches the URL parameter
+	if req.Data.Id != paramInvitationID.String() {
+		return c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    constants.ErrorCodeBadRequest,
+			Message: "Request body ID must match URL parameter",
+		})
+	}
+
+	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
+
+	var response DeclineOrganizationInvitationResponse
+
+	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+		invitation, err := declineOrganizationInvitation(DeclineOrganizationInvitationServiceRequest{
+			InvitationID: paramInvitationID,
+			UserID:       userID,
+			Tx:           tx,
+			MinioClient:  minioClient,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		included := []interface{}{
+			mapOrganizationToIncludedData(invitation.Organization),
+			mapInvitingUserToIncludedData(invitation.InvitingUser),
+		}
+
+		response = DeclineOrganizationInvitationResponse{
+			Data:     mapInvitationToResponse(invitation),
+			Included: included,
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err // Middleware will handle all error types
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // Type mappers
@@ -968,6 +1163,34 @@ func mapUserToIncludedData(membershipDto *OrganizationMembershipDto) UserInclude
 	}
 }
 
+func mapOrganizationToIncludedData(organizationDto *OrganizationDto) OrganizationIncludedData {
+	return OrganizationIncludedData{
+		Id:   strconv.FormatUint(uint64(organizationDto.Organization.ID), 10),
+		Type: constants.ApiTypeOrganization,
+		Attributes: OrganizationIncludedAttributes{
+			Name:        organizationDto.Organization.Name,
+			Description: organizationDto.Organization.Description,
+		},
+		Meta: OrganizationIncludedMeta{
+			LogoDistributionUrl: organizationDto.LogoDistributionUrl,
+		},
+	}
+}
+
+func mapInvitingUserToIncludedData(invitingUserDto *InvitingUserDto) UserIncludedData {
+	return UserIncludedData{
+		Id:   strconv.FormatUint(uint64(invitingUserDto.User.ID), 10),
+		Type: constants.ApiTypeUser,
+		Attributes: UserIncludedAttributes{
+			Name:  invitingUserDto.User.Name,
+			Email: invitingUserDto.User.Email,
+		},
+		Meta: UserIncludedMeta{
+			LogoDistributionUrl: invitingUserDto.UserLogoDistributionUrl,
+		},
+	}
+}
+
 func mapMembershipsToResponseWithIncluded(membershipDtos []*OrganizationMembershipDto) GetOrganizationMembershipsResponse {
 	data := []OrganizationMembershipData{}
 	included := []interface{}{}
@@ -993,11 +1216,12 @@ func mapMembershipsToResponseWithIncluded(membershipDtos []*OrganizationMembersh
 
 func mapInvitationToResponse(invitationDto *OrganizationInvitationDto) OrganizationInvitationData {
 	return OrganizationInvitationData{
-		Id:   strconv.FormatUint(uint64(invitationDto.Invitation.ID), 10),
+		Id:   invitationDto.Invitation.ID.String(),
 		Type: constants.ApiTypeOrganizationInvitation,
 		Attributes: OrganizationInvitationAttributes{
 			Email: invitationDto.Invitation.Email,
 			Role: invitationDto.Invitation.Role,
+			Status: invitationDto.Invitation.Status,
 		},
 		Relationships: OrganizationInvitationRelationships{
 			Organization: OrganizationRelationshipData{

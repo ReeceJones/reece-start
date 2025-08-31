@@ -85,7 +85,7 @@
 									class="rounded-box size-10"
 								/>
 							{:else}
-								<User class="size-10" />
+								<User class="rounded-box bg-base-300 size-10" />
 							{/if}
 							<div class="flex flex-col">
 								<div class="font-semibold">{membership.user?.attributes.name}</div>
@@ -129,6 +129,7 @@
 			<thead>
 				<tr>
 					<th>Email</th>
+					<th></th>
 					<th></th>
 				</tr>
 			</thead>

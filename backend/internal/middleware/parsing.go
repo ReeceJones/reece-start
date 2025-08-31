@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -64,10 +65,10 @@ func ParseMembershipID(c echo.Context) (uint, error) {
 }
 
 // ParseOrganizationInvitationID parses invitation ID from URL parameter
-func ParseOrganizationInvitationID(c echo.Context) (uint, error) {
-	paramInvitationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+func ParseOrganizationInvitationID(c echo.Context) (uuid.UUID, error) {
+	paramInvitationID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return 0, ErrInvalidInvitationID
+		return uuid.Nil, ErrInvalidInvitationID
 	}
-	return uint(paramInvitationID), nil
+	return paramInvitationID, nil
 }

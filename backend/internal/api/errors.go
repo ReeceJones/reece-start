@@ -14,4 +14,8 @@ var (
 	ErrMembershipNotFound      = errors.New("Membership not found")
 	ErrInvitationNotFound      = errors.New("Invitation not found")
 	ErrInvitationAlreadyExists = errors.New("An invitation already exists for this email and organization")
+	ErrInvitationNotPending    = errors.New("Invitation is no longer pending")
+	ErrInvitationEmailMismatch = errors.New("Invitation email does not match user email")
+	ErrUserAlreadyMember       = errors.New("User is already a member of this organization")
+	ErrUserNotFound            = errors.New("User not found")
 )

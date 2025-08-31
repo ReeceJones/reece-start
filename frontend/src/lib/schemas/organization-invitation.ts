@@ -1,10 +1,21 @@
 import { z } from 'zod';
 import { API_TYPES } from './api';
 import { organizationMembershipRole } from './organization-membership';
+import { organizationDataSchema } from './organization';
+import { userDataSchema } from './user';
+
+const organizationInvitationStatus = z.enum([
+	'pending',
+	'accepted',
+	'declined',
+	'expired',
+	'revoked'
+]);
 
 const organizationInvitationAttributesSchema = z.object({
 	email: z.string(),
-	role: organizationMembershipRole
+	role: organizationMembershipRole,
+	status: organizationInvitationStatus
 });
 
 const organizationInvitationRelationshipsSchema = z.object({
@@ -34,9 +45,12 @@ export type OrganizationInvitation = z.infer<typeof organizationInvitationDataSc
 export const inviteToOrganizationRequestSchema = z.object({
 	data: z.object({
 		type: z.literal(API_TYPES.organizationInvitation),
-		attributes: organizationInvitationAttributesSchema,
-		relationships: organizationInvitationRelationshipsSchema.omit({
-			invitingUser: true
+		attributes: organizationInvitationAttributesSchema.pick({
+			email: true,
+			role: true
+		}),
+		relationships: organizationInvitationRelationshipsSchema.pick({
+			organization: true
 		})
 	})
 });
@@ -60,4 +74,37 @@ export const getOrganizationInvitationsResponseSchema = z.object({
 
 export const deleteInvitationFormSchema = z.object({
 	invitationId: z.string()
+});
+
+const organizationInvitationIncludedSchema = z.array(
+	z.union([organizationDataSchema, userDataSchema])
+);
+
+export const getOrganizationInvitationResponseSchema = z.object({
+	data: organizationInvitationDataSchema,
+	included: organizationInvitationIncludedSchema
+});
+
+export const acceptOrganizationInvitationRequestSchema = z.object({
+	data: z.object({
+		id: z.string(),
+		type: z.literal(API_TYPES.organizationInvitation)
+	})
+});
+
+export const acceptOrganizationInvitationResponseSchema = z.object({
+	data: organizationInvitationDataSchema,
+	included: organizationInvitationIncludedSchema
+});
+
+export const declineOrganizationInvitationRequestSchema = z.object({
+	data: z.object({
+		id: z.string(),
+		type: z.literal(API_TYPES.organizationInvitation)
+	})
+});
+
+export const declineOrganizationInvitationResponseSchema = z.object({
+	data: organizationInvitationDataSchema,
+	included: organizationInvitationIncludedSchema
 });

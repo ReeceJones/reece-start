@@ -277,6 +277,10 @@ func GetUserLogoDistributionUrl(request GetUserLogoDistributionUrlServiceRequest
 
 	objectName := user.LogoFileStorageKey
 
+	if objectName == "" {
+		return "", nil
+	}
+
 	presignedUrl, err := minioClient.PresignedGetObject(context.Background(), string(constants.StorageBucketUserLogos), objectName, time.Hour*24, url.Values{})
 	if err != nil {
 		return "", err

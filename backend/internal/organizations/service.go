@@ -3,10 +3,8 @@ package organizations
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -14,6 +12,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/riverqueue/river"
 	"gorm.io/gorm"
@@ -150,8 +149,15 @@ type CreateOrganizationInvitationServiceRequest struct {
 	RiverClient *river.Client[*sql.Tx]
 }
 
+type InvitingUserDto struct {
+	User                    *models.User
+	UserLogoDistributionUrl string
+}
+
 type OrganizationInvitationDto struct {
-	Invitation *models.OrganizationInvitation
+	Invitation   *models.OrganizationInvitation
+	Organization *OrganizationDto
+	InvitingUser *InvitingUserDto
 }
 
 type GetOrganizationInvitationsServiceRequest struct {
@@ -160,13 +166,28 @@ type GetOrganizationInvitationsServiceRequest struct {
 }
 
 type GetOrganizationInvitationByIDServiceRequest struct {
-	InvitationID uint
+	InvitationID uuid.UUID
 	Tx           *gorm.DB
+	MinioClient  *minio.Client
 }
 
 type DeleteOrganizationInvitationServiceRequest struct {
-	InvitationID uint
+	InvitationID uuid.UUID
 	Tx           *gorm.DB
+}
+
+type AcceptOrganizationInvitationServiceRequest struct {
+	InvitationID uuid.UUID
+	UserID       uint
+	Tx           *gorm.DB
+	MinioClient  *minio.Client
+}
+
+type DeclineOrganizationInvitationServiceRequest struct {
+	InvitationID uuid.UUID
+	UserID       uint
+	Tx           *gorm.DB
+	MinioClient  *minio.Client
 }
 
 // Service functions
@@ -633,31 +654,15 @@ func deleteOrganizationMembership(request DeleteOrganizationMembershipServiceReq
 	return nil
 }
 
-// generateSecureToken generates a cryptographically secure random token
-func generateSecureToken() (string, error) {
-	bytes := make([]byte, 32) // 32 bytes = 256 bits
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
-}
-
 // Organization Invitation Service Functions
 func createOrganizationInvitation(request CreateOrganizationInvitationServiceRequest) (*OrganizationInvitationDto, error) {
 	tx := request.Tx
 	params := request.Params
 	// riverClient := request.RiverClient
 
-	// Generate a secure random invitation token
-	invitationToken, err := generateSecureToken()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate invitation token: %w", err)
-	}
-
 	// Check if there's already a pending invitation for this email and organization
 	var existingInvitation models.OrganizationInvitation
-	err = tx.Where("email = ? AND organization_id = ?", params.Email, params.OrganizationID).
+	err := tx.Where("email = ? AND organization_id = ?", params.Email, params.OrganizationID).
 		First(&existingInvitation).Error
 	
 	if err == nil {
@@ -671,10 +676,10 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 	// Create the organization invitation
 	invitation := &models.OrganizationInvitation{
 		Email:           params.Email,
-		InvitationToken: invitationToken,
 		OrganizationID:  params.OrganizationID,
 		InvitingUserID:  params.InvitingUserID,
 		Role:            params.Role,
+		Status:          string(constants.OrganizationInvitationStatusPending),
 	}
 
 	err = tx.Create(&invitation).Error
@@ -694,7 +699,9 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 	log.Printf("Created organization invitation %d and enqueued email job", invitation.ID)
 
 	return &OrganizationInvitationDto{
-		Invitation: invitation,
+		Invitation:   invitation,
+		Organization: nil, // Organization data not needed for creation
+		InvitingUser: nil, // Inviting user data not needed for creation
 	}, nil
 }
 
@@ -703,7 +710,7 @@ func getOrganizationInvitations(request GetOrganizationInvitationsServiceRequest
 	organizationID := request.OrganizationID
 
 	var invitations []models.OrganizationInvitation
-	err := tx.Where("organization_id = ?", organizationID).Find(&invitations).Error
+	err := tx.Where("organization_id = ? AND status = ?", organizationID, string(constants.OrganizationInvitationStatusPending)).Find(&invitations).Error
 	if err != nil {
 		return nil, err
 	}
@@ -711,7 +718,9 @@ func getOrganizationInvitations(request GetOrganizationInvitationsServiceRequest
 	var invitationDtos []*OrganizationInvitationDto
 	for _, invitation := range invitations {
 		invitationDtos = append(invitationDtos, &OrganizationInvitationDto{
-			Invitation: &invitation,
+			Invitation:   &invitation,
+			Organization: nil, // Organization data not needed for list endpoint
+			InvitingUser: nil, // Inviting user data not needed for list endpoint
 		})
 	}
 
@@ -721,6 +730,7 @@ func getOrganizationInvitations(request GetOrganizationInvitationsServiceRequest
 func getOrganizationInvitationByID(request GetOrganizationInvitationByIDServiceRequest) (*OrganizationInvitationDto, error) {
 	tx := request.Tx
 	invitationID := request.InvitationID
+	minioClient := request.MinioClient
 
 	var invitation models.OrganizationInvitation
 	err := tx.First(&invitation, invitationID).Error
@@ -731,8 +741,45 @@ func getOrganizationInvitationByID(request GetOrganizationInvitationByIDServiceR
 		return nil, err
 	}
 
+	// Get the organization data with logo distribution URL
+	organizationDto, err := getOrganizationByID(GetOrganizationByIDServiceRequest{
+		OrganizationID: invitation.OrganizationID,
+		Tx:             tx,
+		MinioClient:    minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the inviting user data
+	var invitingUser models.User
+	err = tx.First(&invitingUser, invitation.InvitingUserID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("inviting user not found")
+		}
+		return nil, err
+	}
+
+	// Get user logo distribution URL
+	userLogoDistributionUrl, err := users.GetUserLogoDistributionUrl(users.GetUserLogoDistributionUrlServiceRequest{
+		UserID:      invitingUser.ID,
+		Tx:          tx,
+		MinioClient: minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	invitingUserDto := &InvitingUserDto{
+		User:                    &invitingUser,
+		UserLogoDistributionUrl: userLogoDistributionUrl,
+	}
+
 	return &OrganizationInvitationDto{
-		Invitation: &invitation,
+		Invitation:   &invitation,
+		Organization: organizationDto,
+		InvitingUser: invitingUserDto,
 	}, nil
 }
 
@@ -740,11 +787,134 @@ func deleteOrganizationInvitation(request DeleteOrganizationInvitationServiceReq
 	tx := request.Tx
 	invitationID := request.InvitationID
 
-	// Delete the invitation
-	err := tx.Delete(&models.OrganizationInvitation{}, invitationID).Error
+	// Mark the invitation as revoked
+	err := tx.Model(&models.OrganizationInvitation{}).Where("id = ?", invitationID).Update("status", string(constants.OrganizationInvitationStatusRevoked)).Error
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func acceptOrganizationInvitation(request AcceptOrganizationInvitationServiceRequest) (*OrganizationInvitationDto, error) {
+	tx := request.Tx
+	invitationID := request.InvitationID
+	userID := request.UserID
+
+	// First, get the invitation and verify it's pending
+	var invitation models.OrganizationInvitation
+	err := tx.First(&invitation, invitationID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, api.ErrInvitationNotFound
+		}
+		return nil, err
+	}
+
+	// Check if invitation is still pending
+	if invitation.Status != string(constants.OrganizationInvitationStatusPending) {
+		return nil, api.ErrInvitationNotPending
+	}
+
+	// Get the user to check their email matches the invitation
+	var user models.User
+	err = tx.First(&user, userID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, api.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	// Verify the user's email matches the invitation email
+	if user.Email != invitation.Email {
+		return nil, api.ErrInvitationEmailMismatch
+	}
+
+	// Check if user is already a member of the organization
+	var existingMembership models.OrganizationMembership
+	err = tx.Where("user_id = ? AND organization_id = ?", userID, invitation.OrganizationID).
+		First(&existingMembership).Error
+	
+	if err == nil {
+		return nil, api.ErrUserAlreadyMember
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	// Create organization membership
+	membership := &models.OrganizationMembership{
+		UserID:         userID,
+		OrganizationID: invitation.OrganizationID,
+		Role:           invitation.Role,
+	}
+
+	err = tx.Create(&membership).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Update invitation status to accepted
+	err = tx.Model(&invitation).Update("status", string(constants.OrganizationInvitationStatusAccepted)).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the updated invitation with organization and user data
+	return getOrganizationInvitationByID(GetOrganizationInvitationByIDServiceRequest{
+		InvitationID: invitationID,
+		Tx:           tx,
+		MinioClient:  request.MinioClient,
+	})
+}
+
+func declineOrganizationInvitation(request DeclineOrganizationInvitationServiceRequest) (*OrganizationInvitationDto, error) {
+	tx := request.Tx
+	invitationID := request.InvitationID
+	userID := request.UserID
+
+	// First, get the invitation and verify it's pending
+	var invitation models.OrganizationInvitation
+	err := tx.First(&invitation, invitationID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, api.ErrInvitationNotFound
+		}
+		return nil, err
+	}
+
+	// Check if invitation is still pending
+	if invitation.Status != string(constants.OrganizationInvitationStatusPending) {
+		return nil, api.ErrInvitationNotPending
+	}
+
+	// Get the user to check their email matches the invitation
+	var user models.User
+	err = tx.First(&user, userID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, api.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	// Verify the user's email matches the invitation email
+	if user.Email != invitation.Email {
+		return nil, api.ErrInvitationEmailMismatch
+	}
+
+	// Update invitation status to declined
+	err = tx.Model(&invitation).Update("status", string(constants.OrganizationInvitationStatusDeclined)).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the updated invitation with organization and user data
+	return getOrganizationInvitationByID(GetOrganizationInvitationByIDServiceRequest{
+		InvitationID: invitationID,
+		Tx:           tx,
+		MinioClient:  request.MinioClient,
+	})
 }

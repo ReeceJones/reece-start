@@ -1,15 +1,16 @@
 <script lang="ts">
-	import { ArrowLeft, CircleCheck, CircleX, Save, Trash } from 'lucide-svelte';
+	import { ArrowLeft, CircleCheck, CircleX, Save, Trash, User } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { API_TYPES } from '$lib/schemas/api';
-	import { applyAction, enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
 
 	const { data, form }: PageProps = $props();
 
-	let submitting = $state(false);
+	let submittingSave = $state(false);
+	let submittingDelete = $state(false);
+	const submitting = $derived(submittingSave || submittingDelete);
 	let role = $state(data.organizationMembership.data.attributes.role);
 
 	const user = $derived(
@@ -28,11 +29,15 @@
 		<SettingsCardTitle>Member Information</SettingsCardTitle>
 		<div class="space-y-2">
 			<div class="flex gap-3">
-				<img
-					src={user.meta.logoDistributionUrl}
-					alt={user.attributes.name}
-					class="rounded-box size-20"
-				/>
+				{#if user.meta.logoDistributionUrl}
+					<img
+						src={user.meta.logoDistributionUrl}
+						alt={user.attributes.name}
+						class="rounded-box size-20"
+					/>
+				{:else}
+					<User class="rounded-box bg-base-300 size-20" />
+				{/if}
 				<div class="flex flex-col">
 					<h2 class="card-title">{user.attributes.name}</h2>
 					<a href={`mailto:${user.attributes.email}`} class="link text-sm text-gray-500">
@@ -44,14 +49,14 @@
 			<form
 				class="space-y-2"
 				method="post"
+				action="?/update"
 				enctype="multipart/form-data"
 				use:enhance={() => {
-					submitting = true;
+					submittingSave = true;
 
-					return ({ result }) => {
-						applyAction(result);
-						invalidateAll();
-						submitting = false;
+					return ({ update }) => {
+						update();
+						submittingSave = false;
 					};
 				}}
 			>
@@ -79,7 +84,7 @@
 				{/if}
 
 				<button class="btn btn-primary" disabled={!canSubmit || submitting}>
-					{#if submitting}
+					{#if submittingSave}
 						<span class="loading loading-spinner"></span>
 					{:else}
 						<Save class="size-4" />
@@ -93,10 +98,27 @@
 	<SettingsCard>
 		<SettingsCardTitle>Danger Zone</SettingsCardTitle>
 		<div>
-			<button class="btn btn-error btn-outline">
-				<Trash class="size-4" />
-				Remove member
-			</button>
+			<form
+				method="post"
+				action="?/delete"
+				use:enhance={() => {
+					submittingDelete = true;
+
+					return ({ update }) => {
+						update();
+						submittingDelete = false;
+					};
+				}}
+			>
+				<button class="btn btn-error btn-outline" disabled={submitting}>
+					{#if submittingDelete}
+						<span class="loading loading-spinner"></span>
+					{:else}
+						<Trash class="size-4" />
+					{/if}
+					Remove member
+				</button>
+			</form>
 		</div>
 	</SettingsCard>
 </div>

@@ -16,7 +16,7 @@
 			<UserNav {user} />
 		</div>
 	</div>
-	<main class="container mx-auto mr-4 mt-4 flex-1">
+	<main class="container mx-auto mr-4 mt-4 inline-block flex-1">
 		{@render children?.()}
 	</main>
 </div>

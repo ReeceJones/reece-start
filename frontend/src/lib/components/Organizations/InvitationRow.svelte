@@ -1,18 +1,49 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { OrganizationInvitation } from '$lib/schemas/organization-invitation';
-	import { Trash } from 'lucide-svelte';
+	import { Check, Copy, Trash } from 'lucide-svelte';
+	import { draw, slide } from 'svelte/transition';
 
 	const { invitation }: { invitation: OrganizationInvitation } = $props();
 
 	let submitting = $state(false);
+	let copied = $state(false);
 </script>
+
+{#if copied}
+	<div class="toast" transition:slide>
+		<div class="alert">
+			<Check class="size-4" />
+			<span>Invitation link copied to clipboard.</span>
+		</div>
+	</div>
+{/if}
 
 <tr class="hover:bg-base-300">
 	<td
 		><a href={`mailto:${invitation.attributes.email}`} class="link">
 			{invitation.attributes.email}
 		</a>
+	</td>
+	<td>
+		<button
+			class="btn btn-link btn-neutral btn-sm"
+			onclick={() => {
+				const origin = window.location.origin;
+				navigator.clipboard.writeText(`${origin}/app/invitations/${invitation.id}`);
+				copied = true;
+				setTimeout(() => {
+					copied = false;
+				}, 5000);
+			}}
+		>
+			{#if copied}
+				<Check class="size-4 transition-all" />
+			{:else}
+				<Copy class="size-4 transition-all" />
+			{/if}
+			<span> Copy Invitation Link </span>
+		</button>
 	</td>
 	<td>
 		<div class="flex items-center justify-end">
