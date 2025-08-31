@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
-	"reece.start/internal/constants"
 )
 
 // ErrorHandlingMiddleware provides a centralized way to handle common errors
@@ -23,86 +22,74 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Handle specific business logic errors first
 		if errors.Is(err, api.ErrForbiddenNoAdminAccess) {
 			return c.JSON(http.StatusForbidden, api.ApiError{
-				Code:    constants.ErrorCodeForbidden,
 				Message: err.Error(),
 			})
 		}
 
 		if errors.Is(err, api.ErrForbiddenOwnProfileOnly) {
 			return c.JSON(http.StatusForbidden, api.ApiError{
-				Code:    constants.ErrorCodeForbidden,
 				Message: err.Error(),
 			})
 		}
 
 		if errors.Is(err, api.ErrUnauthorizedInvalidLogin) {
 			return c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:    constants.ErrorCodeUnauthorized,
 				Message: err.Error(),
 			})
 		}
 
 		if errors.Is(err, api.ErrMembershipNotFound) {
 			return c.JSON(http.StatusNotFound, api.ApiError{
-				Code:    constants.ErrorCodeNotFound,
 				Message: err.Error(),
 			})
 		}
 
 		if errors.Is(err, api.ErrInvitationNotFound) {
 			return c.JSON(http.StatusNotFound, api.ApiError{
-				Code:    constants.ErrorCodeNotFound,
 				Message: err.Error(),
 			})
 		}
 
 		if errors.Is(err, api.ErrInvitationAlreadyExists) {
 			return c.JSON(http.StatusConflict, api.ApiError{
-				Code:    constants.ErrorCodeConflict,
 				Message: err.Error(),
 			})
 		}
 
 		// Handle HTTP layer errors
-		if errors.Is(err, ErrInvalidUserToken) {
-			return c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:    constants.ErrorCodeUnauthorized,
-				Message: "Invalid user token",
+		if errors.Is(err, api.ErrForbiddenNoAccess) {
+			return c.JSON(http.StatusForbidden, api.ApiError{
+				Message: err.Error(),
 			})
 		}
 
-		if errors.Is(err, ErrInvalidOrganizationID) {
+		if errors.Is(err, api.ErrInvalidOrganizationID) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Code:    constants.ErrorCodeBadRequest,
-				Message: "Invalid organization ID",
+				Message: err.Error(),
 			})
 		}
 
-		if errors.Is(err, ErrInvalidUserID) {
+		if errors.Is(err, api.ErrInvalidUserID) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Code:    constants.ErrorCodeBadRequest,
-				Message: "Invalid user ID",
+				Message: err.Error(),
 			})
 		}
 
-		if errors.Is(err, ErrInvalidMembershipID) {
+		if errors.Is(err, api.ErrInvalidMembershipID) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Code:    constants.ErrorCodeBadRequest,
-				Message: "Invalid membership ID",
+				Message: err.Error(),
 			})
 		}
 
-		if errors.Is(err, ErrInvalidInvitationID) {
+		if errors.Is(err, api.ErrInvalidInvitationID) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Code:    constants.ErrorCodeBadRequest,
-				Message: "Invalid invitation ID",
+				Message: err.Error(),
 			})
 		}
 
 		// Handle GORM errors
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, api.ApiError{
-				Code:    constants.ErrorCodeNotFound,
 				Message: "Resource not found",
 			})
 		}
@@ -110,7 +97,6 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Handle Echo HTTP errors (if they bubble up)
 		if he, ok := err.(*echo.HTTPError); ok {
 			return c.JSON(he.Code, api.ApiError{
-				Code:    constants.ErrorCodeBadRequest,
 				Message: he.Message.(string),
 			})
 		}
@@ -119,7 +105,6 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Default to internal server error for unknown errors
 		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    constants.ErrorCodeInternalServerError,
 			Message: err.Error(),
 		})
 	}

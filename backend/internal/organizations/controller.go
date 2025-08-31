@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"reece.start/internal/access"
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
 	"reece.start/internal/middleware"
@@ -261,7 +262,7 @@ type DeclineOrganizationInvitationResponse struct {
 }
 
 func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) error {
-	userID, err := middleware.HandleJWTError(c)
+	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
 		return err
 	}
@@ -283,10 +284,7 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 		})
 
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, api.ApiError{
-				Code:    constants.ErrorCodeInternalServerError,
-				Message: err.Error(),
-			})
+			return err
 		}
 
 		response = CreateOrganizationResponse{
@@ -304,7 +302,7 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 }
 
 func GetOrganizationsEndpoint(c echo.Context) error {
-	userID, err := middleware.HandleJWTError(c)
+	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
 		return err
 	}
@@ -326,34 +324,18 @@ func GetOrganizationsEndpoint(c echo.Context) error {
 }
 
 func GetOrganizationEndpoint(c echo.Context) error {
-	userID, err := middleware.HandleJWTError(c)
+	// Parse the organization ID from the URL parameter
+	paramOrgID, err := api.ParseOrganizationIDFromParams(c)
 	if err != nil {
 		return err
 	}
 
-	// Parse the organization ID from the URL parameter
-	paramOrgID, err := middleware.ParseOrganizationID(c)
-	if err != nil {
+	if err := access.HasAccessToOrganization(c, paramOrgID); err != nil {
 		return err
 	}
 
 	db := middleware.GetDB(c)
 	minioClient := middleware.GetMinioClient(c)
-
-	// Check if user has access to this organization
-	hasAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
-		UserID:         userID,
-		OrganizationID: paramOrgID,
-		Tx:             db,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if !hasAccess {
-		return api.ErrForbiddenNoAdminAccess
-	}
 
 	organization, err := getOrganizationByID(GetOrganizationByIDServiceRequest{
 		OrganizationID: paramOrgID,
@@ -371,21 +353,13 @@ func GetOrganizationEndpoint(c echo.Context) error {
 }
 
 func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	paramOrgID, err := api.ParseOrganizationIDFromParams(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
+		return err
 	}
 
-	// Parse the organization ID from the URL parameter
-	paramOrgID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid organization ID",
-		})
+	if err := access.HasAdminAccessToOrganization(c, paramOrgID); err != nil {
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -394,21 +368,6 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 	var response UpdateOrganizationResponse
 
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
-		// Check if user has admin access to this organization
-		hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
-			UserID:         userID,
-			OrganizationID: uint(paramOrgID),
-			Tx:             db,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		if !hasAdminAccess {
-			return api.ErrForbiddenNoAdminAccess
-		}
-
 		organization, err := updateOrganization(UpdateOrganizationServiceRequest{
 			Params: UpdateOrganizationParams{
 				OrganizationID: uint(paramOrgID),
@@ -439,42 +398,16 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 }
 
 func DeleteOrganizationEndpoint(c echo.Context) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
-	}
-
-	// Parse the organization ID from the URL parameter
-	paramOrgID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid organization ID",
-		})
-	}
-
-	db := middleware.GetDB(c)
-
-	// Check if user has admin access to this organization
-	hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
-		UserID:         userID,
-		OrganizationID: uint(paramOrgID),
-		Tx:             db,
-	})
-
+	paramOrgID, err := api.ParseOrganizationIDFromParams(c)
 	if err != nil {
 		return err
 	}
 
-	if !hasAdminAccess {
-		return c.JSON(http.StatusForbidden, api.ApiError{
-			Code:    constants.ErrorCodeForbidden,
-			Message: "You don't have admin access to this organization",
-		})
+	if err := access.HasAdminAccessToOrganization(c, paramOrgID); err != nil {
+		return err
 	}
+
+	db := middleware.GetDB(c)
 
 	err = deleteOrganization(DeleteOrganizationServiceRequest{
 		OrganizationID: uint(paramOrgID),
@@ -490,33 +423,11 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 
 // Organization Membership Endpoints
 func GetOrganizationMembershipsEndpoint(c echo.Context, query GetOrganizationMembershipsQuery) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
-	}
-
-	db := middleware.GetDB(c)
-
-	// Check if user has access to this organization
-	hasAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
-		UserID:         userID,
-		OrganizationID: query.OrganizationID,
-		Tx:             db,
-	})
-
-	if err != nil {
+	if err := access.HasAccessToOrganization(c, query.OrganizationID); err != nil {
 		return err
 	}
 
-	if !hasAccess {
-		return c.JSON(http.StatusForbidden, api.ApiError{
-			Code:    constants.ErrorCodeForbidden,
-			Message: "You don't have access to this organization",
-		})
-	}
+	db := middleware.GetDB(c)
 
 	memberships, err := getOrganizationMemberships(GetOrganizationMembershipsServiceRequest{
 		OrganizationID: query.OrganizationID,
@@ -532,21 +443,9 @@ func GetOrganizationMembershipsEndpoint(c echo.Context, query GetOrganizationMem
 }
 
 func GetOrganizationMembershipEndpoint(c echo.Context) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	paramMembershipID, err := api.ParseMembershipIDFromParams(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
-	}
-
-	// Parse the membership ID from the URL parameter
-	paramMembershipID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid membership ID",
-		})
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -560,28 +459,11 @@ func GetOrganizationMembershipEndpoint(c echo.Context) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusNotFound, api.ApiError{
-			Code:    constants.ErrorCodeNotFound,
-			Message: "Membership not found",
-		})
-	}
-
-	// Check if user has access to this organization
-	hasAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
-		UserID:         userID,
-		OrganizationID: membership.Membership.OrganizationID,
-		Tx:             db,
-	})
-
-	if err != nil {
 		return err
 	}
 
-	if !hasAccess {
-		return c.JSON(http.StatusNotFound, api.ApiError{
-			Code:    constants.ErrorCodeNotFound,
-			Message: "Membership not found",
-		})
+	if err := access.HasAccessToOrganization(c, membership.Membership.OrganizationID); err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, GetOrganizationMembershipResponse{
@@ -591,28 +473,18 @@ func GetOrganizationMembershipEndpoint(c echo.Context) error {
 }
 
 func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganizationMembershipRequest) error {
+	orgId, err := strconv.ParseUint(req.Data.Relationships.Organization.Data.Id, 10, 32)
+	if err != nil {
+		return err
+	}
+
+	if err := access.HasAdminAccessToOrganization(c, uint(orgId)); err != nil {
+		return err
+	}
+
 	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
-	}
-
-	paramOrgID, err := strconv.ParseUint(req.Data.Relationships.Organization.Data.Id, 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid organization ID",
-		})
-	}
-
-	paramUserID, err := strconv.ParseUint(req.Data.Relationships.User.Data.Id, 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid user ID",
-		})
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -620,25 +492,10 @@ func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganization
 	var response CreateOrganizationMembershipResponse
 
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
-		// Check if user has admin access to this organization
-		hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
-			UserID:         userID,
-			OrganizationID: uint(paramOrgID),
-			Tx:             tx,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		if !hasAdminAccess {
-			return api.ErrForbiddenNoAdminAccess
-		}
-
 		membership, err := createOrganizationMembership(CreateOrganizationMembershipServiceRequest{
 			Params: CreateOrganizationMembershipParams{
-				UserID:         uint(paramUserID),
-				OrganizationID: uint(paramOrgID),
+				UserID:         uint(userID),
+				OrganizationID: uint(orgId),
 				Role:           req.Data.Attributes.Role,
 			},
 			Tx: tx,
@@ -663,20 +520,9 @@ func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganization
 }
 
 func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganizationMembershipRequest) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	paramMembershipID, err := api.ParseMembershipIDFromParams(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
-	}
-
-	paramMembershipID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid membership ID",
-		})
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -695,19 +541,8 @@ func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganization
 			return api.ErrMembershipNotFound
 		}
 
-		// Check if user has admin access to this organization
-		hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
-			UserID:         userID,
-			OrganizationID: membership.Membership.OrganizationID,
-			Tx:             tx,
-		})
-
-		if err != nil {
+		if err := access.HasAdminAccessToOrganization(c, membership.Membership.OrganizationID); err != nil {
 			return err
-		}
-
-		if !hasAdminAccess {
-			return api.ErrForbiddenNoAdminAccess
 		}
 
 		updatedMembership, err := updateOrganizationMembership(UpdateOrganizationMembershipServiceRequest{
@@ -737,20 +572,9 @@ func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganization
 }
 
 func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
-	userID, err := middleware.GetUserIDFromJWT(c)
+	paramMembershipID, err := api.ParseMembershipIDFromParams(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, api.ApiError{
-			Code:    constants.ErrorCodeUnauthorized,
-			Message: "Invalid user token",
-		})
-	}
-
-	paramMembershipID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Invalid membership ID",
-		})
+		return err
 	}
 
 	db := middleware.GetDB(c)
@@ -763,28 +587,11 @@ func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
 	})
 
 	if err != nil {
-		return c.JSON(http.StatusNotFound, api.ApiError{
-			Code:    constants.ErrorCodeNotFound,
-			Message: "Membership not found",
-		})
-	}
-
-	// Check if user has admin access to this organization
-	hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
-		UserID:         userID,
-		OrganizationID: membership.Membership.OrganizationID,
-		Tx:             db,
-	})
-
-	if err != nil {
 		return err
 	}
 
-	if !hasAdminAccess {
-		return c.JSON(http.StatusForbidden, api.ApiError{
-			Code:    constants.ErrorCodeForbidden,
-			Message: "You don't have admin access to this organization",
-		})
+	if err := access.HasAdminAccessToOrganization(c, membership.Membership.OrganizationID); err != nil {
+		return err
 	}
 
 	err = deleteOrganizationMembership(DeleteOrganizationMembershipServiceRequest{
@@ -800,13 +607,13 @@ func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
 }
 
 func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationRequest) error {
-	userID, err := middleware.HandleJWTError(c)
+	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
 		return err
 	}
 
 	// Parse the organization ID from the relationships
-	paramOrgID, err := middleware.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
+	paramOrgID, err := api.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
 	if err != nil {
 		return err
 	}
@@ -817,19 +624,8 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 	var response InviteToOrganizationResponse
 
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
-		// Check if user has admin access to this organization
-		hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
-			UserID:         userID,
-			OrganizationID: uint(paramOrgID),
-			Tx:             tx,
-		})
-
-		if err != nil {
+		if err := access.HasAdminAccessToOrganization(c, uint(paramOrgID)); err != nil {
 			return err
-		}
-
-		if !hasAdminAccess {
-			return api.ErrForbiddenNoAdminAccess
 		}
 
 		invitation, err := createOrganizationInvitation(CreateOrganizationInvitationServiceRequest{
@@ -866,27 +662,11 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 }
 
 func GetOrganizationInvitationsEndpoint(c echo.Context, query GetOrganizationInvitationsQuery) error {
-	userID, err := middleware.HandleJWTError(c)
-	if err != nil {
+	if err := access.HasAdminAccessToOrganization(c, query.OrganizationID); err != nil {
 		return err
 	}
 
 	db := middleware.GetDB(c)
-
-	// Check if user has admin access to this organization
-	hasAdminAccess, err := checkUserOrganizationAccess(CheckUserOrganizationAccessServiceRequest{
-		UserID:         userID,
-		OrganizationID: query.OrganizationID,
-		Tx:             db,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if !hasAdminAccess {
-		return api.ErrForbiddenNoAdminAccess
-	}
 
 	invitations, err := getOrganizationInvitations(GetOrganizationInvitationsServiceRequest{
 		OrganizationID: query.OrganizationID,
@@ -902,7 +682,7 @@ func GetOrganizationInvitationsEndpoint(c echo.Context, query GetOrganizationInv
 
 func GetOrganizationInvitationEndpoint(c echo.Context) error {
 	// Parse the invitation ID from the URL parameter
-	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	paramInvitationID, err := api.ParseOrganizationInvitationIDFromParams(c)
 	if err != nil {
 		return err
 	}
@@ -934,13 +714,8 @@ func GetOrganizationInvitationEndpoint(c echo.Context) error {
 }
 
 func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
-	userID, err := middleware.HandleJWTError(c)
-	if err != nil {
-		return err
-	}
-
 	// Parse the invitation ID from the URL parameter
-	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	paramInvitationID, err := api.ParseOrganizationInvitationIDFromParams(c)
 	if err != nil {
 		return err
 	}
@@ -959,19 +734,8 @@ func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 		return err
 	}
 
-	// Check if user has admin access to this organization
-	hasAdminAccess, err := checkUserOrganizationAdminAccess(CheckUserOrganizationAdminAccessServiceRequest{
-		UserID:         userID,
-		OrganizationID: invitation.Invitation.OrganizationID,
-		Tx:             db,
-	})
-
-	if err != nil {
+	if err := access.HasAdminAccessToOrganization(c, invitation.Invitation.OrganizationID); err != nil {
 		return err
-	}
-
-	if !hasAdminAccess {
-		return api.ErrForbiddenNoAdminAccess
 	}
 
 	err = deleteOrganizationInvitation(DeleteOrganizationInvitationServiceRequest{
@@ -987,23 +751,20 @@ func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 }
 
 func AcceptOrganizationInvitationEndpoint(c echo.Context, req AcceptOrganizationInvitationRequest) error {
-	userID, err := middleware.HandleJWTError(c)
+	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
 		return err
 	}
 
 	// Parse the invitation ID from the URL parameter
-	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	paramInvitationID, err := api.ParseOrganizationInvitationIDFromParams(c)
 	if err != nil {
 		return err
 	}
 
 	// Validate that the request body ID matches the URL parameter
 	if req.Data.Id != paramInvitationID.String() {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Request body ID must match URL parameter",
-		})
+		return api.ErrInvalidInvitationID
 	}
 
 	db := middleware.GetDB(c)
@@ -1044,23 +805,20 @@ func AcceptOrganizationInvitationEndpoint(c echo.Context, req AcceptOrganization
 }
 
 func DeclineOrganizationInvitationEndpoint(c echo.Context, req DeclineOrganizationInvitationRequest) error {
-	userID, err := middleware.HandleJWTError(c)
+	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
 		return err
 	}
 
 	// Parse the invitation ID from the URL parameter
-	paramInvitationID, err := middleware.ParseOrganizationInvitationID(c)
+	paramInvitationID, err := api.ParseOrganizationInvitationIDFromParams(c)
 	if err != nil {
 		return err
 	}
 
 	// Validate that the request body ID matches the URL parameter
 	if req.Data.Id != paramInvitationID.String() {
-		return c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    constants.ErrorCodeBadRequest,
-			Message: "Request body ID must match URL parameter",
-		})
+		return api.ErrInvalidInvitationID
 	}
 
 	db := middleware.GetDB(c)

@@ -44,6 +44,7 @@ type GetOrganizationsByUserIDServiceRequest struct {
 
 type GetOrganizationByIDServiceRequest struct {
 	OrganizationID uint
+	UserID uint
 	Tx             *gorm.DB
 	MinioClient    *minio.Client
 }
@@ -316,9 +317,6 @@ func getOrganizationByID(request GetOrganizationByIDServiceRequest) (*Organizati
 	var organization models.Organization
 	err := tx.First(&organization, organizationID).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("organization not found")
-		}
 		return nil, err
 	}
 
@@ -433,42 +431,6 @@ func deleteOrganization(request DeleteOrganizationServiceRequest) error {
 	}
 
 	return nil
-}
-
-func checkUserOrganizationAccess(request CheckUserOrganizationAccessServiceRequest) (bool, error) {
-	tx := request.Tx
-	userID := request.UserID
-	organizationID := request.OrganizationID
-
-	var count int64
-	err := tx.Model(&models.OrganizationMembership{}).
-		Where("user_id = ? AND organization_id = ?", userID, organizationID).
-		Count(&count).Error
-
-	if err != nil {
-		return false, err
-	}
-
-	return count > 0, nil
-}
-
-func checkUserOrganizationAdminAccess(request CheckUserOrganizationAdminAccessServiceRequest) (bool, error) {
-	tx := request.Tx
-	userID := request.UserID
-	organizationID := request.OrganizationID
-
-	var membership models.OrganizationMembership
-	err := tx.Where("user_id = ? AND organization_id = ?", userID, organizationID).
-		First(&membership).Error
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return membership.Role == string(constants.OrganizationRoleAdmin), nil
 }
 
 func getOrganizationLogoDistributionUrl(request GetOrganizationLogoDistributionUrlServiceRequest) (string, error) {

@@ -6,6 +6,7 @@ import "errors"
 // These errors can be checked using errors.Is() for better error handling
 var (
 	// Authentication/Authorization errors
+	ErrForbiddenNoAccess        = errors.New("Unauthorized")
 	ErrForbiddenNoAdminAccess   = errors.New("You don't have admin access to this organization")
 	ErrForbiddenOwnProfileOnly  = errors.New("You can only update your own profile")
 	ErrUnauthorizedInvalidLogin = errors.New("Invalid email or password")
@@ -18,4 +19,10 @@ var (
 	ErrInvitationEmailMismatch = errors.New("Invitation email does not match user email")
 	ErrUserAlreadyMember       = errors.New("User is already a member of this organization")
 	ErrUserNotFound            = errors.New("User not found")
+
+	// Invalid ID errors
+	ErrInvalidOrganizationID = errors.New("invalid organization ID")
+	ErrInvalidUserID         = errors.New("invalid user ID")
+	ErrInvalidMembershipID   = errors.New("invalid membership ID")
+	ErrInvalidInvitationID   = errors.New("invalid invitation ID")
 )

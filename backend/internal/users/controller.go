@@ -116,7 +116,7 @@ func LoginEndpoint(c echo.Context, req LoginUserRequest) error {
 }
 
 func GetAuthenticatedUserEndpoint(c echo.Context) error {
-	userID, err := middleware.HandleJWTError(c)
+	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
 		return err // Middleware will handle the error response
 	}
@@ -138,13 +138,13 @@ func GetAuthenticatedUserEndpoint(c echo.Context) error {
 }
 
 func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
-	userID, err := middleware.HandleJWTError(c)
+	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
 		return err // Middleware will handle the error response
 	}
 
 	// Parse the user ID from the URL parameter
-	paramUserID, err := middleware.ParseUserIDFromString(c.Param("id"))
+	paramUserID, err := api.ParseUserIDFromString(c.Param("id"))
 	if err != nil {
 		return err // Middleware will handle the error response
 	}
