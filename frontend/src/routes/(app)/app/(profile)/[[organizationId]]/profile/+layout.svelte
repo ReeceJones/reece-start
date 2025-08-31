@@ -1,23 +1,26 @@
 <script lang="ts">
-	const { children } = $props();
+	const { children, params } = $props();
 	import { page } from '$app/state';
 	import clsx from 'clsx/lite';
 	import { User, Lock } from 'lucide-svelte';
 
 	const url = $derived(page.url.pathname);
 	const activeClass = 'bg-base-300 rounded-md';
-	const routes = [
+	const baseUrl = $derived(
+		params.organizationId ? `/app/${params.organizationId}/profile` : '/app/profile'
+	);
+	const routes = $derived([
 		{
 			name: 'Profile',
 			icon: User,
-			href: '/app/profile'
+			href: baseUrl
 		},
 		{
 			name: 'Security',
 			icon: Lock,
-			href: '/app/profile/security'
+			href: `${baseUrl}/security`
 		}
-	];
+	]);
 </script>
 
 <div class="flex flex-col gap-6">

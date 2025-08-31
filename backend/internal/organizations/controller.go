@@ -330,7 +330,10 @@ func GetOrganizationEndpoint(c echo.Context) error {
 		return err
 	}
 
-	if err := access.HasAccessToOrganization(c, paramOrgID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: paramOrgID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationScopeRead},
+	}); err != nil {
 		return err
 	}
 
@@ -358,7 +361,10 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 		return err
 	}
 
-	if err := access.HasAdminAccessToOrganization(c, paramOrgID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: paramOrgID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationScopeUpdate},
+	}); err != nil {
 		return err
 	}
 
@@ -403,7 +409,10 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 		return err
 	}
 
-	if err := access.HasAdminAccessToOrganization(c, paramOrgID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: paramOrgID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationScopeDelete},
+	}); err != nil {
 		return err
 	}
 
@@ -423,7 +432,10 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 
 // Organization Membership Endpoints
 func GetOrganizationMembershipsEndpoint(c echo.Context, query GetOrganizationMembershipsQuery) error {
-	if err := access.HasAccessToOrganization(c, query.OrganizationID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: query.OrganizationID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationMembershipsScopeList},
+	}); err != nil {
 		return err
 	}
 
@@ -462,7 +474,10 @@ func GetOrganizationMembershipEndpoint(c echo.Context) error {
 		return err
 	}
 
-	if err := access.HasAccessToOrganization(c, membership.Membership.OrganizationID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: membership.Membership.OrganizationID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationMembershipsScopeList},
+	}); err != nil {
 		return err
 	}
 
@@ -478,7 +493,10 @@ func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganization
 		return err
 	}
 
-	if err := access.HasAdminAccessToOrganization(c, uint(orgId)); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: uint(orgId),
+		Scopes: []constants.OrganizationScope{constants.OrganizationMembershipsScopeCreate},
+	}); err != nil {
 		return err
 	}
 
@@ -541,7 +559,10 @@ func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganization
 			return api.ErrMembershipNotFound
 		}
 
-		if err := access.HasAdminAccessToOrganization(c, membership.Membership.OrganizationID); err != nil {
+		if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+			OrganizationID: membership.Membership.OrganizationID,
+			Scopes: []constants.OrganizationScope{constants.OrganizationMembershipsScopeUpdate},
+		}); err != nil {
 			return err
 		}
 
@@ -590,7 +611,10 @@ func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
 		return err
 	}
 
-	if err := access.HasAdminAccessToOrganization(c, membership.Membership.OrganizationID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: membership.Membership.OrganizationID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationMembershipsScopeDelete},
+	}); err != nil {
 		return err
 	}
 
@@ -624,7 +648,10 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 	var response InviteToOrganizationResponse
 
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
-		if err := access.HasAdminAccessToOrganization(c, uint(paramOrgID)); err != nil {
+		if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+			OrganizationID: uint(paramOrgID),
+			Scopes: []constants.OrganizationScope{constants.OrganizationInvitationsScopeCreate},
+		}); err != nil {
 			return err
 		}
 
@@ -662,7 +689,10 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 }
 
 func GetOrganizationInvitationsEndpoint(c echo.Context, query GetOrganizationInvitationsQuery) error {
-	if err := access.HasAdminAccessToOrganization(c, query.OrganizationID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: query.OrganizationID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationInvitationsScopeList},
+	}); err != nil {
 		return err
 	}
 
@@ -734,7 +764,10 @@ func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 		return err
 	}
 
-	if err := access.HasAdminAccessToOrganization(c, invitation.Invitation.OrganizationID); err != nil {
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: invitation.Invitation.OrganizationID,
+		Scopes: []constants.OrganizationScope{constants.OrganizationInvitationsScopeDelete},
+	}); err != nil {
 		return err
 	}
 

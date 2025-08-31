@@ -5,7 +5,7 @@ This is a repo that I use as a starting point for new projects. It is based on S
 ## Features
 
 - Organization-Member-User authentication model
-  - TODO: add scopes, organization information in JWT
+  - TODO: organization information in JWT, automatically re-issue JWT when role changes
 - User settings page
 - Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)
