@@ -18,15 +18,12 @@
 			href: '/app/profile/security'
 		}
 	];
-
-	const activeRoute = $derived(routes.find((route) => url === route.href));
 </script>
 
-<div class="flex flex-col gap-6 lg:flex-row">
-	<div>
-		<ul
-			class="menu menu-horizontal lg:menu-vertical rounded-box bg-base-200 gap-1 shadow-sm lg:w-56"
-		>
+<div class="flex flex-col gap-6">
+	<div class="space-y-4">
+		<h1 class="text-3xl font-bold">Settings</h1>
+		<ul class="menu menu-horizontal rounded-box bg-base-200 gap-1 shadow-sm">
 			{#each routes as route}
 				<li class={clsx(url === route.href && activeClass)}>
 					<a href={route.href}>
@@ -37,12 +34,5 @@
 			{/each}
 		</ul>
 	</div>
-	<div class="card rounded-box bg-base-200 flex-1 shadow-sm">
-		<div class="card-body">
-			{#if activeRoute}
-				<p class="card-title">{activeRoute?.name}</p>
-			{/if}
-			{@render children?.()}
-		</div>
-	</div>
+	{@render children?.()}
 </div>

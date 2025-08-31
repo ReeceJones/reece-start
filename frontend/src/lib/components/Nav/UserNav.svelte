@@ -2,8 +2,11 @@
 	import { LogOut, Settings, User } from 'lucide-svelte';
 	import { getSelfUserResponseSchema } from '$lib/schemas/user';
 	import type { z } from 'zod';
+	import { page } from '$app/state';
 
 	const { user }: { user: z.infer<typeof getSelfUserResponseSchema> } = $props();
+	const organizationId = $derived(page.params.organizationId);
+	const profileHref = $derived(organizationId ? `/app/${organizationId}/profile` : '/app/profile');
 </script>
 
 <ul class="menu menu-vertical w-full">
@@ -22,7 +25,7 @@
 				class="dropdown-content menu bg-base-100 rounded-box z-1 ml-0 w-52 -translate-y-1.5 p-2 shadow-sm"
 			>
 				<li>
-					<a href="/app/profile">
+					<a href={profileHref}>
 						<Settings class="size-4" />
 						Settings
 					</a>

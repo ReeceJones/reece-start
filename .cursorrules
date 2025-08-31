@@ -39,3 +39,5 @@ When creating a new domain, create a new folder under backend/internal and give 
 Use +page.ts to fetch data when loading a page. This will ensure that the data is fetched on both the server side during SSR and on the client side during routing changes.
 
 Use +page.server.ts for any server actions that require cookies, or session information. Otherwise, you can make a client-side request to use a mutating API.
+
+Any time you create a new page that should only allow authenticated users, you should also create an associated +page.server.ts file that calls `authenticate` from `$lib/server/auth`.

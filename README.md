@@ -6,8 +6,7 @@ This is a repo that I use as a starting point for new projects. It is based on S
 
 - Organization-Member-User authentication model
   - TODO: Refactor auth check functions, add scopes
-- User settings page (WIP)
-  - TODO: show within organization context
+- User settings page
 - Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)
 - Stripe connect support (TODO)
@@ -39,7 +38,7 @@ make frontend-dev
 
 ### `backend/`
 
-An echo project which uses Gorm, River, Postgres, and Minio. All endpoints follow the REST API spec and use the go validator library to validate incoming requests. The backend is designed under the assumption of a Organization-Member-User authentication model, whereby there is a many-many relationship between Organizations and Users. This is what I personally find myself building in most of my personal projects, however you can remove the `Organization*` models to get a simpler user authentication model.
+An echo project which uses Gorm, River, Postgres, and Minio. All endpoints follow the JSON API spec and use the go validator library to validate incoming requests. The backend is designed under the assumption of a Organization-Member-User authentication model, whereby there is a many-many relationship between Organizations and Users. You can remove the `Organization*` models to get a simpler authentication model with only users and no organizations.
 
 ### `frontend/`
 
