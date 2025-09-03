@@ -87,6 +87,13 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
+		// Handle any other ApiError
+		if he, ok := err.(*api.ApiError); ok {
+			return c.JSON(http.StatusInternalServerError, api.ApiError{
+				Message: he.Message,
+			})
+		}
+
 		// Handle GORM errors
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, api.ApiError{
@@ -96,6 +103,13 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Handle Echo HTTP errors (if they bubble up)
 		if he, ok := err.(*echo.HTTPError); ok {
+			// Sometimes api.ApiError shows up in http error message
+			if ae, ok := he.Message.(api.ApiError); ok {
+				return c.JSON(he.Code, api.ApiError{
+					Message: ae.Message,
+				})
+			}
+
 			return c.JSON(he.Code, api.ApiError{
 				Message: he.Message.(string),
 			})

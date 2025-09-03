@@ -76,6 +76,21 @@ type UserDto struct {
 	LogoDistributionUrl string
 }
 
+type CreateAuthenticatedUserTokenServiceRequest struct {
+	Params CreateAuthenticatedUserTokenParams
+	Tx     *gorm.DB
+	Config *configuration.Config
+}
+
+type CreateAuthenticatedUserTokenParams struct {
+	UserId uint
+	OrganizationId *uint
+}
+
+type SelectMembershipRole struct {
+	Role *constants.OrganizationRole
+}
+
 func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	tx := request.Tx
 	params := request.Params
@@ -109,6 +124,33 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 		User: user,
 		Token: token,
 	}, nil
+}
+
+func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceRequest) (string, error) {
+	tx := request.Tx
+	config := request.Config
+
+	var selectMembershipRole SelectMembershipRole = SelectMembershipRole{}
+	var organizationScopes *[]constants.OrganizationScope
+
+	if request.Params.OrganizationId != nil {
+		err := tx.Model(&models.OrganizationMembership{}).Where("user_id = ? AND organization_id = ?", request.Params.UserId, request.Params.OrganizationId).Select("role").First(&selectMembershipRole).Error
+		if err != nil {
+			return "", err
+		}
+		
+		scopes := constants.OrganizationRoleToScopes[constants.OrganizationRole(*selectMembershipRole.Role)]
+		organizationScopes = &scopes
+	}
+
+	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
+		UserId: request.Params.UserId,
+		OrganizationId: request.Params.OrganizationId,
+		OrganizationRole: selectMembershipRole.Role,
+		OrganizationScopes: organizationScopes,
+	})
+
+	return token, err
 }
 
 func loginUser(request LoginUserServiceRequest) (*UserDto, error) {

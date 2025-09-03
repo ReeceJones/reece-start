@@ -1,4 +1,4 @@
-import type { LayoutLoad } from '../$types';
+import type { LayoutLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { ApiError, get } from '$lib';
 import { getSelfUserResponseSchema } from '$lib/schemas/user';

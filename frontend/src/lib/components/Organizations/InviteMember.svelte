@@ -76,7 +76,7 @@
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-neutral-content text-sm font-bold">Admin</p>
+							<p class="text-base-content text-sm font-bold">Admin</p>
 							<p>Manage organization settings and manage members</p>
 						</div>
 					</label>
@@ -90,7 +90,7 @@
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-neutral-content text-sm font-bold">Member</p>
+							<p class="text-base-content text-sm font-bold">Member</p>
 							<p>Manage XYZ</p>
 						</div>
 					</label>

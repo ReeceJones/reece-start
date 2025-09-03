@@ -11,6 +11,8 @@
 		type OrganizationFormData
 	} from '$lib/schemas/organization';
 	import deepEqual from 'deep-equal';
+	import { hasScope } from '$lib/auth';
+	import { OrganizationScope } from '$lib/schemas/jwt';
 
 	const { data, form }: PageProps = $props();
 
@@ -29,7 +31,8 @@
 	);
 	const isDirty = $derived(!deepEqual(formData, getFormDataFromOrganization(data.organization)));
 	const isValid = $derived(!!formData.name);
-	const canSubmit = $derived(isDirty && isValid);
+	const canUpdate = $derived(hasScope(OrganizationScope.OrganizationUpdate));
+	const canSubmit = $derived(isDirty && isValid && canUpdate && !submitting);
 
 	function resetLogoUpload() {
 		formData.logo = undefined;
@@ -81,6 +84,7 @@
 						logoCropModal.showModal();
 					}
 				}}
+				disabled={!canUpdate}
 			/>
 			<p class="fieldset-label">Upload your organization logo</p>
 		</fieldset>
@@ -94,6 +98,7 @@
 				class="input"
 				placeholder="Organization name"
 				bind:value={formData.name}
+				disabled={!canUpdate}
 			/>
 			<p class="fieldset-label">What should we call your organization?</p>
 		</fieldset>
@@ -106,6 +111,7 @@
 				placeholder="Organization description"
 				bind:value={formData.description}
 				maxlength={255}
+				disabled={!canUpdate}
 			></textarea>
 			<p class="fieldset-label">A brief description of your organization</p>
 		</fieldset>
@@ -126,7 +132,7 @@
 		{/if}
 
 		<div class="card-actions mt-3 justify-start">
-			<button type="submit" class="btn btn-primary" disabled={!canSubmit || submitting}>
+			<button type="submit" class="btn btn-primary" disabled={!canSubmit}>
 				{#if submitting}
 					<span class="loading loading-spinner"></span>
 				{:else}

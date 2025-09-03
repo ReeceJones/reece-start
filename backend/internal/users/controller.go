@@ -56,6 +56,42 @@ type CreateUserRequest struct {
 	} `json:"data"`
 }
 
+type OrganizationRelationshipData struct {
+	Id string `json:"id" validate:"required"`
+	Type string `json:"type" validate:"required,oneof=organization"`
+}
+
+type OrganizationRelationship struct {
+	Data OrganizationRelationshipData `json:"data" validate:"required"`
+}
+
+type CreateAuthenticatedUserTokenRelationships struct {
+	Organization *OrganizationRelationship `json:"organization"`
+}
+
+type CreateAuthenticatedUserTokenData struct {
+	Type constants.ApiType `json:"type" validate:"oneof=token"`
+	Relationships CreateAuthenticatedUserTokenRelationships `json:"relationships"`
+}
+
+type CreateAuthenticatedUserTokenRequest struct {
+	Data CreateAuthenticatedUserTokenData `json:"data"`
+}
+
+type CreateAuthenticatedUserTokenMeta struct {
+	Token string `json:"token"`
+}
+
+type CreateAuthenticatedUserTokenResponseData struct {
+	Type constants.ApiType `json:"type" validate:"oneof=token"`
+	Relationships CreateAuthenticatedUserTokenRelationships `json:"relationships"`
+	Meta CreateAuthenticatedUserTokenMeta `json:"meta"`
+}
+
+type CreateAuthenticatedUserTokenResponse struct {
+	Data CreateAuthenticatedUserTokenResponseData `json:"data"`
+}
+
 type UserResponse struct {
 	Data UserDataWithMeta `json:"data"`
 }
@@ -71,6 +107,7 @@ type UpdateUserRequest struct {
 		Attributes UpdateUserAttributes `json:"attributes"`
 	} `json:"data"`
 }
+
 
 func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 	config := middleware.GetConfig(c)
@@ -137,6 +174,39 @@ func GetAuthenticatedUserEndpoint(c echo.Context) error {
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
 }
 
+func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticatedUserTokenRequest) error {
+	userId, err := middleware.GetUserIDFromJWT(c)
+	if err != nil {
+		return err
+	}
+
+	var organizationId uint
+	if req.Data.Relationships.Organization != nil {
+		organizationId, err = api.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
+		if err != nil {
+			return err
+		}
+	}
+
+	tx := middleware.GetDB(c)
+	config := middleware.GetConfig(c)
+
+	token, err := createAuthenticatedUserToken(CreateAuthenticatedUserTokenServiceRequest{
+		Params: CreateAuthenticatedUserTokenParams{
+			UserId: userId,
+			OrganizationId: &organizationId,
+		},
+		Tx: tx,
+		Config: config,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, mapCreateAuthenticatedUserTokenToResponse(req, token))
+}
+
 func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
@@ -192,6 +262,18 @@ func mapUserToResponse(params *UserDto) UserResponse {
 			Meta: UserMeta{
 				Token: params.Token,
 				LogoDistributionUrl: params.LogoDistributionUrl,
+			},
+		},
+	}
+}
+
+func mapCreateAuthenticatedUserTokenToResponse(req CreateAuthenticatedUserTokenRequest, token string) CreateAuthenticatedUserTokenResponse {
+	return CreateAuthenticatedUserTokenResponse{
+		Data: CreateAuthenticatedUserTokenResponseData{
+			Type: constants.ApiTypeToken,
+			Relationships: req.Data.Relationships,
+			Meta: CreateAuthenticatedUserTokenMeta{
+				Token: token,
 			},
 		},
 	}

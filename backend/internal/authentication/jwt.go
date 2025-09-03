@@ -6,26 +6,41 @@ import (
 	"time"
 
 	"reece.start/internal/configuration"
+	"reece.start/internal/constants"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type JwtClaims struct {
 	jwt.RegisteredClaims
-	UserId               string  `json:"user_id"`
-	ActiveOrganizationId *string `json:"active_organization_id"`
+	UserId               string                           `json:"user_id"`
+	OrganizationId *string                          `json:"organization_id"`
+	OrganizationRole     *constants.OrganizationRole       `json:"organization_role"`
+	OrganizationScopes   *[]constants.OrganizationScope  `json:"organization_scopes"`
 }
 
 type JwtOptions struct {
 	UserId uint
+	OrganizationId *uint
+	OrganizationRole *constants.OrganizationRole
+	OrganizationScopes *[]constants.OrganizationScope
 }
 
 func CreateJWT(config *configuration.Config, options JwtOptions) (string, error) {
 	now := time.Now()
 	userIdString := fmt.Sprintf("%d", options.UserId)
 
+	var activeOrganizationId *string
+	if options.OrganizationId != nil {
+		orgIdString := fmt.Sprintf("%d", *options.OrganizationId)
+		activeOrganizationId = &orgIdString
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JwtClaims{
-		UserId: userIdString,
+		UserId:               userIdString,
+		OrganizationId: activeOrganizationId,
+		OrganizationRole:     options.OrganizationRole,
+		OrganizationScopes:   options.OrganizationScopes,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(now),
