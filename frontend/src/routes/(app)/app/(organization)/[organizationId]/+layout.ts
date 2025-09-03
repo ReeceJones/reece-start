@@ -4,7 +4,7 @@ import { ApiError, get } from '$lib';
 import { getSelfUserResponseSchema } from '$lib/schemas/user';
 import { organizationResponseSchema } from '$lib/schemas/organization';
 
-export const load: LayoutLoad = async ({ fetch, params }) => {
+export const load: LayoutLoad = async ({ fetch, params, data }) => {
 	const { organizationId } = params;
 
 	try {
@@ -19,6 +19,7 @@ export const load: LayoutLoad = async ({ fetch, params }) => {
 		});
 
 		return {
+			...data,
 			user,
 			organization
 		};

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { hasScope } from '$lib/auth';
+	import { OrganizationScope } from '$lib/schemas/jwt';
 	import { CircleX, UserPlus, X } from 'lucide-svelte';
 
 	const {
@@ -7,9 +9,11 @@
 		onMemberInvited
 	}: { organizationId: string; onMemberInvited: (email: string) => void } = $props();
 
+	const canAddMember = $derived(hasScope(OrganizationScope.OrganizationInvitationsCreate));
+
 	let email = $state('');
-	let role = $state('member');
 	let submitting = $state(false);
+	let role = $state('member');
 	let error = $state('');
 
 	let inviteMemberModal: HTMLDialogElement;
@@ -23,6 +27,7 @@
 		role = 'member';
 		error = '';
 	}}
+	disabled={!canAddMember}
 >
 	<UserPlus class="size-5" /> Add Member
 </button>
@@ -65,7 +70,7 @@
 			</fieldset>
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">Role</legend>
-				<div class="flex flex-col gap-2">
+				<div class="flex flex-col gap-3">
 					<label class="label">
 						<input
 							type="radio"

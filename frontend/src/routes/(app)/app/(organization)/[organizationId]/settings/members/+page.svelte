@@ -1,18 +1,19 @@
 <script lang="ts">
-	import { CircleCheck, SquarePen, Trash, User } from 'lucide-svelte';
+	import { CircleCheck, SquarePen, User } from 'lucide-svelte';
 	import clsx, { type ClassValue } from 'clsx/lite';
-	import { del } from '$lib';
 	import type { PageProps } from './$types';
 	import InviteMember from '$lib/components/Organizations/InviteMember.svelte';
 	import type { OrganizationMembershipRole } from '$lib/schemas/organization-membership';
 	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
-	import { invalidateAll } from '$app/navigation';
 	import InvitationRow from '$lib/components/Organizations/InvitationRow.svelte';
+	import { hasScope } from '$lib/auth';
+	import { OrganizationScope } from '$lib/schemas/jwt';
 
 	const { data, params }: PageProps = $props();
 	let invitedMemberEmail = $state('');
 
+	const canUpdateMembership = $derived(hasScope(OrganizationScope.OrganizationMembershipsUpdate));
 	const memberships = $derived.by(() => {
 		return data.memberships.data.map((membership) => ({
 			membership,
@@ -31,13 +32,6 @@
 			default:
 				return 'badge-neutral';
 		}
-	}
-
-	async function deleteInvitation(invitationId: string) {
-		await del(`/api/organization-invitations/${invitationId}`, {
-			fetch
-		});
-		invalidateAll();
 	}
 </script>
 
@@ -108,8 +102,15 @@
 						<td>
 							<div class="flex items-center justify-end">
 								<a
-									class="btn btn-ghost btn-sm btn-square"
-									href={`/app/${params.organizationId}/settings/members/${membership.membership.id}`}
+									class={clsx(
+										'btn btn-ghost btn-sm btn-square',
+										!canUpdateMembership &&
+											'text-base-content/50 pointer-events-none cursor-default'
+									)}
+									href={canUpdateMembership
+										? `/app/${params.organizationId}/settings/members/${membership.membership.id}`
+										: undefined}
+									aria-disabled={!canUpdateMembership}
 								>
 									<SquarePen class="size-4" />
 								</a>

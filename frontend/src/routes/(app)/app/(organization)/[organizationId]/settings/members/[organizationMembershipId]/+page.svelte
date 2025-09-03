@@ -5,6 +5,8 @@
 	import { enhance } from '$app/forms';
 	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
+	import { hasScope } from '$lib/auth';
+	import { OrganizationScope } from '$lib/schemas/jwt';
 
 	const { data, form }: PageProps = $props();
 
@@ -13,6 +15,8 @@
 	const submitting = $derived(submittingSave || submittingDelete);
 	let role = $state(data.organizationMembership.data.attributes.role);
 
+	const canUpdateMembership = $derived(hasScope(OrganizationScope.OrganizationMembershipsUpdate));
+	const canDeleteMembership = $derived(hasScope(OrganizationScope.OrganizationMembershipsDelete));
 	const user = $derived(
 		data.organizationMembership.included.filter((i) => i.type === API_TYPES.user)[0]
 	);
@@ -62,7 +66,12 @@
 			>
 				<fieldset class="fieldset">
 					<legend class="fieldset-legend">Role</legend>
-					<select class="select select-bordered" name="role" bind:value={role}>
+					<select
+						class="select select-bordered"
+						name="role"
+						bind:value={role}
+						disabled={!canUpdateMembership}
+					>
 						<option value="admin">Admin</option>
 						<option value="member">Member</option>
 					</select>
@@ -83,7 +92,7 @@
 					</div>
 				{/if}
 
-				<button class="btn btn-primary" disabled={!canSubmit || submitting}>
+				<button class="btn btn-primary" disabled={!canSubmit || submitting || !canUpdateMembership}>
 					{#if submittingSave}
 						<span class="loading loading-spinner"></span>
 					{:else}
@@ -110,7 +119,7 @@
 					};
 				}}
 			>
-				<button class="btn btn-error btn-outline" disabled={submitting}>
+				<button class="btn btn-error btn-outline" disabled={submitting || !canDeleteMembership}>
 					{#if submittingDelete}
 						<span class="loading loading-spinner"></span>
 					{:else}

@@ -58,7 +58,7 @@ export const actions = {
 			);
 
 			cookies.set('app-session-token', userWithToken.data.meta.token, {
-				httpOnly: false,
+				httpOnly: true,
 				secure: env.NODE_ENV === 'production',
 				sameSite: 'strict',
 				path: '/',

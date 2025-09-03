@@ -1,10 +1,14 @@
 <script lang="ts">
 	import UserNav from '$lib/components/Nav/UserNav.svelte';
 	import OrganizationNav from '$lib/components/Nav/OrganizationNav.svelte';
+	import { setScopes } from '$lib/auth.js';
 
 	const { children, data } = $props();
 
-	const { user, organization } = data;
+	const { user, organization, membershipScopes } = data;
+
+	// Give the javascript client access to the scopes stored in the token cookie
+	setScopes(membershipScopes);
 </script>
 
 <div class="max-w-screen flex h-screen flex-row gap-4">

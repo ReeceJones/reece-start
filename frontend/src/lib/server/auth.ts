@@ -84,6 +84,16 @@ export async function refreshUserToken(requestEvent: RequestEvent) {
 	setTokenInCookies(requestEvent, newToken);
 }
 
+export function getMembershipScopes() {
+	const requestEvent = getRequestEvent();
+	const token = getDefinedToken(requestEvent);
+	if (!token) {
+		return [];
+	}
+	const claims = jwtDecode<JwtClaims>(token);
+	return claims.organization_scopes ?? [];
+}
+
 function validateTokenExpiration(requestEvent: RequestEvent) {
 	const token = getDefinedToken(requestEvent);
 
@@ -143,7 +153,7 @@ function setTokenInCookies(requestEvent: RequestEvent, token: string) {
 	const { cookies } = requestEvent;
 	cookies.set('app-session-token', token, {
 		path: '/',
-		httpOnly: false,
+		httpOnly: true,
 		secure: true,
 		sameSite: 'strict'
 	});
