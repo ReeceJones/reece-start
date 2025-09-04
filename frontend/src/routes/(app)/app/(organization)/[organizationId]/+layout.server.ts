@@ -1,12 +1,12 @@
-import { authenticate, getMembershipScopes } from '$lib/server/auth';
+import { authenticate, getUserScopes } from '$lib/server/auth';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async () => {
 	authenticate();
 
-	const membershipScopes = getMembershipScopes();
+	const userScopes = getUserScopes();
 
 	return {
-		membershipScopes
+		userScopes
 	};
 };

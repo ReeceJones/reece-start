@@ -1,16 +1,10 @@
 import type { LayoutLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { ApiError, get } from '$lib';
-import { getSelfUserResponseSchema } from '$lib/schemas/user';
 import { organizationResponseSchema } from '$lib/schemas/organization';
 
 export const load: LayoutLoad = async ({ fetch, params }) => {
 	try {
-		const user = await get('/api/users/me', {
-			fetch,
-			responseSchema: getSelfUserResponseSchema
-		});
-
 		let organization = undefined;
 		if (params.organizationId) {
 			organization = await get(`/api/organizations/${params.organizationId}`, {
@@ -20,7 +14,6 @@ export const load: LayoutLoad = async ({ fetch, params }) => {
 		}
 
 		return {
-			user,
 			organization
 		};
 	} catch (apiError) {

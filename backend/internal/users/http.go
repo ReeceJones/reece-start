@@ -2,111 +2,12 @@ package users
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"reece.start/internal/api"
-	"reece.start/internal/constants"
 	"reece.start/internal/middleware"
 )
-
-// API Types
-type UserAttributes struct {
-	Name string `json:"name" validate:"required,min=1,max=100"`
-	Email string `json:"email" validate:"required,email"`
-}
-
-type CreateUserAttributes struct {
-	UserAttributes
-	Password string `json:"password" validate:"required,min=8"`
-}
-
-type LoginUserAttributes struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
-type UpdateUserAttributes struct {
-	Name     string `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
-	Email    string `json:"email,omitempty" validate:"omitempty,email"`
-	Password string `json:"password,omitempty" validate:"omitempty,min=8"`
-	Logo string `json:"logo,omitempty" validate:"omitempty,base64"`
-}
-
-type UserMeta struct {
-	Token string `json:"token,omitempty"`
-	LogoDistributionUrl string `json:"logoDistributionUrl,omitempty"`
-}
-
-type UserData struct {
-	Id string `json:"id"`
-	Type constants.ApiType `json:"type"`
-	Attributes UserAttributes `json:"attributes"`
-}
-
-type UserDataWithMeta struct {
-	UserData
-	Meta UserMeta `json:"meta"`
-}
-
-type CreateUserRequest struct {
-	Data struct {
-		Attributes CreateUserAttributes `json:"attributes"`
-	} `json:"data"`
-}
-
-type OrganizationRelationshipData struct {
-	Id string `json:"id" validate:"required"`
-	Type string `json:"type" validate:"required,oneof=organization"`
-}
-
-type OrganizationRelationship struct {
-	Data OrganizationRelationshipData `json:"data" validate:"required"`
-}
-
-type CreateAuthenticatedUserTokenRelationships struct {
-	Organization *OrganizationRelationship `json:"organization"`
-}
-
-type CreateAuthenticatedUserTokenData struct {
-	Type constants.ApiType `json:"type" validate:"oneof=token"`
-	Relationships CreateAuthenticatedUserTokenRelationships `json:"relationships"`
-}
-
-type CreateAuthenticatedUserTokenRequest struct {
-	Data CreateAuthenticatedUserTokenData `json:"data"`
-}
-
-type CreateAuthenticatedUserTokenMeta struct {
-	Token string `json:"token"`
-}
-
-type CreateAuthenticatedUserTokenResponseData struct {
-	Type constants.ApiType `json:"type" validate:"oneof=token"`
-	Relationships CreateAuthenticatedUserTokenRelationships `json:"relationships"`
-	Meta CreateAuthenticatedUserTokenMeta `json:"meta"`
-}
-
-type CreateAuthenticatedUserTokenResponse struct {
-	Data CreateAuthenticatedUserTokenResponseData `json:"data"`
-}
-
-type UserResponse struct {
-	Data UserDataWithMeta `json:"data"`
-}
-
-type LoginUserRequest struct {
-	Data struct {
-		Attributes LoginUserAttributes `json:"attributes"`
-	} `json:"data"`
-}
-
-type UpdateUserRequest struct {
-	Data struct {
-		Attributes UpdateUserAttributes `json:"attributes"`
-	} `json:"data"`
-}
 
 
 func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
@@ -245,36 +146,4 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 	}
 
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
-}
-
-// Type mappers
-func mapUserToResponse(params *UserDto) UserResponse {
-	return UserResponse{
-		Data: UserDataWithMeta{
-			UserData: UserData{
-				Id: strconv.FormatUint(uint64(params.User.ID), 10),
-				Type: constants.ApiTypeUser,
-				Attributes: UserAttributes{
-					Name: params.User.Name,
-					Email: params.User.Email,
-				},
-			},
-			Meta: UserMeta{
-				Token: params.Token,
-				LogoDistributionUrl: params.LogoDistributionUrl,
-			},
-		},
-	}
-}
-
-func mapCreateAuthenticatedUserTokenToResponse(req CreateAuthenticatedUserTokenRequest, token string) CreateAuthenticatedUserTokenResponse {
-	return CreateAuthenticatedUserTokenResponse{
-		Data: CreateAuthenticatedUserTokenResponseData{
-			Type: constants.ApiTypeToken,
-			Relationships: req.Data.Relationships,
-			Meta: CreateAuthenticatedUserTokenMeta{
-				Token: token,
-			},
-		},
-	}
 }

@@ -8,12 +8,12 @@
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
 	import InvitationRow from '$lib/components/Organizations/InvitationRow.svelte';
 	import { hasScope } from '$lib/auth';
-	import { OrganizationScope } from '$lib/schemas/jwt';
+	import { UserScope } from '$lib/schemas/jwt';
 
 	const { data, params }: PageProps = $props();
 	let invitedMemberEmail = $state('');
 
-	const canUpdateMembership = $derived(hasScope(OrganizationScope.OrganizationMembershipsUpdate));
+	const canUpdateMembership = $derived(hasScope(UserScope.OrganizationMembershipsUpdate));
 	const memberships = $derived.by(() => {
 		return data.memberships.data.map((membership) => ({
 			membership,

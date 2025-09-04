@@ -5,10 +5,10 @@
 
 	const { children, data } = $props();
 
-	const { user, organization, membershipScopes } = data;
+	const { user, organization, userScopes } = data;
 
 	// Give the javascript client access to the scopes stored in the token cookie
-	setScopes(membershipScopes);
+	setScopes(userScopes);
 </script>
 
 <div class="max-w-screen flex h-screen flex-row gap-4">

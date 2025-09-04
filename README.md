@@ -5,7 +5,10 @@ This is a repo that I use as a starting point for new projects. It is based on S
 ## Features
 
 - Organization-Member-User authentication model
-  - TODO: automatically re-issue JWT when role changes, SSO, sudo users, user impersonation
+  - Organization invitation links & emails
+  - Organization roles using scopes
+  - Sudo users
+  - TODO: user impersonation, SSO, MFA
 - User settings page
 - Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)

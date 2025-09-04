@@ -25,6 +25,9 @@ type User struct {
 
 	// Control fields
 	Revocation UserTokenRevocation `gorm:"embedded;embeddedPrefix:revocation_"`
+
+	// Admin fields
+	Role string `gorm:"not null;size:20;default:'default'"`
 	
 	// Relationships
 	OrganizationMemberships []OrganizationMembership `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`

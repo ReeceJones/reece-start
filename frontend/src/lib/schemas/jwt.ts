@@ -1,7 +1,9 @@
 import type { JwtPayload } from 'jwt-decode';
 import type { OrganizationMembershipRole } from './organization-membership';
+import type { UserRole } from './user';
 
-export enum OrganizationScope {
+export enum UserScope {
+	// Organization
 	OrganizationRead = 'organization:read',
 	OrganizationUpdate = 'organization:update',
 	OrganizationDelete = 'organization:delete',
@@ -14,13 +16,20 @@ export enum OrganizationScope {
 	OrganizationInvitationsRead = 'organization:invitations:read',
 	OrganizationInvitationsCreate = 'organization:invitations:create',
 	OrganizationInvitationsUpdate = 'organization:invitations:update',
-	OrganizationInvitationsDelete = 'organization:invitations:delete'
+	OrganizationInvitationsDelete = 'organization:invitations:delete',
+
+	// Admin
+	Admin = 'admin',
+	AdminUsersList = 'admin:users:list',
+	AdminUsersRead = 'admin:users:read',
+	AdminUsersImpersonate = 'admin:users:impersonate'
 }
 
 interface OrganizationClaims {
 	organization_id?: string;
 	organization_role?: OrganizationMembershipRole;
-	organization_scopes?: OrganizationScope[];
+	scopes?: UserScope[];
+	role?: UserRole;
 }
 
 export type JwtClaims = JwtPayload & OrganizationClaims;

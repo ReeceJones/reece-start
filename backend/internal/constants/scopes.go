@@ -1,20 +1,26 @@
 package constants
 
-type OrganizationScope string
+type UserScope string
 
 const (
 	// Organization
-	OrganizationScopeRead OrganizationScope = "organization:read"
-	OrganizationScopeUpdate OrganizationScope = "organization:update"
-	OrganizationScopeDelete OrganizationScope = "organization:delete"
-	OrganizationMembershipsScopeList OrganizationScope = "organization:memberships:list"
-	OrganizationMembershipsScopeRead OrganizationScope = "organization:memberships:read"
-	OrganizationMembershipsScopeCreate OrganizationScope = "organization:memberships:create"
-	OrganizationMembershipsScopeUpdate OrganizationScope = "organization:memberships:update"
-	OrganizationMembershipsScopeDelete OrganizationScope = "organization:memberships:delete"
-	OrganizationInvitationsScopeList OrganizationScope = "organization:invitations:list"
-	OrganizationInvitationsScopeRead OrganizationScope = "organization:invitations:read"
-	OrganizationInvitationsScopeCreate OrganizationScope = "organization:invitations:create"
-	OrganizationInvitationsScopeUpdate OrganizationScope = "organization:invitations:update"
-	OrganizationInvitationsScopeDelete OrganizationScope = "organization:invitations:delete"
+	UserScopeOrganizationRead UserScope = "organization:read"
+	UserScopeOrganizationUpdate UserScope = "organization:update"
+	UserScopeOrganizationDelete UserScope = "organization:delete"
+	UserScopeOrganizationMembershipsList UserScope = "organization:memberships:list"
+	UserScopeOrganizationMembershipsRead UserScope = "organization:memberships:read"
+	UserScopeOrganizationMembershipsCreate UserScope = "organization:memberships:create"
+	UserScopeOrganizationMembershipsUpdate UserScope = "organization:memberships:update"
+	UserScopeOrganizationMembershipsDelete UserScope = "organization:memberships:delete"
+	UserScopeOrganizationInvitationsList UserScope = "organization:invitations:list"
+	UserScopeOrganizationInvitationsRead UserScope = "organization:invitations:read"
+	UserScopeOrganizationInvitationsCreate UserScope = "organization:invitations:create"
+	UserScopeOrganizationInvitationsUpdate UserScope = "organization:invitations:update"
+	UserScopeOrganizationInvitationsDelete UserScope = "organization:invitations:delete"
+
+	// Admin
+	UserScopeAdmin UserScope = "admin"
+	UserScopeAdminUsersList UserScope = "admin:users:list"
+	UserScopeAdminUsersRead UserScope = "admin:users:read"
+	UserScopeAdminUsersImpersonate UserScope = "admin:users:impersonate"
 )

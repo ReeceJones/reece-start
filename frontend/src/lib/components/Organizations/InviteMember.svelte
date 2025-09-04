@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { hasScope } from '$lib/auth';
-	import { OrganizationScope } from '$lib/schemas/jwt';
+	import { UserScope } from '$lib/schemas/jwt';
 	import { CircleX, UserPlus, X } from 'lucide-svelte';
 
 	const {
@@ -9,7 +9,7 @@
 		onMemberInvited
 	}: { organizationId: string; onMemberInvited: (email: string) => void } = $props();
 
-	const canAddMember = $derived(hasScope(OrganizationScope.OrganizationInvitationsCreate));
+	const canAddMember = $derived(hasScope(UserScope.OrganizationInvitationsCreate));
 
 	let email = $state('');
 	let submitting = $state(false);

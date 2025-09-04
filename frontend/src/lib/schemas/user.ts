@@ -6,6 +6,10 @@ const userAttributesSchema = z.object({
 	email: z.string()
 });
 
+const userRoleSchema = z.enum(['admin', 'default']);
+
+export type UserRole = z.infer<typeof userRoleSchema>;
+
 export const userDataSchema = z.object({
 	id: z.string(),
 	type: z.literal(API_TYPES.user),
@@ -14,7 +18,11 @@ export const userDataSchema = z.object({
 		email: z.string()
 	}),
 	meta: z.object({
-		logoDistributionUrl: z.string().optional()
+		logoDistributionUrl: z.string().optional(),
+		tokenRevocation: z.object({
+			lastIssuedAt: z.number().optional(),
+			canRefresh: z.boolean().optional()
+		})
 	})
 });
 

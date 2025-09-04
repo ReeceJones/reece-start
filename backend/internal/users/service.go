@@ -13,83 +13,11 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
+	"reece.start/internal/api"
 	"reece.start/internal/authentication"
-	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
 )
-
-type CreateUserParams struct {
-	Name     string
-	Email    string
-	Password string
-	Timezone string
-}
-
-type CreateUserServiceRequest struct {
-	Params CreateUserParams
-	Tx     *gorm.DB
-	Config *configuration.Config
-}
-
-type LoginUserParams struct {
-	Email    string
-	Password string
-}
-
-type LoginUserServiceRequest struct {
-	Params LoginUserParams
-	Tx     *gorm.DB
-	Config *configuration.Config
-	MinioClient *minio.Client
-}
-
-type GetUserByIDServiceRequest struct {
-	UserID uint
-	Tx     *gorm.DB
-	MinioClient *minio.Client
-}
-
-type UpdateUserParams struct {
-	UserID   uint
-	Name     string
-	Email    string
-	Password string
-	Logo     string
-}
-
-type UpdateUserServiceRequest struct {
-	Params UpdateUserParams
-	Tx     *gorm.DB
-	MinioClient *minio.Client
-}
-
-type GetUserLogoDistributionUrlServiceRequest struct {
-	UserID uint
-	Tx     *gorm.DB
-	MinioClient *minio.Client
-}
-
-type UserDto struct {
-	User *models.User
-	Token string
-	LogoDistributionUrl string
-}
-
-type CreateAuthenticatedUserTokenServiceRequest struct {
-	Params CreateAuthenticatedUserTokenParams
-	Tx     *gorm.DB
-	Config *configuration.Config
-}
-
-type CreateAuthenticatedUserTokenParams struct {
-	UserId uint
-	OrganizationId *uint
-}
-
-type SelectMembershipRole struct {
-	Role *constants.OrganizationRole
-}
 
 func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	tx := request.Tx
@@ -112,8 +40,12 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	}
 
 	// Generate JWT token for the new user
-	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-		UserId: user.ID,
+	token, err := createAuthenticatedUserToken(CreateAuthenticatedUserTokenServiceRequest{
+		Params: CreateAuthenticatedUserTokenParams{
+			UserId: user.ID,
+		},
+		Tx: tx,
+		Config: config,
 	})
 
 	if err != nil {
@@ -130,8 +62,14 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 	tx := request.Tx
 	config := request.Config
 
+	var user models.User
+	err := tx.First(&user, request.Params.UserId).Error
+	if err != nil {
+		return "", err
+	}
+
 	var selectMembershipRole SelectMembershipRole = SelectMembershipRole{}
-	var organizationScopes *[]constants.OrganizationScope
+	scopes := make([]constants.UserScope, 0)
 
 	if request.Params.OrganizationId != nil {
 		err := tx.Model(&models.OrganizationMembership{}).Where("user_id = ? AND organization_id = ?", request.Params.UserId, request.Params.OrganizationId).Select("role").First(&selectMembershipRole).Error
@@ -139,15 +77,23 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 			return "", err
 		}
 		
-		scopes := constants.OrganizationRoleToScopes[constants.OrganizationRole(*selectMembershipRole.Role)]
-		organizationScopes = &scopes
+		organizationScopes := constants.OrganizationRoleToScopes[constants.OrganizationRole(*selectMembershipRole.Role)]
+		scopes = append(scopes, organizationScopes...)
 	}
+
+	if user.Role != "" {
+		userScopes := constants.UserRoleToScopes[constants.UserRole(user.Role)]
+		scopes = append(scopes, userScopes...)
+	}
+
+	userRole := constants.UserRole(user.Role)
 
 	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
 		UserId: request.Params.UserId,
 		OrganizationId: request.Params.OrganizationId,
 		OrganizationRole: selectMembershipRole.Role,
-		OrganizationScopes: organizationScopes,
+		Scopes: &scopes,
+		Role: &userRole,
 	})
 
 	return token, err
@@ -163,19 +109,23 @@ func loginUser(request LoginUserServiceRequest) (*UserDto, error) {
 	err := tx.Where("email = ?", params.Email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("invalid email or password")
+			return nil,api.ErrUnauthorizedInvalidLogin
 		}
 		return nil, err
 	}
 
 	// Check if password matches
 	if !authentication.CheckPasswordHash(params.Password, string(user.HashedPassword)) {
-		return nil, errors.New("invalid email or password")
+		return nil, api.ErrUnauthorizedInvalidLogin
 	}
 
 	// Generate the JWT token for the user
-	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-		UserId: user.ID,
+	token, err := createAuthenticatedUserToken(CreateAuthenticatedUserTokenServiceRequest{
+		Params: CreateAuthenticatedUserTokenParams{
+			UserId: user.ID,
+		},
+		Tx: tx,
+		Config: config,
 	})
 	if err != nil {
 		return nil, err
@@ -207,7 +157,7 @@ func getUserByID(request GetUserByIDServiceRequest) (*UserDto, error) {
 	err := tx.First(&user, userID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("user not found")
+			return nil, api.ErrUserNotFound
 		}
 		return nil, err
 	}

@@ -1,11 +1,19 @@
 <script lang="ts">
 	import type { Organization } from '$lib/schemas/organization';
-	import { House, Folder, DollarSign, Building2, Settings, RefreshCcw } from 'lucide-svelte';
+	import {
+		House,
+		Folder,
+		DollarSign,
+		Building2,
+		Settings,
+		RefreshCcw,
+		ArrowLeftRight
+	} from 'lucide-svelte';
 
 	const { organization }: { organization: Organization } = $props();
 </script>
 
-<ul class="menu menu-vertical w-full">
+<ul class="menu menu-vertical w-full space-y-1">
 	<li class="w-full">
 		<div class="dropdown dropdown-bottom dropdown-start w-full p-0">
 			<div tabindex="0" role="button" class="focus flex w-full gap-2 px-3 py-1.5">
@@ -32,7 +40,7 @@
 				</li>
 				<li>
 					<a href="/app">
-						<RefreshCcw class="size-4" />
+						<ArrowLeftRight class="size-4" />
 						Switch Organization
 					</a>
 				</li>

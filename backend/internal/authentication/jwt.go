@@ -16,14 +16,16 @@ type JwtClaims struct {
 	UserId               string                           `json:"user_id"`
 	OrganizationId *string                          `json:"organization_id"`
 	OrganizationRole     *constants.OrganizationRole       `json:"organization_role"`
-	OrganizationScopes   *[]constants.OrganizationScope  `json:"organization_scopes"`
+	Scopes   *[]constants.UserScope  `json:"scopes"`
+	Role *constants.UserRole `json:"role"`
 }
 
 type JwtOptions struct {
 	UserId uint
 	OrganizationId *uint
 	OrganizationRole *constants.OrganizationRole
-	OrganizationScopes *[]constants.OrganizationScope
+	Scopes *[]constants.UserScope
+	Role *constants.UserRole
 }
 
 func CreateJWT(config *configuration.Config, options JwtOptions) (string, error) {
@@ -40,7 +42,8 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 		UserId:               userIdString,
 		OrganizationId: activeOrganizationId,
 		OrganizationRole:     options.OrganizationRole,
-		OrganizationScopes:   options.OrganizationScopes,
+		Scopes:   options.Scopes,
+		Role:   options.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(now),

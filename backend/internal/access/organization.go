@@ -12,7 +12,7 @@ import (
 
 type HasOrganizationAccessParams struct {
 	OrganizationID uint
-	Scopes []constants.OrganizationScope
+	Scopes []constants.UserScope
 }
 
 func HasOrganizationAccess(c echo.Context, params HasOrganizationAccessParams) error {
@@ -31,9 +31,9 @@ func HasOrganizationAccess(c echo.Context, params HasOrganizationAccessParams) e
 	}
 	
 	// check if the role has the required scopes
-	scopes := constants.OrganizationRoleToScopes[constants.OrganizationRole(membership.Role)]
+	organization_scopes := constants.OrganizationRoleToScopes[constants.OrganizationRole(membership.Role)]
 	for _, scope := range params.Scopes {
-		if !slices.Contains(scopes, scope) {
+		if !slices.Contains(organization_scopes, scope) {
 			return api.ErrForbiddenNoAccess
 		}
 	}

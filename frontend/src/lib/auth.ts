@@ -1,16 +1,16 @@
-import type { OrganizationScope } from './schemas/jwt';
+import type { UserScope } from './schemas/jwt';
 import { getContext, setContext } from 'svelte';
 
 const scopesKey = 'membership-scopes';
 
-export function setScopes(scopes: OrganizationScope[]) {
+export function setScopes(scopes: UserScope[]) {
 	setContext(scopesKey, scopes);
 }
 
 export function getScopes() {
-	return getContext<OrganizationScope[]>(scopesKey) ?? [];
+	return getContext<UserScope[]>(scopesKey) ?? [];
 }
 
-export function hasScope(scope: OrganizationScope): boolean {
+export function hasScope(scope: UserScope): boolean {
 	return getScopes().includes(scope) ?? false;
 }

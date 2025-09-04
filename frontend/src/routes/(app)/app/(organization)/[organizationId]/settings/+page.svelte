@@ -12,7 +12,7 @@
 	} from '$lib/schemas/organization';
 	import deepEqual from 'deep-equal';
 	import { hasScope } from '$lib/auth';
-	import { OrganizationScope } from '$lib/schemas/jwt';
+	import { UserScope } from '$lib/schemas/jwt';
 
 	const { data, form }: PageProps = $props();
 
@@ -31,7 +31,7 @@
 	);
 	const isDirty = $derived(!deepEqual(formData, getFormDataFromOrganization(data.organization)));
 	const isValid = $derived(!!formData.name);
-	const canUpdate = $derived(hasScope(OrganizationScope.OrganizationUpdate));
+	const canUpdate = $derived(hasScope(UserScope.OrganizationUpdate));
 	const canSubmit = $derived(isDirty && isValid && canUpdate && !submitting);
 
 	function resetLogoUpload() {

@@ -1,7 +1,8 @@
 import { getRequestEvent } from '$app/server';
-import { ApiError, post } from '$lib/api';
+import { ApiError, get, post } from '$lib/api';
 import { API_TYPES } from '$lib/schemas/api';
 import type { JwtClaims } from '$lib/schemas/jwt';
+import { getSelfUserResponseSchema } from '$lib/schemas/user';
 import {
 	createAuthenticatedUserTokenRequestSchema,
 	createAuthenticatedUserTokenResponseSchema
@@ -26,6 +27,10 @@ export async function performAuthenticationCheck(requestEvent: RequestEvent) {
 	// Validate token is present and is not expired
 	validateTokenExpiration(requestEvent);
 
+	if (url.pathname.startsWith('/app/admin')) {
+		validateTokenAdmin(requestEvent);
+	}
+
 	// Validate token works for authenticated organization
 	if (organizationId === undefined) {
 		return;
@@ -34,9 +39,59 @@ export async function performAuthenticationCheck(requestEvent: RequestEvent) {
 	await validateTokenOrganization(requestEvent);
 }
 
+export async function getUserAndValidateToken() {
+	const requestEvent = getRequestEvent();
+	const token = getDefinedToken(requestEvent);
+
+	// get the issued at time from the token
+	const { iat } = jwtDecode<JwtClaims>(token);
+
+	if (!iat) {
+		error(401, 'Invalid token: missing iat claim.');
+	}
+
+	let user;
+
+	try {
+		user = await get('/api/users/me', {
+			fetch: requestEvent.fetch,
+			responseSchema: getSelfUserResponseSchema
+		});
+	} catch (apiError) {
+		if (apiError instanceof ApiError) {
+			error(apiError.code, apiError.message);
+		}
+
+		console.error(apiError);
+
+		error(500, 'An unknown error ocurred processing your request, please try again later.');
+	}
+
+	// If the token is older than the last issued at time, refresh the token
+	if (
+		user.data.meta.tokenRevocation.lastIssuedAt &&
+		iat > user.data.meta.tokenRevocation.lastIssuedAt
+	) {
+		console.log('Token expired, refreshing');
+		// If the token cannot be refreshed, sign the user out and redirect to the signin page
+		if (!user.data.meta.tokenRevocation.canRefresh) {
+			requestEvent.cookies.delete('app-session-token', { path: '/' });
+			redirect(303, getRedirectUrl(requestEvent));
+		}
+
+		await refreshUserToken(requestEvent);
+	}
+
+	return {
+		user
+	};
+}
+
 export async function refreshUserToken(requestEvent: RequestEvent) {
 	const { params, fetch } = requestEvent;
 	const { organizationId } = params;
+
+	console.log('Refreshing user token');
 
 	let newToken: string;
 	try {
@@ -84,14 +139,22 @@ export async function refreshUserToken(requestEvent: RequestEvent) {
 	setTokenInCookies(requestEvent, newToken);
 }
 
-export function getMembershipScopes() {
+export function getUserScopes() {
 	const requestEvent = getRequestEvent();
 	const token = getDefinedToken(requestEvent);
 	if (!token) {
 		return [];
 	}
 	const claims = jwtDecode<JwtClaims>(token);
-	return claims.organization_scopes ?? [];
+	return claims.scopes ?? [];
+}
+
+function validateTokenAdmin(requestEvent: RequestEvent) {
+	const token = getDefinedToken(requestEvent);
+	const claims = jwtDecode<JwtClaims>(token);
+	if (claims.role !== 'admin') {
+		error(403, 'Forbidden');
+	}
 }
 
 function validateTokenExpiration(requestEvent: RequestEvent) {
@@ -155,6 +218,7 @@ function setTokenInCookies(requestEvent: RequestEvent, token: string) {
 		path: '/',
 		httpOnly: true,
 		secure: true,
-		sameSite: 'strict'
+		sameSite: 'strict',
+		maxAge: 60 * 60 * 24 * 30 // 30 days
 	});
 }

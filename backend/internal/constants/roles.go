@@ -1,6 +1,14 @@
 package constants
 
+type UserRole string
+
 type OrganizationRole string
+
+
+const (
+	UserRoleAdmin UserRole = "admin"
+	UserRoleDefault UserRole = "default"
+)
 
 const (
 	OrganizationRoleAdmin  OrganizationRole = "admin"
@@ -8,30 +16,41 @@ const (
 )
 
 // Mapping for role -> scopes
-var OrganizationRoleToScopes = map[OrganizationRole][]OrganizationScope{
+var UserRoleToScopes = map[UserRole][]UserScope{
+	UserRoleAdmin: {
+		UserScopeAdmin,
+		UserScopeAdminUsersList,
+		UserScopeAdminUsersRead,
+		UserScopeAdminUsersImpersonate,
+	},
+	UserRoleDefault: {},
+}
+
+// Mapping for role -> scopes
+var OrganizationRoleToScopes = map[OrganizationRole][]UserScope{
 	// Grant all roles to admin
 	OrganizationRoleAdmin: {
-		OrganizationScopeRead,
-		OrganizationScopeUpdate,
-		OrganizationScopeDelete,
-		OrganizationMembershipsScopeList,
-		OrganizationMembershipsScopeRead,
-		OrganizationMembershipsScopeCreate,
-		OrganizationMembershipsScopeUpdate,
-		OrganizationMembershipsScopeDelete,
-		OrganizationInvitationsScopeList,
-		OrganizationInvitationsScopeRead,
-		OrganizationInvitationsScopeCreate,
-		OrganizationInvitationsScopeUpdate,
-		OrganizationInvitationsScopeDelete,
+		UserScopeOrganizationRead,
+		UserScopeOrganizationUpdate,
+		UserScopeOrganizationDelete,
+		UserScopeOrganizationMembershipsList,
+		UserScopeOrganizationMembershipsRead,
+		UserScopeOrganizationMembershipsCreate,
+		UserScopeOrganizationMembershipsUpdate,
+		UserScopeOrganizationMembershipsDelete,
+		UserScopeOrganizationInvitationsList,
+		UserScopeOrganizationInvitationsRead,
+		UserScopeOrganizationInvitationsCreate,
+		UserScopeOrganizationInvitationsUpdate,
+		UserScopeOrganizationInvitationsDelete,
 	},
 
 	// Grant limited (mostly read scopes) to the member
 	OrganizationRoleMember: {
-		OrganizationScopeRead,
-		OrganizationMembershipsScopeList,
-		OrganizationMembershipsScopeRead,
-		OrganizationInvitationsScopeList,
-		OrganizationInvitationsScopeRead,
+		UserScopeOrganizationRead,
+		UserScopeOrganizationMembershipsList,
+		UserScopeOrganizationMembershipsRead,
+		UserScopeOrganizationInvitationsList,
+		UserScopeOrganizationInvitationsRead,
 	},
 }

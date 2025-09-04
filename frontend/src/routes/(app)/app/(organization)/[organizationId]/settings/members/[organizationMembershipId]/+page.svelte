@@ -6,7 +6,7 @@
 	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
 	import { hasScope } from '$lib/auth';
-	import { OrganizationScope } from '$lib/schemas/jwt';
+	import { UserScope } from '$lib/schemas/jwt';
 
 	const { data, form }: PageProps = $props();
 
@@ -15,8 +15,8 @@
 	const submitting = $derived(submittingSave || submittingDelete);
 	let role = $state(data.organizationMembership.data.attributes.role);
 
-	const canUpdateMembership = $derived(hasScope(OrganizationScope.OrganizationMembershipsUpdate));
-	const canDeleteMembership = $derived(hasScope(OrganizationScope.OrganizationMembershipsDelete));
+	const canUpdateMembership = $derived(hasScope(UserScope.OrganizationMembershipsUpdate));
+	const canDeleteMembership = $derived(hasScope(UserScope.OrganizationMembershipsDelete));
 	const user = $derived(
 		data.organizationMembership.included.filter((i) => i.type === API_TYPES.user)[0]
 	);

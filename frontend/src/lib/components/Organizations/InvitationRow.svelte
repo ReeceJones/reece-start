@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { hasScope } from '$lib/auth';
-	import { OrganizationScope } from '$lib/schemas/jwt';
+	import { UserScope } from '$lib/schemas/jwt';
 	import type { OrganizationInvitation } from '$lib/schemas/organization-invitation';
 	import { Check, Copy, Trash } from 'lucide-svelte';
 	import { draw, slide } from 'svelte/transition';
 
 	const { invitation }: { invitation: OrganizationInvitation } = $props();
 
-	const canDeleteInvitation = $derived(hasScope(OrganizationScope.OrganizationInvitationsDelete));
+	const canDeleteInvitation = $derived(hasScope(UserScope.OrganizationInvitationsDelete));
 
 	let submitting = $state(false);
 	let copied = $state(false);

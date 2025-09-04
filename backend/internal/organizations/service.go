@@ -543,7 +543,7 @@ func getOrganizationMembershipByID(request GetOrganizationMembershipByIDServiceR
 	err := tx.Preload("User").Preload("Organization").First(&membership, membershipID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("membership not found")
+			return nil, api.ErrMembershipNotFound
 		}
 		return nil, err
 	}
@@ -587,6 +587,12 @@ func updateOrganizationMembership(request UpdateOrganizationMembershipServiceReq
 	// Update fields if provided
 	if params.Role != nil {
 		membership.Role = *params.Role
+
+		// Also update the user's token revocation
+		err = tx.Model(&models.User{}).Where("id = ?", membership.User.ID).Update("revocation_can_refresh", true).Update("revocation_last_valid_issued_at", time.Now()).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Save the updated membership
@@ -718,7 +724,7 @@ func getOrganizationInvitationByID(request GetOrganizationInvitationByIDServiceR
 	err = tx.First(&invitingUser, invitation.InvitingUserID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("inviting user not found")
+			return nil, api.ErrUserNotFound
 		}
 		return nil, err
 	}
