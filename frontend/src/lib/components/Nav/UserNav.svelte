@@ -31,12 +31,18 @@
 					</a>
 				</li>
 				<li>
-					<a href="/signout" class="text-error">
+					<button class="text-error flex items-center gap-2" type="submit" form="signout-form">
 						<LogOut class="size-4" />
 						Logout
-					</a>
+					</button>
 				</li>
 			</ul>
+			<form
+				action="/app?/signout"
+				method="POST"
+				enctype="multipart/form-data"
+				id="signout-form"
+			></form>
 		</div>
 	</li>
 </ul>

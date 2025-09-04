@@ -28,7 +28,7 @@ type Config struct {
 	StorageUseSSL          bool   `env:"STORAGE_USE_SSL" envDefault:"false"`
 
 	ResendApiKey string `env:"RESEND_API_KEY" envDefault:""`
-
+	EnableEmail bool `env:"ENABLE_EMAIL" envDefault:"false"`
 }
 
 func LoadEnvironmentVariables() (*Config, error) {
