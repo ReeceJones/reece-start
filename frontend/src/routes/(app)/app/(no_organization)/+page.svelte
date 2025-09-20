@@ -6,7 +6,7 @@
 	const { organizations } = data;
 </script>
 
-<div class="card bg-base-200 shadow-sm">
+<div class="card bg-base-200 border-base-300 border shadow-sm">
 	<div class="card-body">
 		<h2 class="card-title"><Users /> Organizations</h2>
 		<p>Select an organization to continue to the app.</p>

@@ -30,7 +30,7 @@
 	}
 </script>
 
-<div class="card bg-base-200 shadow-sm">
+<div class="card bg-base-200 border-base-300 border shadow-sm">
 	<div class="card-body">
 		<p class="card-title">Create Organization</p>
 		<p>Create a new organization to do XYZ.</p>

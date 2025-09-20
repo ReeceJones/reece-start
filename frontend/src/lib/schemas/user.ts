@@ -19,10 +19,12 @@ export const userDataSchema = z.object({
 	}),
 	meta: z.object({
 		logoDistributionUrl: z.string().optional(),
-		tokenRevocation: z.object({
-			lastIssuedAt: z.number().optional(),
-			canRefresh: z.boolean().optional()
-		})
+		tokenRevocation: z
+			.object({
+				lastIssuedAt: z.number().optional(),
+				canRefresh: z.boolean().optional()
+			})
+			.optional()
 	})
 });
 
@@ -62,3 +64,27 @@ export const updateUserRequestSchema = z.object({
 export const updateUserResponseSchema = z.object({
 	data: userDataSchema
 });
+
+// Pagination schemas for users list
+export const paginationLinksSchema = z.object({
+	first: z.string().optional(),
+	last: z.string().optional(),
+	prev: z.string().optional(),
+	next: z.string().optional()
+});
+
+export const getUsersParamsSchema = z.object({
+	search: z.string().optional(),
+	page: z.object({
+		cursor: z.string().optional(),
+		size: z.number().optional()
+	})
+});
+
+export const getUsersResponseSchema = z.object({
+	data: z.array(userDataSchema),
+	links: paginationLinksSchema
+});
+
+export type GetUsersResponse = z.infer<typeof getUsersResponseSchema>;
+export type PaginationLinks = z.infer<typeof paginationLinksSchema>;

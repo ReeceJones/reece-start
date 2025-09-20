@@ -20,6 +20,7 @@ import (
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
 	"reece.start/internal/users"
+	"reece.start/internal/utils"
 )
 
 // Service request/response types
@@ -626,11 +627,11 @@ func deleteOrganizationMembership(request DeleteOrganizationMembershipServiceReq
 func createOrganizationInvitation(request CreateOrganizationInvitationServiceRequest) (*OrganizationInvitationDto, error) {
 	tx := request.Tx
 	params := request.Params
-	// riverClient := request.RiverClient
+	riverClient := request.RiverClient
 
 	// Check if there's already a pending invitation for this email and organization
 	var existingInvitation models.OrganizationInvitation
-	err := tx.Where("email = ? AND organization_id = ?", params.Email, params.OrganizationID).
+	err := tx.Where("email = ? AND organization_id = ? AND status = ?", params.Email, params.OrganizationID, string(constants.OrganizationInvitationStatusPending)).
 		First(&existingInvitation).Error
 	
 	if err == nil {
@@ -656,13 +657,13 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 	}
 
 	// Enqueue background job to send invitation email
-	// sqlTx := utils.GetGormSQLTx(tx)
-	// _, err = riverClient.InsertTx(tx.Statement.Context, sqlTx, OrganizationInvitationEmailJobArgs{
-	// 	InvitationId: invitation.ID,
-	// }, nil)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to enqueue invitation email job: %w", err)
-	// }
+	sqlTx := utils.GetGormSQLTx(tx)
+	_, err = riverClient.InsertTx(tx.Statement.Context, sqlTx, OrganizationInvitationEmailJobArgs{
+		InvitationId: invitation.ID,
+	}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to enqueue invitation email job: %w", err)
+	}
 
 	log.Printf("Created organization invitation %d and enqueued email job", invitation.ID)
 

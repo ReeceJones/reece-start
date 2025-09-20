@@ -6,6 +6,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
+	"reece.start/internal/api"
 	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
@@ -98,6 +99,18 @@ type CreateAuthenticatedUserTokenResponse struct {
 	Data CreateAuthenticatedUserTokenResponseData `json:"data"`
 }
 
+
+type GetUsersQuery struct {
+	Cursor string `query:"page[cursor]"`
+	Size   int    `query:"page[size]" validate:"min=1,max=100"`
+	Search string `query:"search"`
+}
+
+type GetUsersResponse struct {
+	Data  []UserDataWithMeta `json:"data"`
+	Links api.PaginationLinks    `json:"links"`
+}
+
 type UserResponse struct {
 	Data UserDataWithMeta `json:"data"`
 }
@@ -166,6 +179,22 @@ type GetUserLogoDistributionUrlServiceRequest struct {
 	MinioClient *minio.Client
 }
 
+type GetUsersServiceRequest struct {
+	Cursor string
+	Size   int
+	Search string
+	Tx     *gorm.DB
+	MinioClient *minio.Client
+}
+
+type GetUsersServiceResponse struct {
+	Users      []*UserDto
+	NextCursor string
+	PrevCursor string
+	HasNext    bool
+	HasPrev	   bool
+}
+
 type UserDto struct {
 	User *models.User
 	Token string
@@ -185,6 +214,11 @@ type CreateAuthenticatedUserTokenParams struct {
 
 type SelectMembershipRole struct {
 	Role *constants.OrganizationRole
+}
+
+type GetUsersCursor struct {
+	UserID uint
+	Direction string
 }
 
 // Type mappers

@@ -26,7 +26,7 @@
 	let submitting = $state(false);
 </script>
 
-<div class="card bg-base-200 border-base-300 mx-auto max-w-[600px] shadow-sm">
+<div class="card bg-base-200 border-base-300 mx-auto max-w-[600px] border shadow-sm">
 	<div class="card-body">
 		{#if status === 'pending'}
 			<div class="flex flex-col items-center justify-center gap-6">

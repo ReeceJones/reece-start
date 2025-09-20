@@ -2,10 +2,13 @@ package users
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"reece.start/internal/access"
 	"reece.start/internal/api"
+	"reece.start/internal/constants"
 	"reece.start/internal/middleware"
 )
 
@@ -146,4 +149,65 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 	}
 
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
+}
+
+func GetUsersEndpoint(c echo.Context, query GetUsersQuery) error {
+	// Check admin access
+	if err := access.HasAdminAccess(c, []constants.UserScope{constants.UserScopeAdminUsersList}); err != nil {
+		return err
+	}
+
+	db := middleware.GetDB(c)
+	minioClient := middleware.GetMinioClient(c)
+
+	// Set default values if not provided
+	cursor := query.Cursor
+	size := query.Size
+	search := query.Search
+	if size <= 0 {
+		size = 20
+	}
+
+	response, err := getUsers(GetUsersServiceRequest{
+		Cursor:      cursor,
+		Size:        size,
+		Search:      search,
+		Tx:          db,
+		MinioClient: minioClient,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Convert to response format
+	userData := make([]UserDataWithMeta, 0, len(response.Users))
+	for _, userDto := range response.Users {
+		userData = append(userData, UserDataWithMeta{
+			UserData: UserData{
+				Id:   strconv.FormatUint(uint64(userDto.User.ID), 10),
+				Type: constants.ApiTypeUser,
+				Attributes: UserAttributes{
+					Name:  userDto.User.Name,
+					Email: userDto.User.Email,
+				},
+			},
+			Meta: UserMeta{
+				LogoDistributionUrl: userDto.LogoDistributionUrl,
+				TokenRevocation: UserTokenRevocation{
+					LastIssuedAt: userDto.User.Revocation.LastValidIssuedAt,
+					CanRefresh:   userDto.User.Revocation.CanRefresh,
+				},
+			},
+		})
+	}
+
+	return c.JSON(http.StatusOK, GetUsersResponse{
+		Data:  userData,
+		Links: api.BuildPaginationLinks(api.BuildPaginationLinksParams{
+			PrevCursor: response.PrevCursor,
+			NextCursor: response.NextCursor,
+			Context: c,
+		}),
+	})
 }

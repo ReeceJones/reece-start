@@ -137,6 +137,7 @@ func main() {
 	protected.Use(appMiddleware.JwtAuthMiddleware(config))
 
 	protected.GET("/users/me", users.GetAuthenticatedUserEndpoint)
+	protected.GET("/users", api.ValidatedQuery(users.GetUsersEndpoint))
 	protected.POST("/users/me/token", api.Validated(users.CreateAuthenticatedUserTokenEndpoint))
 	protected.PATCH("/users/:id", api.Validated(users.UpdateUserEndpoint))
 

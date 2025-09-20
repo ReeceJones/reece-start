@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
 	"gorm.io/gorm"
@@ -17,7 +18,7 @@ import (
 
 
 type OrganizationInvitationEmailJobArgs struct {
-	InvitationId uint `json:"invitationId"`
+	InvitationId uuid.UUID `json:"invitationId"`
 }
 
 func (OrganizationInvitationEmailJobArgs) Kind() string {
@@ -40,7 +41,7 @@ type OrganizationInvitationHtmlTemplateParams struct {
 
 
 func (w *OrganizationInvitationEmailJobWorker) Work(ctx context.Context, job *river.Job[OrganizationInvitationEmailJobArgs]) error {
-	log.Printf("Sending organization invitation email %d", job.Args.InvitationId)
+	log.Printf("Sending organization invitation email %s", job.Args.InvitationId)
 
 	// Get the inviting user
 	var invitation models.OrganizationInvitation
@@ -62,13 +63,21 @@ func (w *OrganizationInvitationEmailJobWorker) Work(ctx context.Context, job *ri
 	if err != nil {
 		return err
 	}
-	
-	w.ResendClient.Emails.Send(&resend.SendEmailRequest{
-		From: string(constants.EmailSenderDefault),
-		To: []string{invitation.Email},
-		Subject: subject,
-		Html: html,
+
+	_, err = email.SendEmail(email.SendEmailRequest{
+		Params: email.SendEmailParams{
+			From: string(constants.EmailSenderDefault),
+			To: []string{invitation.Email},
+			Subject: subject,
+			Html: html,
+		},
+		ResendClient: w.ResendClient,
+		Config: w.Config,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

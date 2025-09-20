@@ -280,3 +280,113 @@ func GetUserLogoDistributionUrl(request GetUserLogoDistributionUrlServiceRequest
 
 	return presignedUrl.String(), nil
 }
+
+func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) {
+	tx := request.Tx
+	minioClient := request.MinioClient
+	cursor := request.Cursor
+	size := request.Size
+	search := request.Search
+
+	// Set default values if not provided
+	if size <= 0 {
+		size = 20
+	}
+	if size > 100 {
+		size = 100
+	}
+
+	// Parse cursor (user ID) if provided
+	var getUsersCursor GetUsersCursor
+	if err := api.ParseCursor(cursor, &getUsersCursor); err != nil {
+		return nil, err
+	}
+
+	// Get users with cursor-based pagination and search
+	var users []models.User
+	query := tx
+	
+	// Apply search filter if provided
+	if search != "" {
+		// Search by name, email, or ID (case-insensitive)
+		searchPattern := "%" + search + "%"
+		query = query.Where("name ILIKE ? OR email ILIKE ? OR id::text ILIKE ?", 
+			searchPattern, searchPattern, searchPattern)
+	}
+	
+	if getUsersCursor != (GetUsersCursor{}) && getUsersCursor.Direction == "next" {
+		// Get users after the cursor
+		query = query.Where("id > ?", getUsersCursor.UserID).Order("id ASC")
+	} else if getUsersCursor != (GetUsersCursor{}) && getUsersCursor.Direction == "prev" {
+		query = query.Where("id < ?", getUsersCursor.UserID).Order("id DESC")
+	} else {
+		query = query.Order("id ASC")
+	}
+	
+	// Get one extra record to determine if there are more pages
+	err := query.Limit(size + 1).Find(&users).Error;
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if there are more records
+	hasNext := ((getUsersCursor == (GetUsersCursor{}) || getUsersCursor.Direction == "next") && len(users) > size) || (getUsersCursor.Direction == "prev")
+	hasPrev := (getUsersCursor.Direction == "prev" && len(users) > size) || (getUsersCursor.Direction == "next")
+
+	// hasNext := len(users) > size
+	if hasNext || hasPrev {
+		// Remove the extra record
+		users = users[:size]
+	}
+
+	// hasPrev := getUsersCursor != (GetUsersCursor{})
+
+	// Convert to DTOs with logo distribution URLs
+	var userDtos []*UserDto
+	for _, user := range users {
+		logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+			UserID:      user.ID,
+			Tx:          tx,
+			MinioClient: minioClient,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		userDtos = append(userDtos, &UserDto{
+			User:                &user,
+			LogoDistributionUrl: logoDistributionUrl,
+		})
+	}
+
+	// Generate next cursor if there are more records
+	var nextCursor string
+	var prevCursor string
+	if hasNext && len(userDtos) > 0 {
+		nextCursor, err = api.EncodeCursor(GetUsersCursor{
+			UserID: userDtos[len(userDtos)-1].User.ID,
+			Direction: "next",
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if hasPrev && len(userDtos) > 0 {
+		prevCursor, err = api.EncodeCursor(GetUsersCursor{
+			UserID: userDtos[0].User.ID,
+			Direction: "prev",
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &GetUsersServiceResponse{
+		Users:      userDtos,
+		NextCursor: nextCursor,
+		PrevCursor: prevCursor,
+		HasNext:    hasNext,
+		HasPrev:    hasPrev,
+	}, nil
+}

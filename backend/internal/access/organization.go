@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"reece.start/internal/api"
+	"reece.start/internal/authentication"
 	"reece.start/internal/constants"
 	"reece.start/internal/middleware"
 	"reece.start/internal/models"
@@ -35,6 +36,29 @@ func HasOrganizationAccess(c echo.Context, params HasOrganizationAccessParams) e
 	for _, scope := range params.Scopes {
 		if !slices.Contains(organization_scopes, scope) {
 			return api.ErrForbiddenNoAccess
+		}
+	}
+
+	return nil
+}
+
+// HasAdminAccess checks if the user has admin access based on their role and scopes
+func HasAdminAccess(c echo.Context, scopes []constants.UserScope) error {
+	claims := c.Get("claims").(*authentication.JwtClaims)
+	
+	// Check if user has admin role
+	if claims.Role == nil || *claims.Role != constants.UserRoleAdmin {
+		return api.ErrForbiddenNoAdminAccess
+	}
+	
+	// Check if user has the required scopes
+	if claims.Scopes == nil {
+		return api.ErrForbiddenNoAdminAccess
+	}
+	
+	for _, scope := range scopes {
+		if !slices.Contains(*claims.Scopes, scope) {
+			return api.ErrForbiddenNoAdminAccess
 		}
 	}
 

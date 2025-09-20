@@ -134,18 +134,25 @@ export async function get<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 		'Content-Type': 'application/json'
 	};
 
-	let paramsString = '';
+	// parse out the params string from the path
+	let paramsString = path.includes('?') ? path.slice(path.indexOf('?')) : '';
+	const url = path.includes('?') ? path.slice(0, path.indexOf('?')) : path;
 
 	if (options.params && options.paramsSchema) {
 		options.paramsSchema.parse(options.params);
-		paramsString = `?${new URLSearchParams(options.params).toString()}`;
+		// convert nested objects to foo[bar]=baz format
+		paramsString = paramsString
+			? `${paramsString}&${convertParamsToQueryString(options.params)}`
+			: `?${convertParamsToQueryString(options.params)}`;
 	}
 
-	const response = await options.fetch(`${path}${paramsString}`, {
+	const response = await options.fetch(`${url}${paramsString}`, {
 		headers
 	});
 
 	if (!response.ok) {
+		console.error('Request failed with invalid status code:', response.status, response.statusText);
+		console.error('Response:', await response.json());
 		throw new ApiError(
 			`Request failed with invalid status code: ${response.status}`,
 			response.status
@@ -178,4 +185,33 @@ export async function del(
 			response.status
 		);
 	}
+}
+
+function convertParamsToQueryString(params: Record<string, any>, prefix = ''): string {
+	const queryString = new URLSearchParams();
+
+	function addParam(key: string, value: any) {
+		if (value === null || value === undefined) {
+			return;
+		}
+
+		if (Array.isArray(value)) {
+			value.forEach((item, index) => {
+				addParam(`${key}[${index}]`, item);
+			});
+		} else if (typeof value === 'object') {
+			for (const [subKey, subValue] of Object.entries(value)) {
+				addParam(`${key}[${subKey}]`, subValue);
+			}
+		} else {
+			queryString.set(key, String(value));
+		}
+	}
+
+	for (const [key, value] of Object.entries(params)) {
+		const paramKey = prefix ? `${prefix}[${key}]` : key;
+		addParam(paramKey, value);
+	}
+
+	return queryString.toString();
 }
