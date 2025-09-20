@@ -8,8 +8,6 @@ export const load: PageLoad = async ({ url, fetch }) => {
 
 	const apiUrl = cursor ? `/api${cursor}` : `/api/users`;
 
-	console.log('apiUrl', apiUrl);
-
 	const users = await get(apiUrl, {
 		fetch,
 		responseSchema: getUsersResponseSchema,
@@ -22,8 +20,6 @@ export const load: PageLoad = async ({ url, fetch }) => {
 			}
 		}
 	});
-
-	console.log('users', users);
 
 	return {
 		users,

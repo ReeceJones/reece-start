@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { EllipsisVertical, HatGlasses, Search, User } from 'lucide-svelte';
+	import {
+		EllipsisVertical,
+		HatGlasses,
+		Search,
+		User,
+		ChevronLeft,
+		ChevronRight
+	} from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
 
@@ -76,7 +83,7 @@
 									{user.attributes.email}
 								</a>
 							</td>
-							<td>
+							<td class="flex justify-end">
 								<div class="dropdown dropdown-end">
 									<div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-square">
 										<EllipsisVertical class="size-4" />
@@ -98,11 +105,21 @@
 					{/each}
 				</tbody>
 			</table>
-			{#if users.links.prev}
-				<button class="btn btn-primary" onclick={loadPreviousPage}>Previous</button>
-			{/if}
-			{#if users.links.next}
-				<button class="btn btn-primary" onclick={loadNextPage}>Next</button>
+			{#if users.links.prev || users.links.next}
+				<div class="mt-4 flex justify-center gap-2">
+					{#if users.links.prev}
+						<button class="btn btn-ghost btn-neutral btn-sm" onclick={loadPreviousPage}>
+							<ChevronLeft class="size-4" />
+							Previous
+						</button>
+					{/if}
+					{#if users.links.next}
+						<button class="btn btn-ghost btn-neutral btn-sm" onclick={loadNextPage}>
+							Next
+							<ChevronRight class="size-4" />
+						</button>
+					{/if}
+				</div>
 			{/if}
 		</div>
 	</div>
