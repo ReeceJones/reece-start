@@ -84,6 +84,40 @@ func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticate
 		return err
 	}
 
+	impersonatingUserId, _ := middleware.GetImpersonatingUserIDFromJWT(c)
+
+	if req.Data.Relationships.ImpersonatedUser != nil {
+		if impersonatingUserId != 0 {
+			// if the impersonating user id is not 0, then the user is already impersonating someone
+			return api.ErrForbiddenImpersonationNotAllowed
+		}
+
+		if err := access.HasAdminAccess(c, []constants.UserScope{constants.UserScopeAdminUsersImpersonate}); err != nil {
+			return err
+		}
+
+		// set the user id to the impersonated user id
+		impersonatingUserId, err = api.ParseUserIDFromString(req.Data.Relationships.ImpersonatedUser.Data.Id)
+
+		if err != nil {
+			return err
+		}
+
+		actualUserId := userId
+		userId = impersonatingUserId
+		impersonatingUserId = actualUserId
+	}
+
+	if req.Data.Meta.StopImpersonating {		
+		if impersonatingUserId == 0 {
+			// if the impersonating user id is 0, then the user is not impersonating anyone
+			return api.ErrForbiddenImpersonationNotAllowed
+		}
+
+		userId = impersonatingUserId
+		impersonatingUserId = 0
+	}
+
 	var organizationId uint
 	if req.Data.Relationships.Organization != nil {
 		organizationId, err = api.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
@@ -99,6 +133,7 @@ func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticate
 		Params: CreateAuthenticatedUserTokenParams{
 			UserId: userId,
 			OrganizationId: &organizationId,
+			ImpersonatingUserId: &impersonatingUserId,
 		},
 		Tx: tx,
 		Config: config,

@@ -8,7 +8,8 @@ This is a repo that I use as a starting point for new projects. It is based on S
   - Organization invitation links & emails
   - Organization roles using scopes
   - Sudo users
-  - TODO: user impersonation, SSO, MFA
+  - Impersonation
+  - TODO: SSO, MFA
 - User settings page
 - Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)

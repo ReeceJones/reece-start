@@ -88,15 +88,29 @@
 									<div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-square">
 										<EllipsisVertical class="size-4" />
 									</div>
+									<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 									<ul
 										tabindex="0"
 										class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
 									>
 										<li>
-											<button>
+											<button
+												onclick={(e) => {
+													e.preventDefault();
+													// get the child form and submit it
+													const form = document.getElementById(
+														`impersonate-form-${user.id}`
+													) as HTMLFormElement;
+													form.submit();
+												}}
+											>
 												<HatGlasses class="size-4" />
 												Impersonate
 											</button>
+
+											<form method="POST" action="?/impersonate" id={`impersonate-form-${user.id}`}>
+												<input type="hidden" name="impersonatedUserId" value={user.id} />
+											</form>
 										</li>
 									</ul>
 								</div>

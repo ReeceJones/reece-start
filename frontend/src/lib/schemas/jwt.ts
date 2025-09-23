@@ -30,6 +30,8 @@ interface OrganizationClaims {
 	organization_role?: OrganizationMembershipRole;
 	scopes?: UserScope[];
 	role?: UserRole;
+	is_impersonating?: boolean;
+	impersonating_user_id?: string;
 }
 
 export type JwtClaims = JwtPayload & OrganizationClaims;

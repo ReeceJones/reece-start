@@ -1,3 +1,4 @@
+import { invalidateAll } from '$app/navigation';
 import { getRequestEvent } from '$app/server';
 import { ApiError, get, post } from '$lib/api';
 import { API_TYPES } from '$lib/schemas/api';
@@ -87,11 +88,18 @@ export async function getUserAndValidateToken() {
 	};
 }
 
-export async function refreshUserToken(requestEvent: RequestEvent) {
+export async function refreshUserToken(
+	requestEvent: RequestEvent,
+	options?: { impersonatedUserId?: string; stopImpersonating?: boolean }
+) {
 	const { params, fetch } = requestEvent;
 	const { organizationId } = params;
 
-	console.log('Refreshing user token');
+	console.log('Refreshing user token', {
+		organizationId,
+		impersonatedUserId: options?.impersonatedUserId,
+		stopImpersonating: options?.stopImpersonating
+	});
 
 	let newToken: string;
 	try {
@@ -101,6 +109,16 @@ export async function refreshUserToken(requestEvent: RequestEvent) {
 				data: {
 					type: API_TYPES.token,
 					relationships: {
+						...(options?.impersonatedUserId
+							? {
+									impersonatedUser: {
+										data: {
+											id: options.impersonatedUserId,
+											type: API_TYPES.user
+										}
+									}
+								}
+							: {}),
 						...(organizationId
 							? {
 									organization: {
@@ -111,7 +129,14 @@ export async function refreshUserToken(requestEvent: RequestEvent) {
 									}
 								}
 							: {})
-					}
+					},
+					...(options?.stopImpersonating
+						? {
+								meta: {
+									stopImpersonating: true
+								}
+							}
+						: {})
 				}
 			},
 			{
@@ -122,6 +147,7 @@ export async function refreshUserToken(requestEvent: RequestEvent) {
 		);
 
 		newToken = response.data.meta.token;
+		console.log('New token', newToken);
 	} catch (apiError) {
 		if (apiError instanceof ApiError) {
 			console.error('Error validating token organization', apiError.code, apiError.message);
@@ -139,6 +165,14 @@ export async function refreshUserToken(requestEvent: RequestEvent) {
 	setTokenInCookies(requestEvent, newToken);
 }
 
+export async function impersonateUser(requestEvent: RequestEvent, userId: string) {
+	await refreshUserToken(requestEvent, { impersonatedUserId: userId });
+}
+
+export async function stopImpersonatingUser(requestEvent: RequestEvent) {
+	await refreshUserToken(requestEvent, { stopImpersonating: true });
+}
+
 export function getUserScopes() {
 	const requestEvent = getRequestEvent();
 	const token = getDefinedToken(requestEvent);
@@ -147,6 +181,16 @@ export function getUserScopes() {
 	}
 	const claims = jwtDecode<JwtClaims>(token);
 	return claims.scopes ?? [];
+}
+
+export function getIsImpersonatingUser() {
+	const requestEvent = getRequestEvent();
+	const token = getDefinedToken(requestEvent);
+	if (!token) {
+		return false;
+	}
+	const claims = jwtDecode<JwtClaims>(token);
+	return claims.is_impersonating ?? false;
 }
 
 function validateTokenAdmin(requestEvent: RequestEvent) {

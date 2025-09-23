@@ -10,6 +10,7 @@ var (
 	ErrForbiddenNoAdminAccess   = errors.New("You don't have admin access to this organization")
 	ErrForbiddenOwnProfileOnly  = errors.New("You can only update your own profile")
 	ErrUnauthorizedInvalidLogin = errors.New("Invalid email or password")
+	ErrForbiddenImpersonationNotAllowed = errors.New("Impersonation is not allowed")
 
 	// Resource not found errors
 	ErrMembershipNotFound      = errors.New("Membership not found")

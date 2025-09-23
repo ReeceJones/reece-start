@@ -5,6 +5,14 @@ export const createAuthenticatedUserTokenRequestSchema = z.object({
 	data: z.object({
 		type: z.literal(API_TYPES.token),
 		relationships: z.object({
+			impersonatedUser: z
+				.object({
+					data: z.object({
+						id: z.string(),
+						type: z.literal(API_TYPES.user)
+					})
+				})
+				.optional(),
 			organization: z
 				.object({
 					data: z.object({
@@ -13,7 +21,12 @@ export const createAuthenticatedUserTokenRequestSchema = z.object({
 					})
 				})
 				.optional()
-		})
+		}),
+		meta: z
+			.object({
+				stopImpersonating: z.boolean().optional()
+			})
+			.optional()
 	})
 });
 
@@ -29,6 +42,16 @@ export const createAuthenticatedUserTokenResponseSchema = z.object({
 					})
 				})
 				.optional()
+				.nullable(),
+			impersonatedUser: z
+				.object({
+					data: z.object({
+						id: z.string(),
+						type: z.literal(API_TYPES.user)
+					})
+				})
+				.optional()
+				.nullable()
 		}),
 		meta: z.object({
 			token: z.string()

@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { setScopes } from '$lib/auth';
+	import { setIsImpersonatingUser, setScopes } from '$lib/auth';
 
 	const { children, data } = $props();
 
-	const { userScopes } = data;
+	const { userScopes, isImpersonatingUser } = data;
 
 	setScopes(userScopes);
+	setIsImpersonatingUser(isImpersonatingUser);
 </script>
 
 {@render children?.()}

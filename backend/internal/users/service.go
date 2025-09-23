@@ -71,7 +71,7 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 	var selectMembershipRole SelectMembershipRole = SelectMembershipRole{}
 	scopes := make([]constants.UserScope, 0)
 
-	if request.Params.OrganizationId != nil {
+	if request.Params.OrganizationId != nil && *request.Params.OrganizationId != 0 {
 		err := tx.Model(&models.OrganizationMembership{}).Where("user_id = ? AND organization_id = ?", request.Params.UserId, request.Params.OrganizationId).Select("role").First(&selectMembershipRole).Error
 		if err != nil {
 			return "", err
@@ -88,12 +88,21 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 
 	userRole := constants.UserRole(user.Role)
 
+	isImpersonating := false
+	var impersonatingUserId *string
+	if request.Params.ImpersonatingUserId != nil && *request.Params.ImpersonatingUserId != 0 {
+		isImpersonating = true
+		impersonatingUserId = &[]string{fmt.Sprintf("%d", *request.Params.ImpersonatingUserId)}[0]
+	}
+
 	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
 		UserId: request.Params.UserId,
 		OrganizationId: request.Params.OrganizationId,
 		OrganizationRole: selectMembershipRole.Role,
 		Scopes: &scopes,
 		Role: &userRole,
+		IsImpersonating: &isImpersonating,
+		ImpersonatingUserId: impersonatingUserId,
 	})
 
 	return token, err

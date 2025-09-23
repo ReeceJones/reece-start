@@ -18,6 +18,8 @@ type JwtClaims struct {
 	OrganizationRole     *constants.OrganizationRole       `json:"organization_role"`
 	Scopes   *[]constants.UserScope  `json:"scopes"`
 	Role *constants.UserRole `json:"role"`
+	IsImpersonating *bool `json:"is_impersonating"`
+	ImpersonatingUserId *string `json:"impersonating_user_id"` // The actual user id of the authenticated user
 }
 
 type JwtOptions struct {
@@ -26,6 +28,8 @@ type JwtOptions struct {
 	OrganizationRole *constants.OrganizationRole
 	Scopes *[]constants.UserScope
 	Role *constants.UserRole
+	IsImpersonating *bool
+	ImpersonatingUserId *string
 }
 
 func CreateJWT(config *configuration.Config, options JwtOptions) (string, error) {
@@ -44,6 +48,8 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 		OrganizationRole:     options.OrganizationRole,
 		Scopes:   options.Scopes,
 		Role:   options.Role,
+		IsImpersonating: options.IsImpersonating,
+		ImpersonatingUserId: options.ImpersonatingUserId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(now),

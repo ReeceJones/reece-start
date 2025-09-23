@@ -72,27 +72,42 @@ type OrganizationRelationship struct {
 	Data OrganizationRelationshipData `json:"data" validate:"required"`
 }
 
+type UserRelationshipData struct {
+	Id string `json:"id" validate:"required"`
+	Type string `json:"type" validate:"required,oneof=user"`
+}
+
+type UserRelationship struct {
+	Data UserRelationshipData `json:"data" validate:"required"`
+}
+
 type CreateAuthenticatedUserTokenRelationships struct {
 	Organization *OrganizationRelationship `json:"organization"`
+	ImpersonatedUser *UserRelationship `json:"impersonatedUser"`
+}
+
+type CreateAuthenticatedUserTokenRequestMeta struct {
+	StopImpersonating bool `json:"stopImpersonating"`
 }
 
 type CreateAuthenticatedUserTokenData struct {
 	Type constants.ApiType `json:"type" validate:"oneof=token"`
 	Relationships CreateAuthenticatedUserTokenRelationships `json:"relationships"`
+	Meta CreateAuthenticatedUserTokenRequestMeta `json:"meta"`
 }
 
 type CreateAuthenticatedUserTokenRequest struct {
 	Data CreateAuthenticatedUserTokenData `json:"data"`
 }
 
-type CreateAuthenticatedUserTokenMeta struct {
+type CreateAuthenticatedUserTokenResponseMeta struct {
 	Token string `json:"token"`
 }
 
 type CreateAuthenticatedUserTokenResponseData struct {
 	Type constants.ApiType `json:"type" validate:"oneof=token"`
 	Relationships CreateAuthenticatedUserTokenRelationships `json:"relationships"`
-	Meta CreateAuthenticatedUserTokenMeta `json:"meta"`
+	Meta CreateAuthenticatedUserTokenResponseMeta `json:"meta"`
 }
 
 type CreateAuthenticatedUserTokenResponse struct {
@@ -210,6 +225,7 @@ type CreateAuthenticatedUserTokenServiceRequest struct {
 type CreateAuthenticatedUserTokenParams struct {
 	UserId uint
 	OrganizationId *uint
+	ImpersonatingUserId *uint
 }
 
 type SelectMembershipRole struct {
@@ -250,7 +266,7 @@ func mapCreateAuthenticatedUserTokenToResponse(req CreateAuthenticatedUserTokenR
 		Data: CreateAuthenticatedUserTokenResponseData{
 			Type: constants.ApiTypeToken,
 			Relationships: req.Data.Relationships,
-			Meta: CreateAuthenticatedUserTokenMeta{
+			Meta: CreateAuthenticatedUserTokenResponseMeta{
 				Token: token,
 			},
 		},

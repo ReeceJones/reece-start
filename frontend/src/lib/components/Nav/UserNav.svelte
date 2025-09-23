@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LogOut, Settings, User } from 'lucide-svelte';
+	import { EyeOff, LogOut, Settings, User } from 'lucide-svelte';
 	import { getSelfUserResponseSchema } from '$lib/schemas/user';
 	import type { z } from 'zod';
 	import { page } from '$app/state';
@@ -36,12 +36,28 @@
 						Logout
 					</button>
 				</li>
+				<li>
+					<button
+						class="text-error flex items-center gap-2"
+						type="submit"
+						form="stop-impersonation-form"
+					>
+						<EyeOff class="size-4" />
+						Stop Impersonation
+					</button>
+				</li>
 			</ul>
 			<form
 				action="/app?/signout"
 				method="POST"
 				enctype="multipart/form-data"
 				id="signout-form"
+			></form>
+			<form
+				action="/app?/stopImpersonation"
+				method="POST"
+				enctype="multipart/form-data"
+				id="stop-impersonation-form"
 			></form>
 		</div>
 	</li>

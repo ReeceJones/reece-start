@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -43,6 +44,20 @@ func GetUserIDFromJWT(c echo.Context) (uint, error) {
 		return 0, err
 	}
 	return uint(userID), nil
+}
+
+func GetImpersonatingUserIDFromJWT(c echo.Context) (uint, error) {
+	claims := c.Get("claims").(*authentication.JwtClaims)
+
+	if claims.ImpersonatingUserId == nil {
+		return 0, errors.New("impersonating user ID is not set")
+	}
+
+	impersonatingUserID, err := strconv.ParseUint(*claims.ImpersonatingUserId, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return uint(impersonatingUserID), nil
 }
 
 func getTokenFromRequest(c echo.Context) (string, error) {
