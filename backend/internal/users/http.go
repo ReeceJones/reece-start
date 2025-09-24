@@ -246,3 +246,26 @@ func GetUsersEndpoint(c echo.Context, query GetUsersQuery) error {
 		}),
 	})
 }
+
+func GoogleOAuthCallbackEndpoint(c echo.Context, req GoogleOAuthCallbackRequest) error {
+	db := middleware.GetDB(c)
+	config := middleware.GetConfig(c)
+	minioClient := middleware.GetMinioClient(c)
+
+	user, err := googleOAuthCallback(GoogleOAuthCallbackServiceRequest{
+		Params: GoogleOAuthCallbackParams{
+			Code:        req.Data.Attributes.Code,
+			State:       req.Data.Attributes.State,
+			RedirectUri: req.Data.Attributes.RedirectUri,
+		},
+		Tx:          db,
+		Config:      config,
+		MinioClient: minioClient,
+	})
+
+	if err != nil {
+		return err // Middleware will handle the error response
+	}
+
+	return c.JSON(http.StatusOK, mapUserToResponse(user))
+}

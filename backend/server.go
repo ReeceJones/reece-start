@@ -132,6 +132,9 @@ func main() {
 	e.POST("/users", api.Validated(users.CreateUserEndpoint))
 	e.POST("/users/login", api.Validated(users.LoginEndpoint))
 
+	// Public OAuth routes (no authentication required)
+	e.POST("/oauth/google/callback", api.Validated(users.GoogleOAuthCallbackEndpoint))
+
 	// Protected user routes (authentication required)
 	protected := e.Group("")
 	protected.Use(appMiddleware.JwtAuthMiddleware(config))

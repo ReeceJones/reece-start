@@ -3,10 +3,12 @@
 	import { getSelfUserResponseSchema } from '$lib/schemas/user';
 	import type { z } from 'zod';
 	import { page } from '$app/state';
+	import { getIsImpersonatingUser } from '$lib/auth';
 
 	const { user }: { user: z.infer<typeof getSelfUserResponseSchema> } = $props();
 	const organizationId = $derived(page.params.organizationId);
 	const profileHref = $derived(organizationId ? `/app/${organizationId}/profile` : '/app/profile');
+	const isImpersonatingUser = $derived(getIsImpersonatingUser());
 </script>
 
 <ul class="menu menu-vertical w-full">
@@ -20,6 +22,7 @@
 				{/if}
 				{user.data.attributes.name ?? 'Profile'}
 			</div>
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
 				class="dropdown-content menu bg-base-100 rounded-box z-1 ml-0 w-52 -translate-y-1.5 p-2 shadow-sm"
@@ -36,16 +39,18 @@
 						Logout
 					</button>
 				</li>
-				<li>
-					<button
-						class="text-error flex items-center gap-2"
-						type="submit"
-						form="stop-impersonation-form"
-					>
-						<EyeOff class="size-4" />
-						Stop Impersonation
-					</button>
-				</li>
+				{#if isImpersonatingUser}
+					<li>
+						<button
+							class="text-error flex items-center gap-2"
+							type="submit"
+							form="stop-impersonation-form"
+						>
+							<EyeOff class="size-4" />
+							Stop Impersonation
+						</button>
+					</li>
+				{/if}
 			</ul>
 			<form
 				action="/app?/signout"

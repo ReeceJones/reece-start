@@ -31,7 +31,7 @@
 	</td>
 	<td>
 		<button
-			class="btn btn-link btn-neutral btn-sm"
+			class="btn btn-ghost btn-sm"
 			onclick={() => {
 				const origin = window.location.origin;
 				navigator.clipboard.writeText(`${origin}/app/invitations/${invitation.id}`);

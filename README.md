@@ -1,15 +1,16 @@
 # reece-start
 
-This is a repo that I use as a starting point for new projects. It is based on SvelteKit + Go, and adopts a (mostly) cloud-native approach for deployments.
+This is a repo that I use as a starting point for new projects. It is based on SvelteKit + Go, and adopts a (kindof) cloud-native approach for deployments.
 
 ## Features
 
 - Organization-Member-User authentication model
   - Organization invitation links & emails
-  - Organization roles using scopes
+  - RBAC using scopes
   - Sudo users
   - Impersonation
-  - TODO: SSO, MFA
+  - Google OAuth
+  - TODO: MFA
 - User settings page
 - Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)

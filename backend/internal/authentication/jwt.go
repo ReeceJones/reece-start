@@ -30,6 +30,7 @@ type JwtOptions struct {
 	Role *constants.UserRole
 	IsImpersonating *bool
 	ImpersonatingUserId *string
+	CustomExpiry *time.Time
 }
 
 func CreateJWT(config *configuration.Config, options JwtOptions) (string, error) {
@@ -42,6 +43,14 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 		activeOrganizationId = &orgIdString
 	}
 
+	// Calculate expiry time
+	var expiresAt *jwt.NumericDate
+	if options.CustomExpiry != nil {
+		expiresAt = jwt.NewNumericDate(*options.CustomExpiry)
+	} else {
+		expiresAt = jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second))
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JwtClaims{
 		UserId:               userIdString,
 		OrganizationId: activeOrganizationId,
@@ -51,7 +60,7 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 		IsImpersonating: options.IsImpersonating,
 		ImpersonatingUserId: options.ImpersonatingUserId,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second)),
+			ExpiresAt: expiresAt,
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			Issuer:    config.JwtIssuer,

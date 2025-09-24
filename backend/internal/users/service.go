@@ -4,14 +4,18 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/minio/minio-go/v7"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 	"reece.start/internal/authentication"
@@ -95,7 +99,7 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 		impersonatingUserId = &[]string{fmt.Sprintf("%d", *request.Params.ImpersonatingUserId)}[0]
 	}
 
-	token, err := authentication.CreateJWT(config, authentication.JwtOptions{
+	jwtOptions := authentication.JwtOptions{
 		UserId: request.Params.UserId,
 		OrganizationId: request.Params.OrganizationId,
 		OrganizationRole: selectMembershipRole.Role,
@@ -103,7 +107,14 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 		Role: &userRole,
 		IsImpersonating: &isImpersonating,
 		ImpersonatingUserId: impersonatingUserId,
-	})
+	}
+
+	// Use custom expiry if provided (for OAuth tokens)
+	if request.Params.CustomExpiry != nil {
+		jwtOptions.CustomExpiry = request.Params.CustomExpiry
+	}
+
+	token, err := authentication.CreateJWT(config, jwtOptions)
 
 	return token, err
 }
@@ -278,16 +289,21 @@ func GetUserLogoDistributionUrl(request GetUserLogoDistributionUrlServiceRequest
 
 	objectName := user.LogoFileStorageKey
 
-	if objectName == "" {
-		return "", nil
+	// If user has uploaded a logo, return the presigned URL for that
+	if objectName != "" {
+		presignedUrl, err := minioClient.PresignedGetObject(context.Background(), string(constants.StorageBucketUserLogos), objectName, time.Hour*24, url.Values{})
+		if err != nil {
+			return "", err
+		}
+		return presignedUrl.String(), nil
 	}
 
-	presignedUrl, err := minioClient.PresignedGetObject(context.Background(), string(constants.StorageBucketUserLogos), objectName, time.Hour*24, url.Values{})
-	if err != nil {
-		return "", err
+	// If no uploaded logo but Google profile image exists, return that as fallback
+	if user.GoogleProfileImage != "" {
+		return user.GoogleProfileImage, nil
 	}
 
-	return presignedUrl.String(), nil
+	return "", nil
 }
 
 func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) {
@@ -397,5 +413,131 @@ func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) 
 		PrevCursor: prevCursor,
 		HasNext:    hasNext,
 		HasPrev:    hasPrev,
+	}, nil
+}
+
+type GoogleUserInfo struct {
+	ID      string `json:"id"`
+	Email   string `json:"email"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
+}
+
+func googleOAuthCallback(request GoogleOAuthCallbackServiceRequest) (*UserDto, error) {
+	tx := request.Tx
+	config := request.Config
+	minioClient := request.MinioClient
+	params := request.Params
+
+	// Configure OAuth
+	oauth2Config := &oauth2.Config{
+		ClientID:     config.GoogleOAuthClientId,
+		ClientSecret: config.GoogleOAuthClientSecret,
+		RedirectURL:  params.RedirectUri,
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+		Endpoint: google.Endpoint,
+	}
+
+	// Exchange code for token
+	token, err := oauth2Config.Exchange(context.Background(), params.Code)
+	if err != nil {
+		return nil, api.ErrUnauthorizedInvalidLogin
+	}
+
+	// Get user info from Google
+	client := oauth2Config.Client(context.Background(), token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		return nil, api.ErrUnauthorizedInvalidLogin
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, api.ErrUnauthorizedInvalidLogin
+	}
+
+	var googleUser GoogleUserInfo
+	if err := json.Unmarshal(body, &googleUser); err != nil {
+		return nil, api.ErrUnauthorizedInvalidLogin
+	}
+
+	// Check if user exists by Google ID
+	var user models.User
+	err = tx.Where("google_id = ?", googleUser.ID).First(&user).Error
+	
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	// If user doesn't exist by Google ID, check by email
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		err = tx.Where("email = ?", googleUser.Email).First(&user).Error
+		
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// If user exists by email, link Google account
+		if err == nil {
+			user.GoogleId = googleUser.ID
+			if user.GoogleProfileImage == "" && googleUser.Picture != "" {
+				user.GoogleProfileImage = googleUser.Picture
+			}
+			if err := tx.Save(&user).Error; err != nil {
+				return nil, err
+			}
+		} else {
+			// Create new user
+			user = models.User{
+				Name:               googleUser.Name,
+				Email:              googleUser.Email,
+				GoogleId:           googleUser.ID,
+				GoogleProfileImage: googleUser.Picture,
+				HashedPassword:     nil, // OAuth users don't have passwords
+			}
+
+			if err := tx.Create(&user).Error; err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// Generate JWT token with OAuth token expiration
+	jwtToken, err := createAuthenticatedUserToken(CreateAuthenticatedUserTokenServiceRequest{
+		Params: CreateAuthenticatedUserTokenParams{
+			UserId:       user.ID,
+			CustomExpiry: &token.Expiry,
+		},
+		Tx:     tx,
+		Config: config,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the logo distribution URL (prefer uploaded logo over Google profile image)
+	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+		UserID:      user.ID,
+		Tx:          tx,
+		MinioClient: minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// If no uploaded logo and Google profile image exists, use Google profile image as fallback
+	if logoDistributionUrl == "" && user.GoogleProfileImage != "" {
+		logoDistributionUrl = user.GoogleProfileImage
+	}
+
+	return &UserDto{
+		User:                &user,
+		Token:               jwtToken,
+		LogoDistributionUrl: logoDistributionUrl,
 	}, nil
 }

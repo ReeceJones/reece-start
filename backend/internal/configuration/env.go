@@ -18,7 +18,7 @@ type Config struct {
 	DatabaseUri string `env:"DATABASE_URI" envDefault:"postgres://postgres:postgres@localhost:5432/postgres"`
 
 	JwtSecret   string `env:"JWT_SECRET" envDefault:"secret"`
-	JwtIssuer   string `env:"JWT_ISSUER" envDefault:"easyapparel"`
+	JwtIssuer   string `env:"JWT_ISSUER" envDefault:"reece-start"`
 	JwtAudience string `env:"JWT_AUDIENCE" envDefault:"https://reece.start"`
 	JwtExpirationTime int `env:"JWT_EXPIRATION_TIME" envDefault:"86400"`
 
@@ -29,6 +29,9 @@ type Config struct {
 
 	ResendApiKey string `env:"RESEND_API_KEY" envDefault:""`
 	EnableEmail bool `env:"ENABLE_EMAIL" envDefault:"false"`
+
+	GoogleOAuthClientId string `env:"GOOGLE_OAUTH_CLIENT_ID" envDefault:""`
+	GoogleOAuthClientSecret string `env:"GOOGLE_OAUTH_CLIENT_SECRET" envDefault:""`
 }
 
 func LoadEnvironmentVariables() (*Config, error) {

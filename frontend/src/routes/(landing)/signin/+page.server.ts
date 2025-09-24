@@ -3,6 +3,7 @@ import type { Actions } from './$types';
 import { z } from 'zod';
 import { post, ApiError } from '$lib';
 import { env } from '$env/dynamic/private';
+import { performGoogleOAuth } from '$lib/server/oauth';
 
 const loginUserRequestSchema = z.object({
 	data: z.object({
@@ -28,7 +29,7 @@ const loginUserResponseSchema = z.object({
 });
 
 export const actions = {
-	default: async ({ cookies, request, fetch }) => {
+	signin: async ({ cookies, request, fetch }) => {
 		const data = await request.formData();
 		const email = data.get('email') as string;
 		const password = data.get('password') as string;
@@ -80,5 +81,11 @@ export const actions = {
 		}
 
 		redirect(302, redirectUrl);
+	},
+	oauthGoogle: async ({ cookies, request, fetch }) => {
+		const data = await request.formData();
+		const redirectUrl = data.get('redirect') as string | undefined;
+
+		performGoogleOAuth(redirectUrl ?? '/app');
 	}
 } satisfies Actions;

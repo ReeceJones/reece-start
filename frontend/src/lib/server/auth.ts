@@ -256,7 +256,7 @@ function getRedirectUrl(requestEvent: RequestEvent) {
 	return `/signin?redirect=${encodeURIComponent(currentPath)}`;
 }
 
-function setTokenInCookies(requestEvent: RequestEvent, token: string) {
+export function setTokenInCookies(requestEvent: RequestEvent, token: string) {
 	const { cookies } = requestEvent;
 	cookies.set('app-session-token', token, {
 		path: '/',

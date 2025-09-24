@@ -35,6 +35,12 @@ type UpdateUserAttributes struct {
 	Logo string `json:"logo,omitempty" validate:"omitempty,base64"`
 }
 
+type GoogleOAuthCallbackAttributes struct {
+	Code         string `json:"code" validate:"required"`
+	State        string `json:"state" validate:"required"`
+	RedirectUri  string `json:"redirectUri" validate:"required,url"`
+}
+
 type UserTokenRevocation struct {
 	LastIssuedAt *time.Time `json:"lastIssuedAt,omitempty"`
 	CanRefresh bool `json:"canRefresh,omitempty"`
@@ -142,12 +148,26 @@ type UpdateUserRequest struct {
 	} `json:"data"`
 }
 
+type GoogleOAuthCallbackRequest struct {
+	Data struct {
+		Attributes GoogleOAuthCallbackAttributes `json:"attributes"`
+	} `json:"data"`
+}
+
 // Service-layer types
 type CreateUserParams struct {
 	Name     string
 	Email    string
 	Password string
 	Timezone string
+}
+
+type GoogleOAuthUserParams struct {
+	Name            string
+	Email           string
+	GoogleId        string
+	ProfileImageUrl string
+	TokenExpiry     time.Time
 }
 
 type CreateUserServiceRequest struct {
@@ -226,6 +246,20 @@ type CreateAuthenticatedUserTokenParams struct {
 	UserId uint
 	OrganizationId *uint
 	ImpersonatingUserId *uint
+	CustomExpiry *time.Time
+}
+
+type GoogleOAuthCallbackServiceRequest struct {
+	Params GoogleOAuthCallbackParams
+	Tx     *gorm.DB
+	Config *configuration.Config
+	MinioClient *minio.Client
+}
+
+type GoogleOAuthCallbackParams struct {
+	Code        string
+	State       string
+	RedirectUri string
 }
 
 type SelectMembershipRole struct {

@@ -3,9 +3,10 @@ import type { Actions } from './$types';
 import { post } from '$lib';
 import { env } from '$env/dynamic/private';
 import { createUserRequestSchema, createUserResponseSchema } from '$lib/schemas/user';
+import { performGoogleOAuth } from '$lib/server/oauth';
 
 export const actions = {
-	default: async ({ cookies, request, fetch }) => {
+	signup: async ({ cookies, request, fetch }) => {
 		const data = await request.formData();
 		const name = data.get('name') as string;
 		const email = data.get('email') as string;
@@ -45,5 +46,11 @@ export const actions = {
 		});
 
 		redirect(302, redirectUrl);
+	},
+	oauthGoogle: async ({ cookies, request, fetch }) => {
+		const data = await request.formData();
+		const redirectUrl = data.get('redirect') as string | undefined;
+
+		performGoogleOAuth(redirectUrl ?? '/app');
 	}
 } satisfies Actions;

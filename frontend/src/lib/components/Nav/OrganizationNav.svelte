@@ -1,14 +1,6 @@
 <script lang="ts">
 	import type { Organization } from '$lib/schemas/organization';
-	import {
-		House,
-		Folder,
-		DollarSign,
-		Building2,
-		Settings,
-		RefreshCcw,
-		ArrowLeftRight
-	} from 'lucide-svelte';
+	import { House, Folder, DollarSign, Building2, Settings, ArrowLeftRight } from 'lucide-svelte';
 
 	const { organization }: { organization: Organization } = $props();
 </script>
@@ -28,6 +20,7 @@
 				{/if}
 				{organization.data.attributes.name ?? 'Organization'}
 			</div>
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
 				class="dropdown-content menu bg-base-100 rounded-box z-1 ml-0 w-52 -translate-y-0.5 p-2 shadow-sm"
@@ -64,6 +57,12 @@
 		<a href="/app/{organization.data.id}/bar">
 			<DollarSign class="size-4" />
 			Bar
+		</a>
+	</li>
+	<li>
+		<a href="/app/{organization.data.id}/settings">
+			<Settings class="size-4" />
+			Settings
 		</a>
 	</li>
 </ul>
