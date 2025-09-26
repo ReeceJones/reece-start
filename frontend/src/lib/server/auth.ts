@@ -11,6 +11,23 @@ import {
 import { error, redirect, type RequestEvent } from '@sveltejs/kit';
 import { jwtDecode } from 'jwt-decode';
 
+export function isLoggedIn() {
+	const requestEvent = getRequestEvent();
+	const token = getToken(requestEvent);
+
+	if (!token) {
+		return false;
+	}
+
+	const { exp } = jwtDecode<JwtClaims>(token);
+
+	if (!exp || exp < Date.now() / 1000) {
+		return false;
+	}
+
+	return true;
+}
+
 export function authenticate() {
 	const requestEvent = getRequestEvent();
 	performAuthenticationCheck(requestEvent);
@@ -238,9 +255,14 @@ async function validateTokenOrganization(requestEvent: RequestEvent) {
 	await refreshUserToken(requestEvent);
 }
 
-function getDefinedToken(requestEvent: RequestEvent) {
+function getToken(requestEvent: RequestEvent) {
 	const { cookies } = requestEvent;
 	const token = cookies.get('app-session-token');
+	return token;
+}
+
+function getDefinedToken(requestEvent: RequestEvent) {
+	const token = getToken(requestEvent);
 
 	if (!token) {
 		console.log('User token not found, redirecting');

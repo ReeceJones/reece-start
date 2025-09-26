@@ -16,10 +16,15 @@
 	const googleClientId = $derived(env.PUBLIC_GOOGLE_OAUTH_CLIENT_ID || '');
 </script>
 
+<svelte:head>
+	<title>Sign up - reece-start</title>
+	<meta name="description" content="Sign up for an account to continue to the dashboard." />
+</svelte:head>
+
 <main class="card card-border bg-base-200 mx-auto my-8 max-w-80 shadow-sm">
 	<div class="card-body">
-		<h2 class="card-title">Sign in</h2>
-		<p class="text-gray-500">Enter your details below to sign in to your account.</p>
+		<h2 class="card-title">Sign up</h2>
+		<p class="text-gray-500">Enter your details below to sign up for an account.</p>
 		<div class="mt-4">
 			<form
 				method="post"
@@ -38,7 +43,7 @@
 						<span class="loading loading-spinner"></span>
 					{:else}
 						<Google />
-						Sign in with Google
+						Sign up with Google
 					{/if}
 				</button>
 			</form>
@@ -47,7 +52,7 @@
 
 			<form
 				method="post"
-				action="?/signin"
+				action="?/signup"
 				use:enhance={() => {
 					submittingPasswordForm = true;
 
@@ -57,6 +62,17 @@
 					};
 				}}
 			>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Name</legend>
+					<input
+						type="text"
+						name="name"
+						required
+						class="input validator w-full"
+						placeholder="Name"
+					/>
+				</fieldset>
+
 				<fieldset class="fieldset">
 					<legend class="fieldset-legend">Email</legend>
 					<input
@@ -81,13 +97,13 @@
 
 				<div class="mt-3 space-y-3">
 					<div class="card-actions">
-						<button type="submit" class="btn btn-primary w-full" disabled={submitting}>
+						<button type="submit" class="btn btn-primary mt-3 w-full" disabled={submitting}>
 							{#if submittingPasswordForm}
 								<span class="loading loading-spinner"></span>
 							{:else}
 								<LogIn />
 							{/if}
-							<span>Sign in</span>
+							<span>Sign up</span>
 						</button>
 					</div>
 
@@ -95,24 +111,24 @@
 						<div role="alert" class="alert alert-success">
 							<CircleCheck />
 							<span
-								>You have been signed in successfully! You will be redirected to the dashboard soon.</span
+								>You have been signed up successfully! You will be redirected to the dashboard soon.</span
 							>
 						</div>
 					{:else if form?.success === false}
 						<div role="alert" class="alert alert-error">
 							<CircleX />
-							<span>
-								{(form as { success: boolean; message: string })?.message ??
-									'There was an error signing in. Make sure you have filled out all the fields correctly.'}
-							</span>
+							<span
+								>There was an error signing up. Make sure you have filled out all the fields
+								correctly.</span
+							>
 						</div>
 					{/if}
 
 					<div class="mt-3 text-center text-sm">
 						<p>
-							Don't have an account? <a
-								href="/signup{redirect ? `?redirect=${redirect}` : ''}"
-								class="link">Sign up</a
+							Already have an account? <a
+								href="/signin{redirect ? `?redirect=${redirect}` : ''}"
+								class="link">Sign in</a
 							>
 						</p>
 					</div>

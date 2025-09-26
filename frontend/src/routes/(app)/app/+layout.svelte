@@ -9,4 +9,9 @@
 	setIsImpersonatingUser(isImpersonatingUser);
 </script>
 
+<svelte:head>
+	<title>Dashboard - reece-start</title>
+	<meta name="description" content="Dashboard for reece-start" />
+</svelte:head>
+
 {@render children?.()}

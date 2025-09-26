@@ -10,14 +10,12 @@ This is a repo that I use as a starting point for new projects. It is based on S
   - Sudo users
   - Impersonation
   - Google OAuth
-  - TODO: MFA
 - User settings page
 - Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)
 - Stripe connect support (TODO)
-- Landing, pricing, and feature page templates (TODO)
-- Email and SMS notification APIs (WIP)
-  - TODO: SMS
+- Landing, pricing, and faq page templates
+- Email notification API
 - Posthog integration (TODO)
 - Sentry integration (TODO)
 
