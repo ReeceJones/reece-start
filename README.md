@@ -10,11 +10,16 @@ This is a repo that I use as a starting point for new projects. It is based on S
   - Sudo users
   - Impersonation
   - Google OAuth
+  - Organization logo
 - User settings page
+  - Profile picture
 - Organization settings page
 - Organization-based billing with free and paid membership tiers (TODO)
 - Stripe connect support (TODO)
 - Landing, pricing, and faq page templates
+  - Mobile response navbar (WIP)
+  - Mobile responsive footer (WIP)
+  - Mobile responsive text sizing (WIP)
 - Email notification API
 - Posthog integration (TODO)
 - Sentry integration (TODO)
