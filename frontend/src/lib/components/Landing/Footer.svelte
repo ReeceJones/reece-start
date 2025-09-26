@@ -14,7 +14,6 @@
 	</aside>
 	<nav>
 		<div class="grid grid-flow-col gap-4">
-			<a href="/features" class="link link-hover">Features</a>
 			<a href="/pricing" class="link link-hover">Pricing</a>
 			<a href="/faq" class="link link-hover">FAQ</a>
 			<a href="https://github.com/reecejones/reece-start" class="link link-hover">GitHub</a>
