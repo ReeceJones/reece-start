@@ -32,6 +32,10 @@ type Config struct {
 
 	GoogleOAuthClientId string `env:"GOOGLE_OAUTH_CLIENT_ID" envDefault:""`
 	GoogleOAuthClientSecret string `env:"GOOGLE_OAUTH_CLIENT_SECRET" envDefault:""`
+
+	StripeWebhookSecret string `env:"STRIPE_WEBHOOK_SECRET" envDefault:""`
+	StripeSecretKey string `env:"STRIPE_SECRET_KEY" envDefault:""`
+	StripeProPlanProductId string `env:"STRIPE_PRO_PLAN_PRODUCT_ID" envDefault:""`
 }
 
 func LoadEnvironmentVariables() (*Config, error) {

@@ -14,7 +14,9 @@ require (
 	github.com/resend/resend-go/v2 v2.23.0
 	github.com/riverqueue/river v0.23.1
 	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.23.1
+	github.com/stripe/stripe-go/v82 v82.6.0-beta.1
 	golang.org/x/crypto v0.39.0
+	golang.org/x/oauth2 v0.31.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.1
 )
@@ -58,7 +60,6 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/oauth2 v0.31.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect

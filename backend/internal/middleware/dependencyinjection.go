@@ -7,6 +7,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
+	"github.com/stripe/stripe-go/v82"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
 )
@@ -17,6 +18,7 @@ type AppDependencies struct {
 	MinioClient *minio.Client
 	RiverClient *river.Client[*sql.Tx]
 	ResendClient *resend.Client
+	StripeClient *stripe.Client
 }
 
 // Middleware to inject config and database into context
@@ -27,6 +29,7 @@ func DependencyInjectionMiddleware(dependencies AppDependencies) echo.Middleware
 			c.Set("db", dependencies.DB)
 			c.Set("minioClient", dependencies.MinioClient)
 			c.Set("riverClient", dependencies.RiverClient)
+			c.Set("stripeClient", dependencies.StripeClient)
 			return next(c)
 		}
 	}
@@ -47,4 +50,8 @@ func GetMinioClient(c echo.Context) *minio.Client {
 
 func GetRiverClient(c echo.Context) *river.Client[*sql.Tx] {
 	return c.Get("riverClient").(*river.Client[*sql.Tx])
+}
+
+func GetStripeClient(c echo.Context) *stripe.Client {
+	return c.Get("stripeClient").(*stripe.Client)
 }

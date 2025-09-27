@@ -3,7 +3,6 @@ package organizations
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -12,9 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-	"github.com/riverqueue/river"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
@@ -22,175 +19,6 @@ import (
 	"reece.start/internal/users"
 	"reece.start/internal/utils"
 )
-
-// Service request/response types
-type CreateOrganizationParams struct {
-	Name   string
-	Description string
-	UserID uint
-	Logo   string
-}
-
-type CreateOrganizationServiceRequest struct {
-	Params CreateOrganizationParams
-	Tx     *gorm.DB
-	MinioClient *minio.Client
-}
-
-type GetOrganizationsByUserIDServiceRequest struct {
-	UserID uint
-	Tx     *gorm.DB
-	MinioClient *minio.Client
-}
-
-type GetOrganizationByIDServiceRequest struct {
-	OrganizationID uint
-	UserID uint
-	Tx             *gorm.DB
-	MinioClient    *minio.Client
-}
-
-type UpdateOrganizationParams struct {
-	OrganizationID uint
-	Name           *string
-	Description    *string
-	Logo           *string
-}
-
-type UpdateOrganizationServiceRequest struct {
-	Params UpdateOrganizationParams
-	Tx     *gorm.DB
-	MinioClient *minio.Client
-}
-
-type DeleteOrganizationServiceRequest struct {
-	OrganizationID uint
-	Tx             *gorm.DB
-}
-
-type CheckUserOrganizationAccessServiceRequest struct {
-	UserID         uint
-	OrganizationID uint
-	Tx             *gorm.DB
-}
-
-type CheckUserOrganizationAdminAccessServiceRequest struct {
-	UserID         uint
-	OrganizationID uint
-	Tx             *gorm.DB
-}
-
-type GetOrganizationLogoDistributionUrlServiceRequest struct {
-	OrganizationID uint
-	Tx             *gorm.DB
-	MinioClient    *minio.Client
-}
-
-type OrganizationDto struct {
-	Organization        *models.Organization
-	LogoDistributionUrl string
-}
-
-type OrganizationMembershipDto struct {
-	Membership          *models.OrganizationMembership
-	User                *models.User
-	UserLogoDistributionUrl string
-	Organization        *models.Organization
-}
-
-// Organization Membership Service Types
-type CreateOrganizationMembershipParams struct {
-	UserID         uint
-	OrganizationID uint
-	Role           string
-}
-
-type CreateOrganizationMembershipServiceRequest struct {
-	Params CreateOrganizationMembershipParams
-	Tx     *gorm.DB
-}
-
-type GetOrganizationMembershipsServiceRequest struct {
-	OrganizationID uint
-	Tx             *gorm.DB
-	MinioClient    *minio.Client
-}
-
-type GetOrganizationMembershipByIDServiceRequest struct {
-	MembershipID uint
-	Tx           *gorm.DB
-	MinioClient  *minio.Client
-}
-
-type UpdateOrganizationMembershipParams struct {
-	MembershipID uint
-	Role         *string
-}
-
-type UpdateOrganizationMembershipServiceRequest struct {
-	Params UpdateOrganizationMembershipParams
-	Tx     *gorm.DB
-}
-
-type DeleteOrganizationMembershipServiceRequest struct {
-	MembershipID uint
-	Tx           *gorm.DB
-}
-
-// Organization Invitation Service Types
-type CreateOrganizationInvitationParams struct {
-	Email          string
-	Role           string
-	OrganizationID uint
-	InvitingUserID uint
-}
-
-type CreateOrganizationInvitationServiceRequest struct {
-	Params      CreateOrganizationInvitationParams
-	Tx          *gorm.DB
-	RiverClient *river.Client[*sql.Tx]
-}
-
-type InvitingUserDto struct {
-	User                    *models.User
-	UserLogoDistributionUrl string
-}
-
-type OrganizationInvitationDto struct {
-	Invitation   *models.OrganizationInvitation
-	Organization *OrganizationDto
-	InvitingUser *InvitingUserDto
-}
-
-type GetOrganizationInvitationsServiceRequest struct {
-	OrganizationID uint
-	Tx             *gorm.DB
-}
-
-type GetOrganizationInvitationByIDServiceRequest struct {
-	InvitationID uuid.UUID
-	Tx           *gorm.DB
-	MinioClient  *minio.Client
-}
-
-type DeleteOrganizationInvitationServiceRequest struct {
-	InvitationID uuid.UUID
-	Tx           *gorm.DB
-}
-
-type AcceptOrganizationInvitationServiceRequest struct {
-	InvitationID uuid.UUID
-	UserID       uint
-	Tx           *gorm.DB
-	MinioClient  *minio.Client
-}
-
-type DeclineOrganizationInvitationServiceRequest struct {
-	InvitationID uuid.UUID
-	UserID       uint
-	Tx           *gorm.DB
-	MinioClient  *minio.Client
-}
 
 // Service functions
 func createOrganization(request CreateOrganizationServiceRequest) (*OrganizationDto, error) {
@@ -252,7 +80,17 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 		organization.LogoFileStorageKey = objectName
 
-		// Save the updated organization with logo key
+		// Create the Stripe "account" (v2)
+		// account, err := stripe.CreateStripeConnectAccount(getCreateStripeConnectAccountParams(organization))
+
+		// if (err != nil) {
+		// 	return nil, err
+		// }
+
+		// Save the stripe account id
+		// organization.StripeAccountID = account.ID
+
+		// Save the updated organization
 		err = tx.Save(organization).Error
 		if err != nil {
 			return nil, err
@@ -887,3 +725,9 @@ func declineOrganizationInvitation(request DeclineOrganizationInvitationServiceR
 		MinioClient:  request.MinioClient,
 	})
 }
+
+// func getCreateStripeConnectAccountParams(organization *models.Organization) stripe.CreateStripeAccountParams {
+// 	return stripe.CreateStripeAccountParams{
+// 		OrganizationID: organization.ID,
+// 	}
+// }

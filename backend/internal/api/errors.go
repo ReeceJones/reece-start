@@ -26,4 +26,11 @@ var (
 	ErrInvalidUserID         = errors.New("invalid user ID")
 	ErrInvalidMembershipID   = errors.New("invalid membership ID")
 	ErrInvalidInvitationID   = errors.New("invalid invitation ID")
+
+	// Stripe webhook errors
+	ErrStripeWebhookSecretNotConfigured = errors.New("Stripe webhook secret not configured")
+	ErrStripeWebhookSignatureMissing = errors.New("Stripe webhook signature missing")
+	ErrStripeWebhookSignatureInvalid = errors.New("Stripe webhook signature invalid")
+	ErrStripeWebhookEventInvalid = errors.New("Stripe webhook event invalid")
+	ErrStripeWebhookEventUnhandled = errors.New("Stripe webhook event unhandled")
 )

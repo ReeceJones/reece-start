@@ -13,6 +13,7 @@ import (
 	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
+	stripeGo "github.com/stripe/stripe-go/v82"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
@@ -20,6 +21,7 @@ import (
 	"reece.start/internal/database"
 	appMiddleware "reece.start/internal/middleware"
 	"reece.start/internal/organizations"
+	"reece.start/internal/stripe"
 	"reece.start/internal/users"
 )
 
@@ -70,12 +72,20 @@ func main() {
 
 	log.Printf("Resend client created\n")
 
+	// Create stripe client
+	stripeClient := stripeGo.NewClient(config.StripeSecretKey)
+
 	// Create river client (Background jobs)
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &organizations.OrganizationInvitationEmailJobWorker{
 		DB:          db,
 		Config:      config,
 		ResendClient: resendClient,
+	})
+	river.AddWorker(workers, &stripe.WebhookProcessingJobWorker{
+		DB:     db,
+		Config: config,
+		StripeClient: stripeClient,
 	})
 
 	riverClient, err := river.NewClient(riverdatabasesql.New(conn), &river.Config{
@@ -118,6 +128,7 @@ func main() {
 		MinioClient: minioClient,
 		RiverClient: riverClient,
 		ResendClient: resendClient,
+		StripeClient: stripeClient,
 	}))
 	
 	// Add error handling middleware
@@ -134,6 +145,9 @@ func main() {
 
 	// Public OAuth routes (no authentication required)
 	e.POST("/oauth/google/callback", api.Validated(users.GoogleOAuthCallbackEndpoint))
+
+	// Webhook routes
+	e.POST("/webhooks/stripe", stripe.StripeWebhookEndpoint)
 
 	// Protected user routes (authentication required)
 	protected := e.Group("")

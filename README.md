@@ -1,6 +1,6 @@
 # reece-start
 
-This is a repo that I use as a starting point for new projects. It is based on SvelteKit + Go, and adopts a (kindof) cloud-native approach for deployments.
+Starter kit for building B2B applications using Stripe connect. It is based on SvelteKit + Go, and adopts a (kindof) cloud-native approach for deployments.
 
 ## Features
 
@@ -14,8 +14,9 @@ This is a repo that I use as a starting point for new projects. It is based on S
 - User settings page
   - Profile picture
 - Organization settings page
-- Organization-based billing with free and paid membership tiers (TODO)
-- Stripe connect support (TODO)
+- Organization onboarding (TODO)
+- Organization-based billing with free and paid membership tiers (WIP)
+- Stripe connect support (WIP)
 - Landing, pricing, and faq page templates
   - Mobile response navbar (WIP)
   - Mobile responsive footer (WIP)
@@ -23,6 +24,7 @@ This is a repo that I use as a starting point for new projects. It is based on S
 - Email notification API
 - Posthog integration (TODO)
 - Sentry integration (TODO)
+- i18n support (TODO)
 
 ## Getting started
 

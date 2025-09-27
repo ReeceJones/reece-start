@@ -87,6 +87,38 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
+		if errors.Is(err, api.ErrStripeWebhookSecretNotConfigured) {
+			return c.JSON(http.StatusBadRequest, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+		
+		if errors.Is(err, api.ErrStripeWebhookSignatureMissing) {
+			return c.JSON(http.StatusBadRequest, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+		
+		if errors.Is(err, api.ErrStripeWebhookSignatureInvalid) {
+			return c.JSON(http.StatusBadRequest, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+		
+		
+		if errors.Is(err, api.ErrStripeWebhookEventInvalid) {
+			return c.JSON(http.StatusBadRequest, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+		
+		
+		if errors.Is(err, api.ErrStripeWebhookEventUnhandled) {
+			return c.JSON(http.StatusBadRequest, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+
 		// Handle any other ApiError
 		if he, ok := err.(*api.ApiError); ok {
 			return c.JSON(http.StatusInternalServerError, api.ApiError{
