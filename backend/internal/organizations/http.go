@@ -22,6 +22,8 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 
 	db := middleware.GetDB(c)
 	minioClient := middleware.GetMinioClient(c)
+	config := middleware.GetConfig(c)
+	stripeClient := middleware.GetStripeClient(c)
 
 	var response CreateOrganizationResponse
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
@@ -31,9 +33,23 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 				Description: req.Data.Attributes.Description,
 				UserID: userID,
 				Logo: req.Data.Attributes.Logo,
+				ContactEmail: req.Data.Attributes.ContactEmail,
+				ContactPhone: req.Data.Attributes.ContactPhone,
+				WebsiteUrl: req.Data.Attributes.WebsiteUrl,
+				Currency: req.Data.Attributes.Currency,
+				Locale: req.Data.Attributes.Locale,
+				EntityType: req.Data.Attributes.EntityType,
+				ResidingCountry: req.Data.Attributes.ResidingCountry,
+				RegisteredBusinessName: req.Data.Attributes.RegisteredBusinessName,
+				FirstName: req.Data.Attributes.FirstName,
+				LastName: req.Data.Attributes.LastName,
+				Address: req.Data.Attributes.Address,
 			},
 			Tx: db,
 			MinioClient: minioClient,
+			Context: c.Request().Context(),
+			Config: config,
+			StripeClient: stripeClient,
 		})
 
 		if err != nil {

@@ -2,14 +2,6 @@ package models
 
 import "gorm.io/gorm"
 
-type OrganizationOnboardingData struct {
-	StripeBusinessType string `gorm:"not null"`
-	ResidingCountry string `gorm:"not null;size:2"`
-	ContactEmail string
-	ContactPhone string
-	RegisteredBusinessName string
-}
-
 type Organization struct {
 	gorm.Model
 
@@ -19,15 +11,17 @@ type Organization struct {
 	LogoFileStorageKey string
 	Address Address `gorm:"embedded;embeddedPrefix:address_"`
 
+	// Contact information
+	ContactEmail string
+	ContactPhone string
+	WebsiteUrl string
+
 	// Localization fields
 	Currency string `gorm:"not null;size:3"`
 	Locale string `gorm:"not null;size:5"`
 
-	// Onboarding fields
-	OnboardingData OrganizationOnboardingData `gorm:"embedded;embeddedPrefix:onboarding_data_"`
-
 	// Stripe fields
-	StripeAccountID string
+	StripeAccountID string `gorm:"index"`
 	
 	// Relationships
 	Memberships []OrganizationMembership `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE"`

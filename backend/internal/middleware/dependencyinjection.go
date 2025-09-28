@@ -7,9 +7,9 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
-	"github.com/stripe/stripe-go/v82"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
+	"reece.start/internal/stripe"
 )
 
 type AppDependencies struct {

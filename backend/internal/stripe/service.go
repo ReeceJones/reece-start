@@ -13,54 +13,57 @@ import (
 
 func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*stripeGo.V2CoreAccount, error) {
 	stripeClient := request.StripeClient
+	context := request.Context
 
-	account, err := stripeClient.V2CoreAccounts.Create(
-		context.Background(),
-		&stripeGo.V2CoreAccountCreateParams{
-			Dashboard: stripeGo.String(string(stripeGo.V2CoreAccountDashboardExpress)),
-			DisplayName: stripeGo.String(request.Params.DisplayName),
-			ContactEmail: stripeGo.String(request.Params.ContactEmail),
-			Identity: &stripeGo.V2CoreAccountCreateIdentityParams{
-				EntityType: stripeGo.String(string(request.Params.Type)),
-				Country: stripeGo.String(request.Params.ResidingCountry),
-				BusinessDetails: getBusinessDetails(request),
-				Individual: getIndividual(request),
+	params := &stripeGo.V2CoreAccountCreateParams{
+		Dashboard: stripeGo.String(string(stripeGo.V2CoreAccountDashboardFull)),
+		DisplayName: stripeGo.String(request.Params.DisplayName),
+		ContactEmail: stripeGo.String(request.Params.ContactEmail),
+		Identity: &stripeGo.V2CoreAccountCreateIdentityParams{
+			EntityType: stripeGo.String(string(request.Params.Type)),
+			Country: stripeGo.String(request.Params.ResidingCountry),
+			BusinessDetails: getBusinessDetails(request),
+			Individual: getIndividual(request),
+		},
+		Defaults: &stripeGo.V2CoreAccountCreateDefaultsParams{
+			Currency: stripeGo.String(request.Params.Currency),
+			Locales: []*string{
+				stripeGo.String(request.Params.Locale),
 			},
-			Defaults: &stripeGo.V2CoreAccountCreateDefaultsParams{
-				Currency: stripeGo.String(request.Params.Currency),
-				Locales: []*string{
-					stripeGo.String(request.Params.Locale),
-				},
-				Responsibilities: &stripeGo.V2CoreAccountCreateDefaultsResponsibilitiesParams{
-					FeesCollector: stripeGo.String("stripe"),
-					LossesCollector: stripeGo.String("stripe"),
-				},
-			},
-			Configuration: &stripeGo.V2CoreAccountCreateConfigurationParams{
-				Customer: &stripeGo.V2CoreAccountCreateConfigurationCustomerParams{
-					Capabilities: &stripeGo.V2CoreAccountCreateConfigurationCustomerCapabilitiesParams{
-						AutomaticIndirectTax: &stripeGo.V2CoreAccountCreateConfigurationCustomerCapabilitiesAutomaticIndirectTaxParams{
-							Requested: stripeGo.Bool(true),
-						},
-					},
-				},
-				Merchant: &stripeGo.V2CoreAccountCreateConfigurationMerchantParams{
-					Capabilities: &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesParams{
-						CardPayments: &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesCardPaymentsParams{
-							Requested: stripeGo.Bool(true),
-						},
-						// Uncomment if you want to enable ACH debit payments
-						// ACHDebitPayments: &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesACHDebitPaymentsParams{
-						// 	Requested: stripeGo.Bool(true),
-						// },
-					},
-				},
-			},
-			Metadata: map[string]string{
-				"organization_id": fmt.Sprintf("%d", request.Params.OrganizationID),
+			Responsibilities: &stripeGo.V2CoreAccountCreateDefaultsResponsibilitiesParams{
+				FeesCollector: stripeGo.String("stripe"),
+				LossesCollector: stripeGo.String("stripe"),
 			},
 		},
-	)
+		Configuration: &stripeGo.V2CoreAccountCreateConfigurationParams{
+			Customer: &stripeGo.V2CoreAccountCreateConfigurationCustomerParams{
+				Capabilities: &stripeGo.V2CoreAccountCreateConfigurationCustomerCapabilitiesParams{
+					AutomaticIndirectTax: &stripeGo.V2CoreAccountCreateConfigurationCustomerCapabilitiesAutomaticIndirectTaxParams{
+						Requested: stripeGo.Bool(true),
+					},
+				},
+			},
+			Merchant: &stripeGo.V2CoreAccountCreateConfigurationMerchantParams{
+				Capabilities: getMerchantCapabilities(request),
+			},
+			Recipient: &stripeGo.V2CoreAccountCreateConfigurationRecipientParams{
+				Capabilities: &stripeGo.V2CoreAccountCreateConfigurationRecipientCapabilitiesParams{
+					StripeBalance: &stripeGo.V2CoreAccountCreateConfigurationRecipientCapabilitiesStripeBalanceParams{
+						StripeTransfers: &stripeGo.V2CoreAccountCreateConfigurationRecipientCapabilitiesStripeBalanceStripeTransfersParams{
+							Requested: stripeGo.Bool(true),
+						},
+					},
+				},
+			},
+		},
+		Metadata: map[string]string{
+			"organization_id": fmt.Sprintf("%d", request.Params.OrganizationID),
+		},
+	}
+
+	log.Printf("Creating stripe connect account with params: %+v", params)
+
+	account, err := stripeClient.V2CoreAccounts.Create(context, params)
 
 	if err != nil {
 		log.Printf("failed to create stripe connect account: %v", err)
@@ -77,9 +80,7 @@ func getBusinessDetails(request CreateStripeAccountServiceRequest) *stripeGo.V2C
 
 	return &stripeGo.V2CoreAccountCreateIdentityBusinessDetailsParams{
 		RegisteredName: stripeGo.String(request.Params.Company.RegisteredName),
-		Phone: stripeGo.String(request.Params.Company.Phone),
-		Structure: stripeGo.String(request.Params.Company.Structure),
-		URL: stripeGo.String(request.Params.Company.Url),
+		Phone: stripeGo.String(request.Params.ContactPhone),
 	}
 }
 
@@ -89,10 +90,36 @@ func getIndividual(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAc
 	}
 
 	return &stripeGo.V2CoreAccountCreateIdentityIndividualParams{
-		Phone: stripeGo.String(request.Params.Individual.Phone),
+		Phone: stripeGo.String(request.Params.ContactPhone),
+		Email: stripeGo.String(request.Params.ContactEmail),
 		GivenName: stripeGo.String(request.Params.Individual.FirstName),
 		Surname: stripeGo.String(request.Params.Individual.LastName),
+		Address: &stripeGo.V2CoreAccountCreateIdentityIndividualAddressParams{
+			Line1: stripeGo.String(request.Params.Address.Line1),
+			Line2: stripeGo.String(request.Params.Address.Line2),
+			City: stripeGo.String(request.Params.Address.City),
+			State: stripeGo.String(request.Params.Address.StateOrProvince),
+			PostalCode: stripeGo.String(request.Params.Address.Zip),
+			Country: stripeGo.String(request.Params.Address.Country),
+		},
 	}
+}
+
+func getMerchantCapabilities(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesParams {
+	cap := &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesParams{
+		CardPayments: &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesCardPaymentsParams{
+			Requested: stripeGo.Bool(true),
+		},
+	}
+
+	// Enable ACH debit payments for US businesses
+	// if request.Params.ResidingCountry == "US" {
+	// 	cap.ACHDebitPayments = &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesACHDebitPaymentsParams{
+	// 		Requested: stripeGo.Bool(true),
+	// 	}
+	// }
+
+	return cap
 }
 
 // processWebhookEvent processes different types of Stripe webhook events

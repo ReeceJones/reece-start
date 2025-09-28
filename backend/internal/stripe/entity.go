@@ -1,6 +1,8 @@
 package stripe
 
 import (
+	"context"
+
 	"github.com/riverqueue/river"
 	"github.com/stripe/stripe-go/v82"
 	"gorm.io/gorm"
@@ -17,17 +19,12 @@ type Address struct {
 }
 
 type IndividualAccount struct {
-	Email string
-	Phone string
 	FirstName string
 	LastName string
 }
 
 type CompanyAccount struct {
-	Phone string
 	RegisteredName string
-	Url string
-	Structure string
 }
 
 type CreateStripeAccountParams struct {
@@ -35,6 +32,7 @@ type CreateStripeAccountParams struct {
 	Type stripe.AccountBusinessType
 	DisplayName string
 	ContactEmail string
+	ContactPhone string
 	Currency string
 	Locale string
 	ResidingCountry string
@@ -44,8 +42,9 @@ type CreateStripeAccountParams struct {
 }
 
 type CreateStripeAccountServiceRequest struct {
+	Context context.Context
 	Config *configuration.Config
-	StripeClient *stripe.Client
+	StripeClient *Client
 	Params CreateStripeAccountParams
 }
 

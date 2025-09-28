@@ -229,9 +229,10 @@
 	</div>
 
 	<div class="flex justify-end gap-2">
-		<button class="btn btn-outline" onclick={() => onCancel()}>Cancel</button>
+		<button class="btn btn-outline" type="button" onclick={() => onCancel()}>Cancel</button>
 		<button
 			class="btn btn-primary"
+			type="button"
 			onclick={async () => {
 				// get the cropped image
 				const cropperSelection = document.getElementById('logo-cropper-selection');
@@ -263,8 +264,8 @@
 				}, 'image/png');
 			}}
 		>
-			Save</button
-		>
+			Save
+		</button>
 	</div>
 
 	<!-- Render the canvas element returned by the cropper -->

@@ -53,7 +53,9 @@
 				{/each}
 			</ul>
 			<div class="card-actions justify-end">
-				<a href="/app/create-organization" class="btn btn-primary"><Plus /> Create Organization</a>
+				<a href="/app/create-organization/basic-information" class="btn btn-primary"
+					><Plus /> Create Organization</a
+				>
 			</div>
 		</div>
 	</div>

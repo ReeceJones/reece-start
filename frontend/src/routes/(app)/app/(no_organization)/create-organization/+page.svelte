@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Plus } from 'lucide-svelte';
@@ -159,4 +159,4 @@
 	<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
 		<button>close</button>
 	</form>
-</dialog>
+</dialog> -->

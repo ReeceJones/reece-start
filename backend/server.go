@@ -128,7 +128,7 @@ func main() {
 		MinioClient: minioClient,
 		RiverClient: riverClient,
 		ResendClient: resendClient,
-		StripeClient: stripeClient,
+		StripeClient: (*stripe.Client)(stripeClient),
 	}))
 	
 	// Add error handling middleware

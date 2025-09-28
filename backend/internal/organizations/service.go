@@ -12,10 +12,12 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v7"
+	stripeGo "github.com/stripe/stripe-go/v82"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
+	"reece.start/internal/stripe"
 	"reece.start/internal/users"
 	"reece.start/internal/utils"
 )
@@ -31,6 +33,19 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 	organization := &models.Organization{
 		Name: params.Name,
 		Description: params.Description,
+		ContactEmail: params.ContactEmail,
+		ContactPhone: params.ContactPhone,
+		WebsiteUrl: params.WebsiteUrl,
+		Currency: params.Currency,
+		Locale: params.Locale,
+		Address: models.Address{
+			Line1: params.Address.Line1,
+			Line2: params.Address.Line2,
+			City: params.Address.City,
+			StateOrProvince: params.Address.StateOrProvince,
+			Zip: params.Address.Zip,
+			Country: params.Address.Country,
+		},
 	}
 
 	err := tx.Create(&organization).Error
@@ -80,15 +95,46 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 		organization.LogoFileStorageKey = objectName
 
-		// Create the Stripe "account" (v2)
-		// account, err := stripe.CreateStripeConnectAccount(getCreateStripeConnectAccountParams(organization))
+		// Create the Stripe connect account
+		account, err := stripe.CreateStripeConnectAccount(stripe.CreateStripeAccountServiceRequest{
+			Context: request.Context,
+			Config: request.Config,
+			StripeClient: request.StripeClient,
+			Params: stripe.CreateStripeAccountParams{
+				OrganizationID: organization.ID,
+				DisplayName: organization.Name,
+				Type: stripeGo.AccountBusinessType(params.EntityType),
+				ContactEmail: params.ContactEmail,
+				ContactPhone: params.ContactPhone,
+				Currency: params.Currency,
+				Locale: params.Locale,
+				ResidingCountry: params.ResidingCountry,
+				Address: stripe.Address{
+					Line1: params.Address.Line1,
+					Line2: params.Address.Line2,
+					City: params.Address.City,
+					StateOrProvince: params.Address.StateOrProvince,
+					Zip: params.Address.Zip,
+					Country: params.Address.Country,
+				},
+				Individual: stripe.IndividualAccount{
+					FirstName: params.FirstName,
+					LastName: params.LastName,
+				},
+				Company: stripe.CompanyAccount{
+					RegisteredName: params.RegisteredBusinessName,
+				},
+			},
+		})
 
-		// if (err != nil) {
-		// 	return nil, err
-		// }
+		if (err != nil) {
+			return nil, err
+		}
+
+		log.Printf("Created Stripe connect account %s for organization %d\n", account.ID, organization.ID)
 
 		// Save the stripe account id
-		// organization.StripeAccountID = account.ID
+		organization.StripeAccountID = account.ID
 
 		// Save the updated organization
 		err = tx.Save(organization).Error
@@ -726,8 +772,3 @@ func declineOrganizationInvitation(request DeclineOrganizationInvitationServiceR
 	})
 }
 
-// func getCreateStripeConnectAccountParams(organization *models.Organization) stripe.CreateStripeAccountParams {
-// 	return stripe.CreateStripeAccountParams{
-// 		OrganizationID: organization.ID,
-// 	}
-// }
