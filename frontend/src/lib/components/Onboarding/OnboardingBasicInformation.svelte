@@ -1,23 +1,29 @@
 <script lang="ts">
 	import LogoCrop from '$lib/components/Logo/LogoCrop.svelte';
+	import type { CreateOrganizationFormData } from '$lib/schemas/organization';
 	import OnboardingStepContainer from './OnboardingStepContainer.svelte';
 
 	const {
 		hidden,
-		canSubmit = $bindable()
-	}: { hidden: boolean; canSubmit: Record<number, boolean> } = $props();
+		onboardingState = $bindable()
+	}: {
+		hidden: boolean;
+		onboardingState: CreateOrganizationFormData;
+	} = $props();
 
 	let logoInput: HTMLInputElement | null = null;
-	let logo = $state<FileList | null | undefined>(undefined);
 	let uncroppedLogo = $state<FileList | null | undefined>(undefined);
 	let logoCropModal: HTMLDialogElement | null = null;
-	let name = $state<string>('');
 
 	// Simple derived state that returns a preview URL or placeholder
-	const logoPreview = $derived(logo && logo.length > 0 ? URL.createObjectURL(logo[0]) : undefined);
+	const logoPreview = $derived(
+		onboardingState.logo && onboardingState.logo.length > 0
+			? URL.createObjectURL(onboardingState.logo[0])
+			: undefined
+	);
 
 	function resetLogoUpload() {
-		logo = undefined;
+		onboardingState.logo = undefined;
 		uncroppedLogo = undefined;
 		// reset the logo input
 		if (logoInput) {
@@ -26,13 +32,35 @@
 			logoInput.files = null;
 		}
 	}
-
-	$effect(() => {
-		canSubmit[0] = !!name;
-	});
 </script>
 
 <OnboardingStepContainer {hidden}>
+	<fieldset class="fieldset">
+		<legend class="fieldset-legend">Name</legend>
+		<input
+			type="text"
+			name="name"
+			class="input"
+			placeholder="Name"
+			bind:value={onboardingState.name}
+		/>
+		<p class="fieldset-label">
+			Enter a name for your organization. This will be shown on invoices and other communications.
+		</p>
+	</fieldset>
+
+	<fieldset class="fieldset">
+		<legend class="fieldset-legend">Description</legend>
+		<input
+			type="text"
+			name="description"
+			class="input"
+			placeholder="Description"
+			bind:value={onboardingState.description}
+		/>
+		<p class="fieldset-label">Enter a description for your organization</p>
+	</fieldset>
+
 	<fieldset class="fieldset">
 		<legend class="fieldset-legend">Logo</legend>
 		{#if logoPreview}
@@ -65,18 +93,6 @@
 		/>
 		<p class="fieldset-label">Upload your organization's logo (optional)</p>
 	</fieldset>
-
-	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Name</legend>
-		<input type="text" name="name" class="input" placeholder="Name" bind:value={name} />
-		<p class="fieldset-label">Enter a name for your organization</p>
-	</fieldset>
-
-	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Description</legend>
-		<input type="text" name="description" class="input" placeholder="Description" />
-		<p class="fieldset-label">Enter a description for your organization</p>
-	</fieldset>
 </OnboardingStepContainer>
 
 <dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
@@ -99,7 +115,7 @@
 
 					const dt = new DataTransfer();
 					dt.items.add(file);
-					logo = dt.files;
+					onboardingState.logo = dt.files;
 					uncroppedLogo = undefined;
 
 					// set the value of the input to the new cropped image

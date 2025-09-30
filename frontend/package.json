@@ -40,6 +40,7 @@
 	},
 	"dependencies": {
 		"countries-list": "3.1.1",
+		"country-state-city": "3.2.1",
 		"cropperjs": "2.0.1",
 		"daisyui": "5.0.50",
 		"deep-equal": "2.2.3",

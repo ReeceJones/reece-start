@@ -20,10 +20,9 @@ type OrganizationAttributes struct {
 	// Basic information
 	Name string `json:"name" validate:"required,min=1,max=100"`
 	Description string `json:"description,omitempty" validate:"omitempty,min=1,max=255"`
-	Address api.Address `json:"address" validate:"omitempty"`
+	Address api.Address `json:"address"`
 
 	// Localization fields
-	Currency string `json:"currency" validate:"required"`
 	Locale string `json:"locale" validate:"required"`
 
 	// Contact information
@@ -39,14 +38,6 @@ type CreateOrganizationAttributes struct {
 
 	// Onboarding - Basic information
 	EntityType string `json:"entityType" validate:"required"`
-	ResidingCountry string `json:"residingCountry" validate:"required"`
-
-	// Onboarding - 'company' type
-	RegisteredBusinessName string `json:"registeredBusinessName" validate:"omitempty"`
-
-	// Onboarding - 'individual' type
-	FirstName string `json:"firstName" validate:"omitempty"`
-	LastName string `json:"lastName" validate:"omitempty"`
 }
 
 type UpdateOrganizationAttributes struct {
@@ -306,13 +297,8 @@ type CreateOrganizationParams struct {
 	ContactEmail string
 	ContactPhone string
 	WebsiteUrl string
-	Currency string
 	Locale string
 	EntityType string
-	ResidingCountry string
-	RegisteredBusinessName string
-	FirstName string
-	LastName string
 	Address api.Address
 }
 

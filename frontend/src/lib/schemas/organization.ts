@@ -7,7 +7,6 @@ const organizationAttributesSchema = z.object({
 	description: z.string().optional(),
 	logo: z.string().optional(),
 	address: addressSchema,
-	currency: z.string(),
 	locale: z.string(),
 	contactEmail: z.email().or(z.literal('')).optional(),
 	contactPhone: z.string().or(z.literal('')).optional(),
@@ -15,12 +14,7 @@ const organizationAttributesSchema = z.object({
 });
 
 const organizationOnboardingAttributesSchema = z.object({
-	entityType: z.string(),
-	residingCountry: z.string(),
-	registeredBusinessName: z.string().optional(),
-	structure: z.string().optional(),
-	firstName: z.string().optional(),
-	lastName: z.string().optional()
+	entityType: z.string()
 });
 
 // Request schemas
@@ -73,19 +67,16 @@ export const organizationFormSchema = z.object({
 	addressStateOrProvince: z.string().optional(),
 	addressZip: z.string().optional(),
 	addressCountry: z.string().optional(),
-	currency: z.string(),
 	locale: z.string()
 });
 
 export type OrganizationFormData = z.infer<typeof organizationFormSchema>;
 
 export const createOrganizationFormSchema = organizationFormSchema.extend({
-	entityType: z.string(),
-	residingCountry: z.string(),
-	registeredBusinessName: z.string().optional(),
-	firstName: z.string().optional(),
-	lastName: z.string().optional()
+	entityType: z.string()
 });
+
+export type CreateOrganizationFormData = z.infer<typeof createOrganizationFormSchema>;
 
 export function getFormDataFromOrganization(organization: Organization): OrganizationFormData {
 	return {
@@ -101,7 +92,6 @@ export function getFormDataFromOrganization(organization: Organization): Organiz
 		addressStateOrProvince: organization.data.attributes.address.stateOrProvince,
 		addressZip: organization.data.attributes.address.zip,
 		addressCountry: organization.data.attributes.address.country,
-		currency: organization.data.attributes.currency,
 		locale: organization.data.attributes.locale
 	};
 }

@@ -29,6 +29,8 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 	log.Printf("Creating organization: %+v", params)
 
+	localCurrency := utils.GetCurrencyForCountry(params.Address.Country)
+
 	// Create the organization
 	organization := &models.Organization{
 		Name: params.Name,
@@ -36,7 +38,7 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 		ContactEmail: params.ContactEmail,
 		ContactPhone: params.ContactPhone,
 		WebsiteUrl: params.WebsiteUrl,
-		Currency: params.Currency,
+		Currency: string(localCurrency),
 		Locale: params.Locale,
 		Address: models.Address{
 			Line1: params.Address.Line1,
@@ -94,53 +96,53 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 		log.Printf("Uploaded logo for organization %d\n", organization.ID)
 
 		organization.LogoFileStorageKey = objectName
+	}
 
-		// Create the Stripe connect account
-		account, err := stripe.CreateStripeConnectAccount(stripe.CreateStripeAccountServiceRequest{
-			Context: request.Context,
-			Config: request.Config,
-			StripeClient: request.StripeClient,
-			Params: stripe.CreateStripeAccountParams{
-				OrganizationID: organization.ID,
-				DisplayName: organization.Name,
-				Type: stripeGo.AccountBusinessType(params.EntityType),
-				ContactEmail: params.ContactEmail,
-				ContactPhone: params.ContactPhone,
-				Currency: params.Currency,
-				Locale: params.Locale,
-				ResidingCountry: params.ResidingCountry,
-				Address: stripe.Address{
-					Line1: params.Address.Line1,
-					Line2: params.Address.Line2,
-					City: params.Address.City,
-					StateOrProvince: params.Address.StateOrProvince,
-					Zip: params.Address.Zip,
-					Country: params.Address.Country,
-				},
-				Individual: stripe.IndividualAccount{
-					FirstName: params.FirstName,
-					LastName: params.LastName,
-				},
-				Company: stripe.CompanyAccount{
-					RegisteredName: params.RegisteredBusinessName,
-				},
+	// Create the Stripe connect account
+	account, err := stripe.CreateStripeConnectAccount(stripe.CreateStripeAccountServiceRequest{
+		Context: request.Context,
+		Config: request.Config,
+		StripeClient: request.StripeClient,
+		Params: stripe.CreateStripeAccountParams{
+			OrganizationID: organization.ID,
+			DisplayName: organization.Name,
+			Type: stripeGo.AccountBusinessType(params.EntityType),
+			ContactEmail: params.ContactEmail,
+			ContactPhone: params.ContactPhone,
+			Currency: localCurrency,
+			Locale: params.Locale,
+			ResidingCountry: params.Address.Country,
+			Address: stripe.Address{
+				Line1: params.Address.Line1,
+				Line2: params.Address.Line2,
+				City: params.Address.City,
+				StateOrProvince: params.Address.StateOrProvince,
+				Zip: params.Address.Zip,
+				Country: params.Address.Country,
 			},
-		})
+			// Individual: stripe.IndividualAccount{
+			// 	FirstName: params.FirstName,
+			// 	LastName: params.LastName,
+			// },
+			// Company: stripe.CompanyAccount{
+			// 	RegisteredName: params.RegisteredBusinessName,
+			// },
+		},
+	})
 
-		if (err != nil) {
-			return nil, err
-		}
+	if (err != nil) {
+		return nil, err
+	}
 
-		log.Printf("Created Stripe connect account %s for organization %d\n", account.ID, organization.ID)
+	log.Printf("Created Stripe connect account %s for organization %d\n", account.ID, organization.ID)
 
-		// Save the stripe account id
-		organization.StripeAccountID = account.ID
+	// Save the stripe account id
+	organization.StripeAccountID = account.ID
 
-		// Save the updated organization
-		err = tx.Save(organization).Error
-		if err != nil {
-			return nil, err
-		}
+	// Save the updated organization
+	err = tx.Save(organization).Error
+	if err != nil {
+		return nil, err
 	}
 
 	// Get the logo distribution URL for the new organization

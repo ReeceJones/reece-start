@@ -3,15 +3,13 @@
 	import { fade } from 'svelte/transition';
 
 	const {
-		loading,
-		disabled
+		loading
 	}: {
 		loading: boolean;
-		disabled: boolean;
 	} = $props();
 </script>
 
-<button class="btn btn-accent" type="submit" in:fade disabled={disabled || loading}>
+<button class="btn btn-accent" type="submit" in:fade disabled={loading}>
 	{#if loading}
 		<span class="loading loading-spinner loading-xs"></span>
 	{:else}

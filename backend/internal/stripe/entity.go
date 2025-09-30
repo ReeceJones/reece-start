@@ -33,7 +33,7 @@ type CreateStripeAccountParams struct {
 	DisplayName string
 	ContactEmail string
 	ContactPhone string
-	Currency string
+	Currency stripe.Currency
 	Locale string
 	ResidingCountry string
 	Address Address

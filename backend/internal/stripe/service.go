@@ -18,7 +18,6 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 	params := &stripeGo.V2CoreAccountCreateParams{
 		Dashboard: stripeGo.String(string(stripeGo.V2CoreAccountDashboardFull)),
 		DisplayName: stripeGo.String(request.Params.DisplayName),
-		ContactEmail: stripeGo.String(request.Params.ContactEmail),
 		Identity: &stripeGo.V2CoreAccountCreateIdentityParams{
 			EntityType: stripeGo.String(string(request.Params.Type)),
 			Country: stripeGo.String(request.Params.ResidingCountry),
@@ -61,6 +60,11 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 		},
 	}
 
+	if request.Params.ContactEmail != "" {
+		params.ContactEmail = stripeGo.String(request.Params.ContactEmail)
+	}
+
+
 	log.Printf("Creating stripe connect account with params: %+v", params)
 
 	account, err := stripeClient.V2CoreAccounts.Create(context, params)
@@ -79,7 +83,7 @@ func getBusinessDetails(request CreateStripeAccountServiceRequest) *stripeGo.V2C
 	}
 
 	return &stripeGo.V2CoreAccountCreateIdentityBusinessDetailsParams{
-		RegisteredName: stripeGo.String(request.Params.Company.RegisteredName),
+		// RegisteredName: stripeGo.String(request.Params.Company.RegisteredName),
 		Phone: stripeGo.String(request.Params.ContactPhone),
 	}
 }
@@ -89,11 +93,7 @@ func getIndividual(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAc
 		return nil
 	}
 
-	return &stripeGo.V2CoreAccountCreateIdentityIndividualParams{
-		Phone: stripeGo.String(request.Params.ContactPhone),
-		Email: stripeGo.String(request.Params.ContactEmail),
-		GivenName: stripeGo.String(request.Params.Individual.FirstName),
-		Surname: stripeGo.String(request.Params.Individual.LastName),
+	params := &stripeGo.V2CoreAccountCreateIdentityIndividualParams{
 		Address: &stripeGo.V2CoreAccountCreateIdentityIndividualAddressParams{
 			Line1: stripeGo.String(request.Params.Address.Line1),
 			Line2: stripeGo.String(request.Params.Address.Line2),
@@ -103,6 +103,16 @@ func getIndividual(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAc
 			Country: stripeGo.String(request.Params.Address.Country),
 		},
 	}
+
+	if request.Params.ContactEmail != "" {
+		params.Email = stripeGo.String(request.Params.ContactEmail)
+	}
+
+	if request.Params.ContactPhone != "" {
+		params.Phone = stripeGo.String(request.Params.ContactPhone)
+	}
+
+	return params
 }
 
 func getMerchantCapabilities(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesParams {

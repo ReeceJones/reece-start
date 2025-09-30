@@ -14,9 +14,11 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
 - User settings page
   - Profile picture
 - Organization settings page
-- Organization onboarding (TODO)
+- Organization onboarding (WIP)
+  - Phone + email formatting using imask (TODO)
 - Organization-based billing with free and paid membership tiers (WIP)
 - Stripe connect support (WIP)
+  - Move stripe connect account creation to background job (TODO)
 - Landing, pricing, and faq page templates
   - Mobile response navbar (WIP)
   - Mobile responsive footer (WIP)

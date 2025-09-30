@@ -11,6 +11,7 @@ import type z from 'zod';
 
 export const load = async ({ locals }) => {
 	authenticate();
+	redirect(302, '/app/create-organization/basic-information');
 };
 
 export const actions = {
@@ -58,13 +59,8 @@ export const actions = {
 								line1: formData.addressLine1,
 								line2: formData.addressLine2
 							},
-							currency: formData.currency,
 							locale: formData.locale,
-							entityType: formData.entityType,
-							residingCountry: formData.residingCountry,
-							registeredBusinessName: formData.registeredBusinessName,
-							firstName: formData.firstName,
-							lastName: formData.lastName
+							entityType: formData.entityType
 						}
 					}
 				},
