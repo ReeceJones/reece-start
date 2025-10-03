@@ -1,4 +1,5 @@
 import { ApiError, base64Encode, post } from '$lib';
+import { formatUrl } from '$lib/organization-onboarding';
 import {
 	createOrganizationFormSchema,
 	createOrganizationRequestSchema,
@@ -50,7 +51,9 @@ export const actions = {
 							...(logoBase64 && { logo: logoBase64 }),
 							contactEmail: formData.contactEmail,
 							contactPhone: formData.contactPhone,
-							websiteUrl: formData.websiteUrl,
+							websiteUrl: formData.websiteUrl
+								? formatUrl(formData.websiteUrl)
+								: formData.websiteUrl,
 							address: {
 								city: formData.addressCity,
 								stateOrProvince: formData.addressStateOrProvince,

@@ -51,13 +51,12 @@
 
 	<fieldset class="fieldset">
 		<legend class="fieldset-legend">Description</legend>
-		<input
-			type="text"
+		<textarea
 			name="description"
-			class="input"
+			class="textarea"
 			placeholder="Description"
 			bind:value={onboardingState.description}
-		/>
+		></textarea>
 		<p class="fieldset-label">Enter a description for your organization</p>
 	</fieldset>
 

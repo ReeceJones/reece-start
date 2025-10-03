@@ -38,7 +38,6 @@
 	<fieldset class="fieldset">
 		<legend class="fieldset-legend">Website</legend>
 		<input
-			type="url"
 			name="websiteUrl"
 			class="input"
 			placeholder="Website"

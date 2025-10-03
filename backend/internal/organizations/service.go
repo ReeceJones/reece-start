@@ -48,6 +48,10 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 			Zip: params.Address.Zip,
 			Country: params.Address.Country,
 		},
+		OnboardingStatus: string(constants.OnboardingStatusPending),
+		Stripe: models.OrganizationStripeAccount{
+			OnboardingStatus: string(constants.StripeOnboardingStatusPending),
+		},
 	}
 
 	err := tx.Create(&organization).Error
@@ -120,13 +124,6 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 				Zip: params.Address.Zip,
 				Country: params.Address.Country,
 			},
-			// Individual: stripe.IndividualAccount{
-			// 	FirstName: params.FirstName,
-			// 	LastName: params.LastName,
-			// },
-			// Company: stripe.CompanyAccount{
-			// 	RegisteredName: params.RegisteredBusinessName,
-			// },
 		},
 	})
 
@@ -136,8 +133,19 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 	log.Printf("Created Stripe connect account %s for organization %d\n", account.ID, organization.ID)
 
-	// Save the stripe account id
-	organization.StripeAccountID = account.ID
+	// Update the stripe information on the organization
+	err = updateOrganizationStripeInformation(UpdateOrganizationStripeInformationServiceRequest{
+		Organization: organization,
+		StripeAccount: *account,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = updateOnboardingStatus(organization)
+	if err != nil {
+		return nil, err
+	}
 
 	// Save the updated organization
 	err = tx.Save(organization).Error
@@ -774,3 +782,50 @@ func declineOrganizationInvitation(request DeclineOrganizationInvitationServiceR
 	})
 }
 
+
+func updateOrganizationStripeInformation(request UpdateOrganizationStripeInformationServiceRequest) error {
+	organization := request.Organization
+	stripeAccount := request.StripeAccount
+	requirements := stripeAccount.Requirements
+
+	organization.Stripe.AccountID = stripeAccount.ID
+	organization.Stripe.AutomaticIndirectTaxStatus = string(stripeAccount.Configuration.Customer.Capabilities.AutomaticIndirectTax.Status)
+	organization.Stripe.CardPaymentsStatus = string(stripeAccount.Configuration.Merchant.Capabilities.CardPayments.Status)
+	organization.Stripe.StripeBalancePayoutsStatus = string(stripeAccount.Configuration.Recipient.Capabilities.StripeBalance.Payouts.Status)
+	organization.Stripe.StripeBalanceTransfersStatus = string(stripeAccount.Configuration.Recipient.Capabilities.StripeBalance.StripeTransfers.Status)
+
+	if requirements != nil {
+		organization.Stripe.HasPendingRequirements = len(requirements.Entries) > 0
+	}
+
+	organization.Stripe.OnboardingStatus = string(getStripeOnboardingStatus(organization))
+
+	return nil
+}
+
+func updateOnboardingStatus(organization *models.Organization) error {
+	if organization.Stripe.OnboardingStatus == string(constants.StripeOnboardingStatusCompleted) {
+		organization.OnboardingStatus = string(constants.OnboardingStatusCompleted)
+		return nil
+	}
+
+	organization.OnboardingStatus = string(constants.OnboardingStatusInProgress)
+
+	return nil
+}
+
+
+func getStripeOnboardingStatus(organization *models.Organization) constants.StripeOnboardingStatus {
+	if organization.Stripe.HasPendingRequirements {
+		return constants.StripeOnboardingStatusMissingRequirements
+	}
+
+	if organization.Stripe.AutomaticIndirectTaxStatus != string(stripeGo.AccountCapabilityStatusActive) ||
+		organization.Stripe.CardPaymentsStatus != string(stripeGo.AccountCapabilityStatusActive) ||
+		organization.Stripe.StripeBalancePayoutsStatus != string(stripeGo.AccountCapabilityStatusActive) ||
+		organization.Stripe.StripeBalanceTransfersStatus != string(stripeGo.AccountCapabilityStatusActive) {
+		return constants.StripeOnboardingStatusMissingCapabilities
+	}
+
+	return constants.StripeOnboardingStatusCompleted
+}

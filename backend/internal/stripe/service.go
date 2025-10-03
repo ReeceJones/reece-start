@@ -58,6 +58,12 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 		Metadata: map[string]string{
 			"organization_id": fmt.Sprintf("%d", request.Params.OrganizationID),
 		},
+		Include: []*string{
+			stripeGo.String("configuration.customer"),
+			stripeGo.String("configuration.merchant"),
+			stripeGo.String("configuration.recipient"),
+			stripeGo.String("requirements"),
+		},
 	}
 
 	if request.Params.ContactEmail != "" {

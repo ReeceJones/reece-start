@@ -16,7 +16,8 @@
 	import {
 		isAddressValid,
 		isBasicInformationValid,
-		isBusinessDetailsValid
+		isBusinessDetailsValid,
+		isContactInformationValid
 	} from '$lib/organization-onboarding';
 
 	const { children }: LayoutProps = $props();
@@ -77,6 +78,8 @@
 		switch (activeStep.path) {
 			case '/app/create-organization/basic-information':
 				return isBasicInformationValid(onboardingState);
+			case '/app/create-organization/contact-information':
+				return isContactInformationValid(onboardingState);
 			case '/app/create-organization/address':
 				return isAddressValid(onboardingState);
 			case '/app/create-organization/business-details':

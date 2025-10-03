@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/riverqueue/river"
+	stripeGo "github.com/stripe/stripe-go/v82"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 	"reece.start/internal/configuration"
@@ -329,6 +330,7 @@ type UpdateOrganizationParams struct {
 	Name           *string
 	Description    *string
 	Logo           *string
+	// TODO: need to add a lot more fields here
 }
 
 type UpdateOrganizationServiceRequest struct {
@@ -464,4 +466,9 @@ type DeclineOrganizationInvitationServiceRequest struct {
 	UserID       uint
 	Tx           *gorm.DB
 	MinioClient  *minio.Client
+}
+
+type UpdateOrganizationStripeInformationServiceRequest struct {
+	Organization *models.Organization
+	StripeAccount stripeGo.V2CoreAccount
 }

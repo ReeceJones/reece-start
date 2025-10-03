@@ -4,21 +4,53 @@ import {
 } from './schemas/organization';
 
 export function isBasicInformationValid(state: CreateOrganizationFormData) {
-	return !!state.name;
+	const basicInformationSchema = createOrganizationFormSchema.pick({
+		name: true,
+		description: true,
+		logo: true
+	});
+
+	const result = basicInformationSchema.safeParse(state);
+
+	return result.success;
+}
+
+export function isContactInformationValid(state: CreateOrganizationFormData) {
+	const contactInformationSchema = createOrganizationFormSchema.pick({
+		contactEmail: true,
+		contactPhone: true,
+		websiteUrl: true
+	});
+
+	const result = contactInformationSchema.safeParse(state);
+
+	return result.success;
 }
 
 export function isAddressValid(state: CreateOrganizationFormData) {
-	return (
-		!!state.addressLine1 &&
-		!!state.addressCity &&
-		!!state.addressStateOrProvince &&
-		!!state.addressZip &&
-		!!state.addressCountry
-	);
+	const addressSchema = createOrganizationFormSchema.pick({
+		addressLine1: true,
+		addressLine2: true,
+		addressCity: true,
+		addressStateOrProvince: true,
+		addressZip: true,
+		addressCountry: true
+	});
+
+	const result = addressSchema.safeParse(state);
+
+	return result.success;
 }
 
 export function isBusinessDetailsValid(state: CreateOrganizationFormData) {
-	return !!state.entityType && !!state.locale;
+	const businessDetailsSchema = createOrganizationFormSchema.pick({
+		entityType: true,
+		locale: true
+	});
+
+	const result = businessDetailsSchema.safeParse(state);
+
+	return result.success;
 }
 
 export function isAllInformationValid(state: CreateOrganizationFormData) {
@@ -38,4 +70,16 @@ export function getValidationErrors(state: CreateOrganizationFormData) {
 	}
 
 	return [];
+}
+
+export function formatUrl(url: string) {
+	if (!url) {
+		return url;
+	}
+
+	if (!url.startsWith('https://') || !url.startsWith('http://')) {
+		return `https://${url}`;
+	}
+
+	return url;
 }

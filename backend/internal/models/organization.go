@@ -2,6 +2,23 @@ package models
 
 import "gorm.io/gorm"
 
+type OrganizationStripeAccount struct {
+	// Account ID
+	AccountID string `gorm:"index"`
+
+	// Status flags
+	AutomaticIndirectTaxStatus string
+	CardPaymentsStatus string
+	StripeBalancePayoutsStatus string
+	StripeBalanceTransfersStatus string
+
+	// Requirements
+	HasPendingRequirements bool
+
+	// Onboarding status
+	OnboardingStatus string
+}
+
 type Organization struct {
 	gorm.Model
 
@@ -21,7 +38,10 @@ type Organization struct {
 	Locale string `gorm:"not null;size:5"`
 
 	// Stripe fields
-	StripeAccountID string `gorm:"index"`
+	Stripe OrganizationStripeAccount `gorm:"embedded;embeddedPrefix:stripe_"`
+
+	// Onboarding status
+	OnboardingStatus string
 	
 	// Relationships
 	Memberships []OrganizationMembership `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE"`
