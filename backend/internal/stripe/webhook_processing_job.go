@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/riverqueue/river"
-	"github.com/stripe/stripe-go/v82"
+	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
 )
@@ -28,13 +28,13 @@ type WebhookProcessingJobWorker struct {
 	river.WorkerDefaults[WebhookProcessingJob]
 	DB     *gorm.DB
 	Config *configuration.Config
-	StripeClient *stripe.Client
+    StripeClient *Client
 }
 
 // Work processes the webhook event in the background
 func (w *WebhookProcessingJobWorker) Work(ctx context.Context, job *river.Job[WebhookProcessingJob]) error {
 	// Parse the event data back into a Stripe event
-	var event stripe.Event
+    var event stripeGo.Event
 	if err := json.Unmarshal(job.Args.EventData, &event); err != nil {
 		return fmt.Errorf("failed to unmarshal event data: %w", err)
 	}
@@ -44,5 +44,7 @@ func (w *WebhookProcessingJobWorker) Work(ctx context.Context, job *river.Job[We
 		Event:  &event,
 		DB:     w.DB,
 		Config: w.Config,
+        StripeClient: w.StripeClient,
+        Context: ctx,
 	})
 }

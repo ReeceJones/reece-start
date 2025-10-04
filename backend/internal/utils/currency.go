@@ -1,6 +1,6 @@
 package utils
 
-import "github.com/stripe/stripe-go/v82"
+import "github.com/stripe/stripe-go/v83"
 
 func GetCurrencyForCountry(country string) stripe.Currency {
 	switch country {

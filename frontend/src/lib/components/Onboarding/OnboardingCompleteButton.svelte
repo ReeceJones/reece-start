@@ -9,7 +9,7 @@
 	} = $props();
 </script>
 
-<button class="btn btn-accent" type="submit" in:fade disabled={loading}>
+<button class="btn btn-primary" type="submit" in:fade disabled={loading}>
 	{#if loading}
 		<span class="loading loading-spinner loading-xs"></span>
 	{:else}

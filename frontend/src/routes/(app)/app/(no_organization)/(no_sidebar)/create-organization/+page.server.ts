@@ -1,5 +1,6 @@
 import { ApiError, base64Encode, post } from '$lib';
 import { formatUrl } from '$lib/organization-onboarding';
+import { formatPhoneNumberWithCountryCode } from '$lib/phone-utils';
 import {
 	createOrganizationFormSchema,
 	createOrganizationRequestSchema,
@@ -50,17 +51,18 @@ export const actions = {
 							description: formData.description,
 							...(logoBase64 && { logo: logoBase64 }),
 							contactEmail: formData.contactEmail,
-							contactPhone: formData.contactPhone,
-							websiteUrl: formData.websiteUrl
-								? formatUrl(formData.websiteUrl)
-								: formData.websiteUrl,
+							contactPhone: formatPhoneNumberWithCountryCode(
+								formData.contactPhone || '',
+								formData.contactPhoneCountry || ''
+							),
+							contactPhoneCountry: formData.contactPhoneCountry || '',
 							address: {
-								city: formData.addressCity,
-								stateOrProvince: formData.addressStateOrProvince,
-								zip: formData.addressZip,
-								country: formData.addressCountry,
-								line1: formData.addressLine1,
-								line2: formData.addressLine2
+								city: formData.addressCity || '',
+								stateOrProvince: formData.addressStateOrProvince || '',
+								zip: formData.addressZip || '',
+								country: formData.addressCountry || '',
+								line1: formData.addressLine1 || '',
+								line2: formData.addressLine2 || ''
 							},
 							locale: formData.locale,
 							entityType: formData.entityType

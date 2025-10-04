@@ -13,7 +13,7 @@ import (
 	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
-	stripeGo "github.com/stripe/stripe-go/v82"
+	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
@@ -85,7 +85,7 @@ func main() {
 	river.AddWorker(workers, &stripe.WebhookProcessingJobWorker{
 		DB:     db,
 		Config: config,
-		StripeClient: stripeClient,
+		StripeClient: (*stripe.Client)(stripeClient),
 	})
 
 	riverClient, err := river.NewClient(riverdatabasesql.New(conn), &river.Config{

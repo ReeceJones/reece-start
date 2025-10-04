@@ -31,7 +31,7 @@ type Organization struct {
 	// Contact information
 	ContactEmail string
 	ContactPhone string
-	WebsiteUrl string
+	ContactPhoneCountry string
 
 	// Localization fields
 	Currency string `gorm:"not null;size:3"`

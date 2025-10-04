@@ -13,7 +13,7 @@
 <!-- Hero Section -->
 <div class="container mx-auto px-4">
 	<div class="mx-auto max-w-4xl py-20 text-center">
-		<h1 class="mb-6 text-5xl font-bold md:text-6xl">Simple, transparent pricing</h1>
+		<h1 class="mb-6 text-3xl font-bold md:text-4xl">Simple, transparent pricing</h1>
 		<p class="text-base-content/70 mx-auto max-w-2xl text-xl leading-relaxed">
 			Start for free and scale as you grow. No hidden fees, no surprises.
 		</p>

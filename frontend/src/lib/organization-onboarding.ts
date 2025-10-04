@@ -19,7 +19,7 @@ export function isContactInformationValid(state: CreateOrganizationFormData) {
 	const contactInformationSchema = createOrganizationFormSchema.pick({
 		contactEmail: true,
 		contactPhone: true,
-		websiteUrl: true
+		contactPhoneCountry: true
 	});
 
 	const result = contactInformationSchema.safeParse(state);

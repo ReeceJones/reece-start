@@ -31,10 +31,10 @@
 		<legend class="fieldset-legend">Language</legend>
 		<select name="locale" class="select" bind:value={onboardingState.locale}>
 			<!-- TODO: add i8n here -->
-			<option value="en">{localeToLanguageName('en', onboardingState.locale)}</option>
-			<option value="es">{localeToLanguageName('en', onboardingState.locale)}</option>
-			<option value="fr">{localeToLanguageName('en', onboardingState.locale)}</option>
-			<option value="de">{localeToLanguageName('en', onboardingState.locale)}</option>
+			<option value="en">{localeToLanguageName('en', 'en')}</option>
+			<option value="es">{localeToLanguageName('en', 'es')}</option>
+			<option value="fr">{localeToLanguageName('en', 'fr')}</option>
+			<option value="de">{localeToLanguageName('en', 'de')}</option>
 		</select>
 		<p class="fieldset-label">
 			Select the language you want to use for your organization. We will use this language for your

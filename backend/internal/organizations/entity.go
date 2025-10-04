@@ -3,11 +3,12 @@ package organizations
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/riverqueue/river"
-	stripeGo "github.com/stripe/stripe-go/v82"
+	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 	"reece.start/internal/configuration"
@@ -17,7 +18,7 @@ import (
 )
 
 // API Types
-type OrganizationAttributes struct {
+type CommonOrganizationAttributes struct {
 	// Basic information
 	Name string `json:"name" validate:"required,min=1,max=100"`
 	Description string `json:"description,omitempty" validate:"omitempty,min=1,max=255"`
@@ -29,12 +30,20 @@ type OrganizationAttributes struct {
 	// Contact information
 	ContactEmail string `json:"contactEmail" validate:"omitempty,email"`
 	ContactPhone string `json:"contactPhone" validate:"omitempty"`
-	WebsiteUrl string `json:"websiteUrl" validate:"omitempty,url"`
+	ContactPhoneCountry string `json:"contactPhoneCountry" validate:"omitempty"`
+}
+
+type OrganizationAttributes struct {
+	CommonOrganizationAttributes
+
+	// Onboarding information populated by the backend
+	HasPendingRequirements bool `json:"hasPendingRequirements"`
+	OnboardingStatus string `json:"onboardingStatus" validate:"required"`
 }
 
 type CreateOrganizationAttributes struct {
 	// Common fields
-	OrganizationAttributes
+	CommonOrganizationAttributes
 	Logo string `json:"logo,omitempty" validate:"omitempty,base64"`
 
 	// Onboarding - Basic information
@@ -55,7 +64,7 @@ type UpdateOrganizationAttributes struct {
 	// Contact information
 	ContactEmail *string `json:"contactEmail,omitempty" validate:"omitempty,email"`
 	ContactPhone *string `json:"contactPhone,omitempty" validate:"omitempty"`
-	WebsiteUrl *string `json:"websiteUrl,omitempty" validate:"omitempty,url"`
+	ContactPhoneCountry *string `json:"contactPhoneCountry,omitempty" validate:"omitempty"`
 }
 
 type OrganizationMeta struct {
@@ -297,7 +306,7 @@ type CreateOrganizationParams struct {
 	Logo   string
 	ContactEmail string
 	ContactPhone string
-	WebsiteUrl string
+	ContactPhoneCountry string
 	Locale string
 	EntityType string
 	Address api.Address
@@ -471,4 +480,34 @@ type DeclineOrganizationInvitationServiceRequest struct {
 type UpdateOrganizationStripeInformationServiceRequest struct {
 	Organization *models.Organization
 	StripeAccount stripeGo.V2CoreAccount
+}
+
+// Stripe onboarding link service types
+type CreateStripeOnboardingLinkParams struct {
+    OrganizationID uint
+}
+
+type CreateStripeOnboardingLinkServiceRequest struct {
+    Db           *gorm.DB
+    StripeClient *stripe.Client
+    Context      context.Context
+    Params       CreateStripeOnboardingLinkParams
+}
+
+// JSON:API response types for Stripe requirements link
+type StripeAccountLinkAttributes struct {
+    URL       string    `json:"url"`
+    ExpiresAt time.Time `json:"expiresAt"`
+    Livemode  bool      `json:"livemode"`
+    AccountID string    `json:"accountId"`
+    CreatedAt time.Time `json:"createdAt"`
+}
+
+type StripeAccountLinkData struct {
+    Type       string                       `json:"type"`
+    Attributes StripeAccountLinkAttributes  `json:"attributes"`
+}
+
+type CreateStripeRequirementsLinkResponse struct {
+    Data StripeAccountLinkData `json:"data"`
 }

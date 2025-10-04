@@ -37,7 +37,7 @@
 					<CircleQuestionMark class="text-info size-12" />
 				</div>
 			</div>
-			<h1 class="mb-6 text-4xl font-bold md:text-5xl">Frequently Asked Questions</h1>
+			<h1 class="mb-6 text-3xl font-bold md:text-4xl">Frequently Asked Questions</h1>
 			<p class="text-base-content/70 mx-auto max-w-2xl text-xl leading-relaxed">
 				Everything you need to know about the technology choices, architecture decisions, and how to
 				get started.

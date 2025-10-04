@@ -2,9 +2,10 @@ package stripe
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/riverqueue/river"
-	"github.com/stripe/stripe-go/v82"
+	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
 )
@@ -29,11 +30,11 @@ type CompanyAccount struct {
 
 type CreateStripeAccountParams struct {
 	OrganizationID uint
-	Type stripe.AccountBusinessType
+    Type stripeGo.AccountBusinessType
 	DisplayName string
 	ContactEmail string
 	ContactPhone string
-	Currency stripe.Currency
+    Currency stripeGo.Currency
 	Locale string
 	ResidingCountry string
 	Address Address
@@ -50,13 +51,29 @@ type CreateStripeAccountServiceRequest struct {
 
 // ProcessWebhookEventServiceRequest contains parameters for processing webhook events
 type ProcessWebhookEventServiceRequest struct {
-	Event  *stripe.Event
+    Event  *stripeGo.Event
 	DB     *gorm.DB
 	Config *configuration.Config
+    StripeClient *Client
+    Context context.Context
 }
 
 // EnqueueWebhookProcessingServiceRequest contains parameters for enqueueing webhook processing
 type EnqueueWebhookProcessingServiceRequest struct {
-	RiverClient *river.Client[river.JobArgs]
-	Event       *stripe.Event
+    RiverClient *river.Client[*sql.Tx]
+    Event       *stripeGo.Event
+    Context     context.Context
+}
+
+type CreateOnboardingLinkServiceRequest struct {
+	Context context.Context
+	StripeClient *Client
+    Db *gorm.DB
+	Params CreateOnboardingLinkParams
+}
+
+type CreateOnboardingLinkParams struct {
+	AccountID string
+	RefreshURL string
+	ReturnURL string
 }

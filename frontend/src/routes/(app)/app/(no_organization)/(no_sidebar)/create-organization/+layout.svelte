@@ -65,7 +65,7 @@
 		addressLine2: '',
 		contactEmail: '',
 		contactPhone: '',
-		websiteUrl: ''
+		contactPhoneCountry: ''
 	});
 	let error = $state('');
 
@@ -108,7 +108,7 @@
 				{activeStep?.label} ({(activeStep?.index ?? 0) + 1} of {steps.length})
 			</h2>
 			<progress
-				class="progress progress-accent w-full transition-all duration-500"
+				class="progress progress-primary w-full transition-all duration-500"
 				value={activeStep?.index ?? 0}
 				max={steps.length - 1}
 			></progress>

@@ -17,6 +17,7 @@ const (
 	UserScopeOrganizationInvitationsCreate UserScope = "organization:invitations:create"
 	UserScopeOrganizationInvitationsUpdate UserScope = "organization:invitations:update"
 	UserScopeOrganizationInvitationsDelete UserScope = "organization:invitations:delete"
+	UserScopeOrganizationStripeUpdate UserScope = "organization:stripe:update"
 
 	// Admin
 	UserScopeAdmin UserScope = "admin"

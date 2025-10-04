@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"reece.start/internal/authentication"
 	"reece.start/internal/configuration"
+	"reece.start/internal/constants"
 )
 
 // JWT Authentication middleware
@@ -44,6 +45,14 @@ func GetUserIDFromJWT(c echo.Context) (uint, error) {
 		return 0, err
 	}
 	return uint(userID), nil
+}
+
+func GetScopesFromJWT(c echo.Context) ([]constants.UserScope, error) {
+	claims := c.Get("claims").(*authentication.JwtClaims)
+	if claims.Scopes == nil {
+		return []constants.UserScope{}, errors.New("scopes are not set")
+	}
+	return *claims.Scopes, nil
 }
 
 func GetImpersonatingUserIDFromJWT(c echo.Context) (uint, error) {

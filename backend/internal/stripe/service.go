@@ -1,14 +1,18 @@
 package stripe
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
-	"github.com/riverqueue/river"
-	stripeGo "github.com/stripe/stripe-go/v82"
+	"encoding/json"
+	"errors"
+
+	stripeGo "github.com/stripe/stripe-go/v83"
+
+	"gorm.io/gorm"
+	"reece.start/internal/constants"
+	"reece.start/internal/models"
+	"reece.start/internal/utils"
 )
 
 func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*stripeGo.V2CoreAccount, error) {
@@ -83,6 +87,39 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 	return account, nil
 }
 
+func CreateOnboardingLink(request CreateOnboardingLinkServiceRequest) (*stripeGo.V2CoreAccountLink, error) {
+	stripeClient := request.StripeClient
+	context := request.Context
+	params := request.Params
+
+	link, err := stripeClient.V2CoreAccountLinks.Create(context, &stripeGo.V2CoreAccountLinkCreateParams{
+		Account: stripeGo.String(params.AccountID),
+		UseCase: &stripeGo.V2CoreAccountLinkCreateUseCaseParams{
+			Type: stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseTypeAccountOnboarding)),
+			AccountOnboarding: &stripeGo.V2CoreAccountLinkCreateUseCaseAccountOnboardingParams{
+				CollectionOptions: &stripeGo.V2CoreAccountLinkCreateUseCaseAccountOnboardingCollectionOptionsParams{
+					Fields: stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingCollectionOptionsFieldsCurrentlyDue)),
+					FutureRequirements: stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingCollectionOptionsFutureRequirementsInclude)),
+				},
+				Configurations: []*string{
+					stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingConfigurationCustomer)),
+					stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingConfigurationMerchant)),
+					stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingConfigurationRecipient)),
+				},
+				RefreshURL: stripeGo.String(params.RefreshURL),
+				ReturnURL: stripeGo.String(params.ReturnURL),
+			},
+		},
+	})
+
+	if err != nil {
+		log.Printf("failed to create stripe onboarding link: %v", err)
+		return nil, err
+	}
+
+	return link, err
+}
+
 func getBusinessDetails(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAccountCreateIdentityBusinessDetailsParams {
 	if request.Params.Type != stripeGo.AccountBusinessTypeCompany {
 		return nil
@@ -99,10 +136,15 @@ func getIndividual(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAc
 		return nil
 	}
 
+	var line2 *string
+	if request.Params.Address.Line2 != "" {
+		line2 = stripeGo.String(request.Params.Address.Line2)
+	}
+
 	params := &stripeGo.V2CoreAccountCreateIdentityIndividualParams{
 		Address: &stripeGo.V2CoreAccountCreateIdentityIndividualAddressParams{
 			Line1: stripeGo.String(request.Params.Address.Line1),
-			Line2: stripeGo.String(request.Params.Address.Line2),
+			Line2: line2,
 			City: stripeGo.String(request.Params.Address.City),
 			State: stripeGo.String(request.Params.Address.StateOrProvince),
 			PostalCode: stripeGo.String(request.Params.Address.Zip),
@@ -129,72 +171,36 @@ func getMerchantCapabilities(request CreateStripeAccountServiceRequest) *stripeG
 	}
 
 	// Enable ACH debit payments for US businesses
-	// if request.Params.ResidingCountry == "US" {
-	// 	cap.ACHDebitPayments = &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesACHDebitPaymentsParams{
-	// 		Requested: stripeGo.Bool(true),
-	// 	}
-	// }
+	if request.Params.ResidingCountry == "US" && request.Config.StripeEnableACHDebitPayments {
+		cap.ACHDebitPayments = &stripeGo.V2CoreAccountCreateConfigurationMerchantCapabilitiesACHDebitPaymentsParams{
+			Requested: stripeGo.Bool(true),
+		}
+	}
 
 	return cap
 }
 
-// processWebhookEvent processes different types of Stripe webhook events
 func processWebhookEvent(request ProcessWebhookEventServiceRequest) error {
+	// IMPORTANT: do not rely on the data in the event object, as it may not be update to date or delivered out of order.
+	// Always refetch the object from the stripe API.
+	// V2 events are actually "thin" objects and already operate under this assumed behavior.
 	event := request.Event
 
 	switch event.Type {
-	// Stripe API events
-	case "customer.created":
-		return handleCustomerCreated(request)
-	case "customer.updated":
-		return handleCustomerUpdated(request)
-	case "customer.deleted":
-		return handleCustomerDeleted(request)
-	case "invoice.payment_succeeded":
-		return handleInvoicePaymentSucceeded(request)
-	case "invoice.payment_failed":
-		return handleInvoicePaymentFailed(request)
-	case "customer.subscription.created":
-		return handleSubscriptionCreated(request)
-	case "customer.subscription.updated":
-		return handleSubscriptionUpdated(request)
-	case "customer.subscription.deleted":
-		return handleSubscriptionDeleted(request)
-	// Stripe Connect events
-	case "account.updated":
+	case "v2.core.account.updated":
 		return handleAccountUpdated(request)
-	case "account.application.deauthorized":
-		return handleAccountApplicationDeauthorized(request)
+	case "v2.core.account.closed":
+		return handleAccountClosed(request)
 	case "capability.updated":
-		return handleCapabilityUpdated(request)
-	case "person.created":
-		return handlePersonCreated(request)
-	case "person.updated":
-		return handlePersonUpdated(request)
-	case "person.deleted":
-		return handlePersonDeleted(request)
-	case "payout.created":
-		return handlePayoutCreated(request)
-	case "payout.updated":
-		return handlePayoutUpdated(request)
-	case "payout.paid":
-		return handlePayoutPaid(request)
-	case "payout.failed":
-		return handlePayoutFailed(request)
-	case "topup.created":
-		return handleTopupCreated(request)
-	case "topup.succeeded":
-		return handleTopupSucceeded(request)
-	case "topup.failed":
-		return handleTopupFailed(request)
-	case "transfer.created":
-		return handleTransferCreated(request)
-	case "transfer.updated":
-		return handleTransferUpdated(request)
-	case "application_fee.created":
-		return handleApplicationFeeCreated(request)
-	case "application_fee.refunded":
-		return handleApplicationFeeRefunded(request)
+		return handleAccountCapabilityStatusUpdated(request)
+	case "v2.core.account[configuration.customer].capability_status_updated":
+		return handleAccountCapabilityStatusUpdated(request)
+	case "v2.core.account[configuration.merchant].capability_status_updated":
+		return handleAccountCapabilityStatusUpdated(request)
+	case "v2.core.account[configuration.recipient].capability_status_updated":
+		return handleAccountCapabilityStatusUpdated(request)
+	case "v2.core.account[requirements].updated":
+		return handleAccountRequirementsUpdated(request)
 	default:
 		// Log unhandled events but don't fail
 		fmt.Printf("Unhandled webhook event type: %s\n", event.Type)
@@ -202,542 +208,137 @@ func processWebhookEvent(request ProcessWebhookEventServiceRequest) error {
 	}
 }
 
-// handleCustomerCreated processes customer.created events
-func handleCustomerCreated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing customer.created event: %s\n", event.ID)
-	
-	// The customer object is already parsed in event.Data.Object
-	customer := event.Data.Object
-	_ = customer // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, create or update a customer record in your database
-	// Example:
-	// customerData := customer.(map[string]interface{})
-	// stripeCustomerID := customerData["id"].(string)
-	// email := customerData["email"].(string)
-	// 
-	// // Create customer in your database
-	// if err := s.createCustomerRecord(stripeCustomerID, email); err != nil {
-	//     return fmt.Errorf("failed to create customer record: %w", err)
-	// }
-	
-	return nil
-}
-
-// handleCustomerUpdated processes customer.updated events
-func handleCustomerUpdated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing customer.updated event: %s\n", event.ID)
-	
-	// The customer object is already parsed in event.Data.Object
-	customer := event.Data.Object
-	_ = customer // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update a customer record in your database
-	
-	return nil
-}
-
-// handleCustomerDeleted processes customer.deleted events
-func handleCustomerDeleted(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing customer.deleted event: %s\n", event.ID)
-	
-	// The customer object is already parsed in event.Data.Object
-	customer := event.Data.Object
-	_ = customer // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, mark a customer record as deleted in your database
-	
-	return nil
-}
-
-// handleInvoicePaymentSucceeded processes invoice.payment_succeeded events
-func handleInvoicePaymentSucceeded(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing invoice.payment_succeeded event: %s\n", event.ID)
-	
-	// The invoice object is already parsed in event.Data.Object
-	invoice := event.Data.Object
-	_ = invoice // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update subscription status, send confirmation email, etc.
-	
-	return nil
-}
-
-// handleInvoicePaymentFailed processes invoice.payment_failed events
-func handleInvoicePaymentFailed(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing invoice.payment_failed event: %s\n", event.ID)
-	
-	// The invoice object is already parsed in event.Data.Object
-	invoice := event.Data.Object
-	_ = invoice // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, handle failed payment, send notification, etc.
-	
-	return nil
-}
-
-// handleSubscriptionCreated processes customer.subscription.created events
-func handleSubscriptionCreated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing customer.subscription.created event: %s\n", event.ID)
-	
-	// The subscription object is already parsed in event.Data.Object
-	subscription := event.Data.Object
-	_ = subscription // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, create a subscription record in your database
-	
-	return nil
-}
-
-// handleSubscriptionUpdated processes customer.subscription.updated events
-func handleSubscriptionUpdated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing customer.subscription.updated event: %s\n", event.ID)
-	
-	// The subscription object is already parsed in event.Data.Object
-	subscription := event.Data.Object
-	_ = subscription // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update a subscription record in your database
-	
-	return nil
-}
-
-// handleSubscriptionDeleted processes customer.subscription.deleted events
-func handleSubscriptionDeleted(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing customer.subscription.deleted event: %s\n", event.ID)
-	
-	// The subscription object is already parsed in event.Data.Object
-	subscription := event.Data.Object
-	_ = subscription // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, mark a subscription as cancelled in your database
-	
-	return nil
-}
-
-// enqueueWebhookProcessing enqueues a webhook event for background processing
-func enqueueWebhookProcessing(request EnqueueWebhookProcessingServiceRequest) error {
-	riverClient := request.RiverClient
-	event := request.Event
-	// Serialize the event data
-	eventData, err := json.Marshal(event)
-	if err != nil {
-		return fmt.Errorf("failed to marshal event data: %w", err)
-	}
-
-	// Create the job
-	job := WebhookProcessingJob{
-		EventID:   event.ID,
-		EventType: string(event.Type),
-		EventData: eventData,
-	}
-
-	// Enqueue the job with a delay to allow for proper processing
-	_, err = riverClient.Insert(context.Background(), job, &river.InsertOpts{
-		ScheduledAt: time.Now().Add(1 * time.Second), // Small delay to ensure webhook is fully processed
-	})
-	if err != nil {
-		return fmt.Errorf("failed to enqueue webhook processing job: %w", err)
-	}
-
-	fmt.Printf("Enqueued webhook processing job for event %s (type: %s)\n", event.ID, event.Type)
-	return nil
-}
-
-// Stripe Connect webhook handlers
-
-// handleAccountUpdated processes account.updated events
 func handleAccountUpdated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing account.updated event: %s\n", event.ID)
-	
-	// The account object is already parsed in event.Data.Object
-	account := event.Data.Object
-	_ = account // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update connected account information in your database
-	
 	return nil
 }
 
-// handleAccountApplicationDeauthorized processes account.application.deauthorized events
-func handleAccountApplicationDeauthorized(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing account.application.deauthorized event: %s\n", event.ID)
-	
-	// The account object is already parsed in event.Data.Object
-	account := event.Data.Object
-	_ = account // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, remove connected account access or notify the merchant
-	
-	return nil
+// enqueueWebhookProcessing persists the event in the background job queue for async processing
+func enqueueWebhookProcessing(request EnqueueWebhookProcessingServiceRequest) error {
+    // Serialize the event for storage in the job
+    payload, err := json.Marshal(request.Event)
+    if err != nil {
+        return err
+    }
+
+    // River client expects generic args; we defined a dedicated job type in webhook_processing_job.go
+    _, err = request.RiverClient.Insert(request.Context, WebhookProcessingJob{
+        EventID:   request.Event.ID,
+        EventType: string(request.Event.Type),
+        EventData: payload,
+    }, nil)
+    return err
 }
 
-// handleCapabilityUpdated processes capability.updated events
-func handleCapabilityUpdated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing capability.updated event: %s\n", event.ID)
-	
-	// The capability object is already parsed in event.Data.Object
-	capability := event.Data.Object
-	_ = capability // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update account capabilities status in your database
-	
-	return nil
+// handleAccountClosed handles the case where a Stripe account is closed.
+// It removes the Stripe account ID and resets onboarding and Stripe statuses.
+func handleAccountClosed(request ProcessWebhookEventServiceRequest) error {
+    accountID, err := extractAccountIDFromEvent(request)
+    if err != nil {
+        return nil // ignore if we cannot determine, to avoid retries
+    }
+
+    return request.DB.Transaction(func(tx *gorm.DB) error {
+        var org models.Organization
+        if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
+            if errors.Is(err, gorm.ErrRecordNotFound) {
+                return nil
+            }
+            return err
+        }
+
+        org.Stripe.AccountID = ""
+        org.Stripe.AutomaticIndirectTaxStatus = ""
+        org.Stripe.CardPaymentsStatus = ""
+        org.Stripe.StripeBalancePayoutsStatus = ""
+        org.Stripe.StripeBalanceTransfersStatus = ""
+        org.Stripe.HasPendingRequirements = false
+        org.Stripe.OnboardingStatus = string(utils.DetermineStripeOnboardingStatus(&org))
+        // Also reset top-level onboarding to in_progress since connect is gone
+        org.OnboardingStatus = string(constants.OnboardingStatusInProgress)
+
+        return tx.Save(&org).Error
+    })
 }
 
-// handlePersonCreated processes person.created events
-func handlePersonCreated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing person.created event: %s\n", event.ID)
-	
-	// The person object is already parsed in event.Data.Object
-	person := event.Data.Object
-	_ = person // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, store person information for the connected account
-	
-	return nil
+// handleAccountCapabilityStatusUpdated handles capability status changes.
+func handleAccountCapabilityStatusUpdated(request ProcessWebhookEventServiceRequest) error {
+    accountID, err := extractAccountIDFromEvent(request)
+    if err != nil {
+        return nil
+    }
+
+    acc, err := request.StripeClient.V2CoreAccounts.Retrieve(request.Context, accountID, &stripeGo.V2CoreAccountRetrieveParams{
+		Include: []*string{
+			stripeGo.String("configuration.customer"),
+			stripeGo.String("configuration.merchant"),
+			stripeGo.String("configuration.recipient"),
+			stripeGo.String("requirements"),
+		},
+	})
+    if err != nil {
+        return err
+    }
+
+    return request.DB.Transaction(func(tx *gorm.DB) error {
+        var org models.Organization
+        if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
+            if errors.Is(err, gorm.ErrRecordNotFound) {
+                return nil
+            }
+            return err
+        }
+
+        // Apply all capability and requirements fields from the v2 core account
+        utils.ApplyStripeAccountToOrganization(&org, acc)
+        return tx.Save(&org).Error
+    })
 }
 
-// handlePersonUpdated processes person.updated events
-func handlePersonUpdated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing person.updated event: %s\n", event.ID)
-	
-	// The person object is already parsed in event.Data.Object
-	person := event.Data.Object
-	_ = person // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update person information in your database
-	
-	return nil
+// handleAccountRequirementsUpdated handles requirements updates similarly to capability updates.
+func handleAccountRequirementsUpdated(request ProcessWebhookEventServiceRequest) error {
+    accountID, err := extractAccountIDFromEvent(request)
+    if err != nil {
+        return nil
+    }
+
+    acc, err := request.StripeClient.V2CoreAccounts.Retrieve(request.Context, accountID, &stripeGo.V2CoreAccountRetrieveParams{
+        Include: []*string{
+            stripeGo.String("configuration.customer"),
+            stripeGo.String("configuration.merchant"),
+            stripeGo.String("configuration.recipient"),
+            stripeGo.String("requirements"),
+        },
+    })
+    if err != nil {
+        return err
+    }
+
+    return request.DB.Transaction(func(tx *gorm.DB) error {
+        var org models.Organization
+        if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
+            if errors.Is(err, gorm.ErrRecordNotFound) {
+                return nil
+            }
+            return err
+        }
+
+        utils.ApplyStripeAccountToOrganization(&org, acc)
+        return tx.Save(&org).Error
+    })
 }
 
-// handlePersonDeleted processes person.deleted events
-func handlePersonDeleted(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing person.deleted event: %s\n", event.ID)
-	
-	// The person object is already parsed in event.Data.Object
-	person := event.Data.Object
-	_ = person // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, remove person information from your database
-	
-	return nil
-}
-
-// handlePayoutCreated processes payout.created events
-func handlePayoutCreated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing payout.created event: %s\n", event.ID)
-	
-	// The payout object is already parsed in event.Data.Object
-	payout := event.Data.Object
-	_ = payout // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, record the payout in your database
-	
-	return nil
-}
-
-// handlePayoutUpdated processes payout.updated events
-func handlePayoutUpdated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing payout.updated event: %s\n", event.ID)
-	
-	// The payout object is already parsed in event.Data.Object
-	payout := event.Data.Object
-	_ = payout // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update payout status in your database
-	
-	return nil
-}
-
-// handlePayoutPaid processes payout.paid events
-func handlePayoutPaid(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing payout.paid event: %s\n", event.ID)
-	
-	// The payout object is already parsed in event.Data.Object
-	payout := event.Data.Object
-	_ = payout // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, mark payout as completed and notify the connected account
-	
-	return nil
-}
-
-// handlePayoutFailed processes payout.failed events
-func handlePayoutFailed(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing payout.failed event: %s\n", event.ID)
-	
-	// The payout object is already parsed in event.Data.Object
-	payout := event.Data.Object
-	_ = payout // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, handle failed payout and notify the connected account
-	
-	return nil
-}
-
-// handleTopupCreated processes topup.created events
-func handleTopupCreated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing topup.created event: %s\n", event.ID)
-	
-	// The topup object is already parsed in event.Data.Object
-	topup := event.Data.Object
-	_ = topup // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, record the topup in your database
-	
-	return nil
-}
-
-// handleTopupSucceeded processes topup.succeeded events
-func handleTopupSucceeded(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing topup.succeeded event: %s\n", event.ID)
-	
-	// The topup object is already parsed in event.Data.Object
-	topup := event.Data.Object
-	_ = topup // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update account balance information
-	
-	return nil
-}
-
-// handleTopupFailed processes topup.failed events
-func handleTopupFailed(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing topup.failed event: %s\n", event.ID)
-	
-	// The topup object is already parsed in event.Data.Object
-	topup := event.Data.Object
-	_ = topup // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, handle failed topup and notify appropriate parties
-	
-	return nil
-}
-
-// handleTransferCreated processes transfer.created events
-func handleTransferCreated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing transfer.created event: %s\n", event.ID)
-	
-	// The transfer object is already parsed in event.Data.Object
-	transfer := event.Data.Object
-	_ = transfer // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, record the transfer to a connected account
-	
-	return nil
-}
-
-// handleTransferUpdated processes transfer.updated events
-func handleTransferUpdated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing transfer.updated event: %s\n", event.ID)
-	
-	// The transfer object is already parsed in event.Data.Object
-	transfer := event.Data.Object
-	_ = transfer // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, update transfer status in your database
-	
-	return nil
-}
-
-// handleApplicationFeeCreated processes application_fee.created events
-func handleApplicationFeeCreated(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing application_fee.created event: %s\n", event.ID)
-	
-	// The application fee object is already parsed in event.Data.Object
-	applicationFee := event.Data.Object
-	_ = applicationFee // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, record application fee collection
-	
-	return nil
-}
-
-// handleApplicationFeeRefunded processes application_fee.refunded events
-func handleApplicationFeeRefunded(request ProcessWebhookEventServiceRequest) error {
-	event := request.Event
-	db := request.DB
-	config := request.Config
-	_ = db     // Suppress unused variable warning
-	_ = config // Suppress unused variable warning
-	
-	fmt.Printf("Processing application_fee.refunded event: %s\n", event.ID)
-	
-	// The application fee object is already parsed in event.Data.Object
-	applicationFee := event.Data.Object
-	_ = applicationFee // Suppress unused variable warning
-	
-	// TODO: Implement your business logic here
-	// For example, handle application fee refund
-	
-	return nil
+// extractAccountIDFromEvent attempts to extract the account id from the event's account field or metadata
+func extractAccountIDFromEvent(request ProcessWebhookEventServiceRequest) (string, error) {
+    if request.Event.Account != "" {
+        return request.Event.Account, nil
+    }
+    // fallback: some events may include in data.object.id for account.updated
+    if request.Event.Data.Object != nil {
+        if idRaw, ok := request.Event.Data.Object["id"]; ok {
+            if idStr, ok2 := idRaw.(string); ok2 {
+                return idStr, nil
+            }
+        }
+    }
+    return "", fmt.Errorf("account id not found in event")
 }

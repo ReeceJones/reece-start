@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { API_TYPES } from './api';
 import { addressSchema } from './address';
+import { State } from 'country-state-city';
 
 const organizationAttributesSchema = z.object({
 	name: z.string().min(1).max(100),
@@ -8,9 +9,9 @@ const organizationAttributesSchema = z.object({
 	logo: z.string().optional(),
 	address: addressSchema,
 	locale: z.string(),
-	contactEmail: z.email().or(z.literal('')).optional(),
-	contactPhone: z.string().or(z.literal('')).optional(),
-	websiteUrl: z.url().or(z.literal('')).optional()
+	contactEmail: z.email(),
+	contactPhone: z.string().min(1),
+	contactPhoneCountry: z.string().min(2)
 });
 
 const organizationOnboardingAttributesSchema = z.object({
@@ -54,21 +55,54 @@ export const organizationsResponseSchema = z.object({
 	data: z.array(organizationDataSchema)
 });
 
-export const organizationFormSchema = z.object({
-	name: z.string().min(1).max(100),
-	description: z.string(),
-	logo: z.custom<FileList>().nullish(),
-	contactEmail: z.email().or(z.literal('')).optional(),
-	contactPhone: z.string().or(z.literal('')).optional(),
-	websiteUrl: z.url().or(z.literal('')).optional(),
-	addressLine1: z.string().optional(),
-	addressLine2: z.string().optional(),
-	addressCity: z.string().optional(),
-	addressStateOrProvince: z.string().optional(),
-	addressZip: z.string().optional(),
-	addressCountry: z.string().optional(),
-	locale: z.string()
-});
+export const organizationFormSchema = z
+	.object({
+		name: z.string().min(1).max(100),
+		description: z.string(),
+		logo: z.custom<FileList>().nullish(),
+		contactEmail: z.email(),
+		contactPhone: z.string().min(1),
+		contactPhoneCountry: z.string().min(2),
+		addressLine1: z.string().min(1),
+		addressLine2: z.string().optional(),
+		addressCity: z.string().min(1),
+		addressStateOrProvince: z.string().optional(),
+		addressZip: z.string().min(1),
+		addressCountry: z.string().min(2),
+		locale: z.string()
+	})
+	.superRefine((data, ctx) => {
+		// If phone number is provided, country code must also be provided
+		if (
+			data.contactPhone &&
+			data.contactPhone.trim() !== '' &&
+			(!data.contactPhoneCountry || data.contactPhoneCountry.trim() === '')
+		) {
+			ctx.addIssue({
+				code: 'custom',
+				message: 'Country code is required when phone number is provided',
+				path: ['contactPhoneCountry']
+			});
+		}
+	})
+	.superRefine((data, ctx) => {
+		// If country requires state and state is not provided
+		if (!data.addressCountry) {
+			return;
+		}
+
+		const states = State.getStatesOfCountry(data.addressCountry);
+
+		if (states.length > 0) {
+			if (!data.addressStateOrProvince) {
+				ctx.addIssue({
+					code: 'custom',
+					message: 'State/Province is required for ' + data.addressCountry,
+					path: ['addressStateOrProvince']
+				});
+			}
+		}
+	});
 
 export type OrganizationFormData = z.infer<typeof organizationFormSchema>;
 
@@ -85,7 +119,7 @@ export function getFormDataFromOrganization(organization: Organization): Organiz
 		logo: undefined,
 		contactEmail: organization.data.attributes.contactEmail,
 		contactPhone: organization.data.attributes.contactPhone,
-		websiteUrl: organization.data.attributes.websiteUrl,
+		contactPhoneCountry: organization.data.attributes.contactPhoneCountry,
 		addressLine1: organization.data.attributes.address.line1,
 		addressLine2: organization.data.attributes.address.line2,
 		addressCity: organization.data.attributes.address.city,

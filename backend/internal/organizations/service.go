@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v7"
-	stripeGo "github.com/stripe/stripe-go/v82"
+	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
@@ -37,7 +37,7 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 		Description: params.Description,
 		ContactEmail: params.ContactEmail,
 		ContactPhone: params.ContactPhone,
-		WebsiteUrl: params.WebsiteUrl,
+		ContactPhoneCountry: params.ContactPhoneCountry,
 		Currency: string(localCurrency),
 		Locale: params.Locale,
 		Address: models.Address{
@@ -798,7 +798,7 @@ func updateOrganizationStripeInformation(request UpdateOrganizationStripeInforma
 		organization.Stripe.HasPendingRequirements = len(requirements.Entries) > 0
 	}
 
-	organization.Stripe.OnboardingStatus = string(getStripeOnboardingStatus(organization))
+    organization.Stripe.OnboardingStatus = string(utils.DetermineStripeOnboardingStatus(organization))
 
 	return nil
 }
@@ -815,17 +815,35 @@ func updateOnboardingStatus(organization *models.Organization) error {
 }
 
 
-func getStripeOnboardingStatus(organization *models.Organization) constants.StripeOnboardingStatus {
-	if organization.Stripe.HasPendingRequirements {
-		return constants.StripeOnboardingStatusMissingRequirements
-	}
+// moved to utils.DetermineStripeOnboardingStatus
 
-	if organization.Stripe.AutomaticIndirectTaxStatus != string(stripeGo.AccountCapabilityStatusActive) ||
-		organization.Stripe.CardPaymentsStatus != string(stripeGo.AccountCapabilityStatusActive) ||
-		organization.Stripe.StripeBalancePayoutsStatus != string(stripeGo.AccountCapabilityStatusActive) ||
-		organization.Stripe.StripeBalanceTransfersStatus != string(stripeGo.AccountCapabilityStatusActive) {
-		return constants.StripeOnboardingStatusMissingCapabilities
-	}
+func createStripeOnboardingLink(request CreateStripeOnboardingLinkServiceRequest) (*stripeGo.V2CoreAccountLink, error) {
+    tx := request.Db
+    params := request.Params
+    stripeClient := request.StripeClient
+    context := request.Context
 
-	return constants.StripeOnboardingStatusCompleted
+    var organization models.Organization
+    if err := tx.First(&organization, params.OrganizationID).Error; err != nil {
+        return nil, err
+    }
+
+    if organization.Stripe.AccountID == "" {
+        return nil, fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
+    }
+
+    link, err := stripe.CreateOnboardingLink(stripe.CreateOnboardingLinkServiceRequest{
+        Context:      context,
+        StripeClient: stripeClient,
+        Params: stripe.CreateOnboardingLinkParams{
+            AccountID:  organization.Stripe.AccountID,
+            RefreshURL: "",
+            ReturnURL:  "",
+        },
+    })
+    if err != nil {
+        return nil, err
+    }
+
+    return link, nil
 }

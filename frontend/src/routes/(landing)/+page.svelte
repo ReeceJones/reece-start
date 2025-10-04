@@ -27,41 +27,47 @@
 
 <!-- Hero Section -->
 <div class="container mx-auto px-4">
-	<div class="max-w-2xl space-y-8 py-24">
-		<h1 class="text-5xl font-bold md:text-6xl">Skip the boilerplate and start shipping</h1>
-		<h2 class="text-lg leading-relaxed">
-			reece-start comes out of the box with auth, billing, and more so you can skip the boilerplate
-			and ship your idea from day one
-		</h2>
-		<div class="flex gap-4 pt-2">
-			<a href="/signup" class="btn btn-accent btn-lg font-medium">
-				<DoorOpen class="size-4" />
-				Get started
-			</a>
-			<a href="#features" class="btn btn-outline btn-lg font-medium">
-				<Play class="size-4" />
-				Watch demo
-			</a>
+	<div class="min-h-screen max-w-2xl space-y-8 pt-24">
+		<div class="space-y-6">
+			<h1 class="text-lg font-light tracking-normal md:text-2xl">
+				Pre-packaged with everything you need to build,
+				<br />
+				reece-start is how you skip the boilerplate and start shipping
+			</h1>
+			<div class="flex gap-4">
+				<a href="/signup" class="btn btn-neutral font-medium">
+					<DoorOpen class="size-4" />
+					Get started
+				</a>
+				<a href="#features" class="btn btn-neutral btn-outline font-medium">
+					<Play class="size-4" />
+					Watch demo
+				</a>
+			</div>
 		</div>
 
 		<!-- Simple feature highlights -->
 		<div class="text-base-content/70 pt-8 text-sm">
-			<div class="flex flex-wrap gap-x-8 gap-y-3">
+			<div class="flex flex-col gap-x-8 gap-y-3">
 				<div class="flex items-center gap-2">
 					<CircleCheck class="text-success size-4" />
-					<span>Zero-setup authentication</span>
+					<span>Authentication</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="text-success size-4" />
-					<span>Built-in email API</span>
+					<span>Stripe connect</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="text-success size-4" />
-					<span>One-click deployments</span>
+					<span>Analytics & monitoring</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="text-success size-4" />
-					<span>Billing & subscriptions</span>
+					<span>i18n</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<CircleCheck class="text-success size-4" />
+					<span>Landing & dashboard pages</span>
 				</div>
 				<div class="flex items-center gap-2">
 					&hellip;
@@ -73,7 +79,7 @@
 </div>
 
 <!-- Features Section -->
-<section id="features" class="bg-base-200 py-20">
+<section id="features" class="bg-base-200 py-48">
 	<div class="container mx-auto px-4">
 		<div class="mb-20">
 			<h2 class="mb-6 text-4xl font-bold">Everything you need to build and scale</h2>
@@ -267,7 +273,7 @@
 </section>
 
 <!-- Tech Stack Section -->
-<section class="bg-base-100 py-20">
+<section class="bg-base-100 py-48">
 	<div class="container mx-auto px-4">
 		<div class="mb-20">
 			<h2 class="mb-6 text-4xl font-bold">Built with modern, production-ready technologies</h2>
@@ -310,7 +316,7 @@
 </section>
 
 <!-- CTA Section -->
-<section class="bg-neutral py-20">
+<section class="bg-neutral py-48">
 	<div class="container mx-auto px-4">
 		<h2 class="text-neutral-content mb-8 text-4xl font-bold">
 			Ready to skip months of development?

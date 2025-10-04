@@ -2,6 +2,7 @@
 	import { localeToLanguageName } from '$lib/locale';
 	import type { CreateOrganizationFormData } from '$lib/schemas/organization';
 	import OnboardingStepContainer from './OnboardingStepContainer.svelte';
+	import { formatPhoneNumberWithCountryCode } from '$lib/phone-utils';
 
 	const {
 		hidden,
@@ -59,11 +60,14 @@
 				</div>
 				<div>
 					<p class="text-sm opacity-70">Phone</p>
-					<p class="font-medium">{display(onboardingState.contactPhone)}</p>
-				</div>
-				<div>
-					<p class="text-sm opacity-70">Website</p>
-					<p class="font-medium">{display(onboardingState.websiteUrl)}</p>
+					<p class="font-medium">
+						{display(
+							formatPhoneNumberWithCountryCode(
+								onboardingState.contactPhone || '',
+								onboardingState.contactPhoneCountry || ''
+							)
+						)}
+					</p>
 				</div>
 			</div>
 		</div>

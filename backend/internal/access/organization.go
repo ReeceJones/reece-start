@@ -8,7 +8,6 @@ import (
 	"reece.start/internal/authentication"
 	"reece.start/internal/constants"
 	"reece.start/internal/middleware"
-	"reece.start/internal/models"
 )
 
 type HasOrganizationAccessParams struct {
@@ -17,24 +16,17 @@ type HasOrganizationAccessParams struct {
 }
 
 func HasOrganizationAccess(c echo.Context, params HasOrganizationAccessParams) error {
-	db := middleware.GetDB(c)
-	userID, err := middleware.GetUserIDFromJWT(c)
+	// Checks scopes in the JWT. This has multiple implications:
+	// 1. If the user is updated then their token needs to be re-issued
+	// 2. If a user is deleted or their role is downgraded, then their token needs to be re-issued or revoked
+	// For both of the above situations, this will happen higher in the stack
+	scopes, err := middleware.GetScopesFromJWT(c)
 	if err != nil {
 		return err
 	}
-	
-	// fetch the organization membership to get the role
-	var membership models.OrganizationMembership
-	err = db.Where("user_id = ? AND organization_id = ?", userID, params.OrganizationID).
-		First(&membership).Error
-	if err != nil {
-		return api.ErrForbiddenNoAccess
-	}
-	
-	// check if the role has the required scopes
-	organization_scopes := constants.OrganizationRoleToScopes[constants.OrganizationRole(membership.Role)]
+
 	for _, scope := range params.Scopes {
-		if !slices.Contains(organization_scopes, scope) {
+		if !slices.Contains(scopes, scope) {
 			return api.ErrForbiddenNoAccess
 		}
 	}

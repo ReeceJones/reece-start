@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"database/sql"
 	"io"
 	"net/http"
 
@@ -8,16 +9,16 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/riverqueue/river"
-	"github.com/stripe/stripe-go/v82/webhook"
+	"github.com/stripe/stripe-go/v83/webhook"
 	"reece.start/internal/api"
 	"reece.start/internal/configuration"
 )
 
 // StripeWebhookEndpoint handles incoming Stripe webhook events
 func StripeWebhookEndpoint(c echo.Context) error {
-	// Get dependencies from context
-	config := c.Get("config").(*configuration.Config)
-	riverClient := c.Get("riverClient").(*river.Client[river.JobArgs])
+    // Get dependencies from context
+    config := c.Get("config").(*configuration.Config)
+    riverClient := c.Get("riverClient").(*river.Client[*sql.Tx])
 	
 	// Check if webhook secret is configured
 	if config.StripeWebhookSecret == "" {
@@ -46,11 +47,12 @@ func StripeWebhookEndpoint(c echo.Context) error {
 	// Log the webhook event for debugging
 	log.Printf("Received Stripe webhook event: %s (ID: %s)", event.Type, event.ID)
 
-	// Enqueue background job for processing
-	err = enqueueWebhookProcessing(EnqueueWebhookProcessingServiceRequest{
-		RiverClient: riverClient,
-		Event:       &event,
-	})
+    // Enqueue background job for processing
+    err = enqueueWebhookProcessing(EnqueueWebhookProcessingServiceRequest{
+        RiverClient: riverClient,
+        Event:       &event,
+        Context:     c.Request().Context(),
+    })
 	if err != nil {
 		log.Printf("Failed to enqueue webhook processing: %v", err)
 		return api.ErrStripeWebhookEventUnhandled

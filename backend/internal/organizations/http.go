@@ -35,7 +35,7 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 				Logo: req.Data.Attributes.Logo,
 				ContactEmail: req.Data.Attributes.ContactEmail,
 				ContactPhone: req.Data.Attributes.ContactPhone,
-				WebsiteUrl: req.Data.Attributes.WebsiteUrl,
+				ContactPhoneCountry: req.Data.Attributes.ContactPhoneCountry,
 				Locale: req.Data.Attributes.Locale,
 				EntityType: req.Data.Attributes.EntityType,
 				Address: req.Data.Attributes.Address,
@@ -655,6 +655,50 @@ func DeclineOrganizationInvitationEndpoint(c echo.Context, req DeclineOrganizati
 	return c.JSON(http.StatusOK, response)
 }
 
+func CreateStripeRequirementsLinkEndpoint(c echo.Context) error {
+	paramOrgID, err := api.ParseOrganizationIDFromString(c.Param("id"))
+	if err != nil {
+		return err
+	}
+
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: paramOrgID,
+		Scopes: []constants.UserScope{constants.UserScopeOrganizationStripeUpdate},
+	}); err != nil {
+		return err
+	}
+
+    db := middleware.GetDB(c)
+    stripeClient := middleware.GetStripeClient(c)
+
+	link, err := createStripeOnboardingLink(CreateStripeOnboardingLinkServiceRequest{
+        Db:           db,
+        StripeClient: stripeClient,
+        Context:      c.Request().Context(),
+        Params: CreateStripeOnboardingLinkParams{
+            OrganizationID: paramOrgID,
+        },
+    })
+    if err != nil {
+        return err
+    }
+
+	response := CreateStripeRequirementsLinkResponse{
+		Data: StripeAccountLinkData{
+			Type: "stripe-account-link",
+			Attributes: StripeAccountLinkAttributes{
+				URL:       link.URL,
+				ExpiresAt: link.ExpiresAt,
+				Livemode:  link.Livemode,
+				AccountID: link.Account,
+				CreatedAt: link.Created,
+			},
+		},
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
 // Type mappers
 func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta {
 	return OrganizationDataWithMeta{
@@ -662,8 +706,16 @@ func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta
 			Id:   strconv.FormatUint(uint64(params.Organization.ID), 10),
 			Type: constants.ApiTypeOrganization,
 			Attributes: OrganizationAttributes{
-				Name: params.Organization.Name,
-				Description: params.Organization.Description,
+				CommonOrganizationAttributes: CommonOrganizationAttributes{
+					Name: params.Organization.Name,
+					Description: params.Organization.Description,
+					Address: api.Address(params.Organization.Address),
+					Locale: params.Organization.Locale,
+					ContactEmail: params.Organization.ContactEmail,
+					ContactPhone: params.Organization.ContactPhone,
+				},
+				HasPendingRequirements: params.Organization.Stripe.HasPendingRequirements,
+				OnboardingStatus: params.Organization.Stripe.OnboardingStatus,
 			},
 		},
 		Meta: OrganizationMeta{

@@ -36,6 +36,7 @@ type Config struct {
 	StripeWebhookSecret string `env:"STRIPE_WEBHOOK_SECRET" envDefault:""`
 	StripeSecretKey string `env:"STRIPE_SECRET_KEY" envDefault:""`
 	StripeProPlanProductId string `env:"STRIPE_PRO_PLAN_PRODUCT_ID" envDefault:""`
+	StripeEnableACHDebitPayments bool `env:"STRIPE_ENABLE_ACH_DEBIT_PAYMENTS" envDefault:"false"`
 }
 
 func LoadEnvironmentVariables() (*Config, error) {
