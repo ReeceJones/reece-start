@@ -24,7 +24,7 @@
 <OnboardingStepContainer {hidden}>
 	<div class="rounded-box bg-base-200 text-base-content space-y-6 p-6">
 		<div class="space-y-4">
-			<h3 class="text-lg font-semibold">Basic information</h3>
+			<h3 class="text-xl font-semibold">Basic information</h3>
 			<div class="space-y-4">
 				{#if logoPreview}
 					<img src={logoPreview} alt="Logo preview" class="rounded-box aspect-square w-20" />
@@ -52,7 +52,7 @@
 		</div>
 
 		<div class="space-y-4">
-			<h3 class="text-lg font-semibold">Contact</h3>
+			<h3 class="text-xl font-semibold">Contact</h3>
 			<div class="grid grid-cols-1 gap-4">
 				<div>
 					<p class="text-sm opacity-70">Email</p>
@@ -73,7 +73,7 @@
 		</div>
 
 		<div class="space-y-4">
-			<h3 class="text-lg font-semibold">Address</h3>
+			<h3 class="text-xl font-semibold">Address</h3>
 			<div class="grid grid-cols-1 gap-4">
 				<div>
 					<p class="text-sm opacity-70">Address line 1</p>
@@ -103,7 +103,7 @@
 		</div>
 
 		<div class="space-y-4">
-			<h3 class="text-lg font-semibold">Business details</h3>
+			<h3 class="text-xl font-semibold">Business details</h3>
 			<div class="grid grid-cols-1 gap-4">
 				<div>
 					<p class="text-sm opacity-70">Organization type</p>

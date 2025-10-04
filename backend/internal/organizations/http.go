@@ -713,6 +713,7 @@ func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta
 					Locale: params.Organization.Locale,
 					ContactEmail: params.Organization.ContactEmail,
 					ContactPhone: params.Organization.ContactPhone,
+					ContactPhoneCountry: params.Organization.ContactPhoneCountry,
 				},
 				HasPendingRequirements: params.Organization.Stripe.HasPendingRequirements,
 				OnboardingStatus: params.Organization.Stripe.OnboardingStatus,

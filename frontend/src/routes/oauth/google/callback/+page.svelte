@@ -1,17 +1,16 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
-	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
-	import type { PageProps } from './$types';
 
 	let loading = $state(true);
 	let error = $state('');
 	let oauthForm: HTMLFormElement;
 
 	onMount(() => {
-		const code = $page.url.searchParams.get('code');
-		const state = $page.url.searchParams.get('state');
-		const errorParam = $page.url.searchParams.get('error');
+		const code = page.url.searchParams.get('code');
+		const state = page.url.searchParams.get('state');
+		const errorParam = page.url.searchParams.get('error');
 
 		if (errorParam) {
 			error = 'OAuth authentication was cancelled or failed.';

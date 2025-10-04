@@ -32,7 +32,7 @@
 				Dashboard
 			</a>
 		{:else}
-			<a href="/signin" class="btn btn-ghost text-base font-medium"> Sign in </a>
+			<a href="/signin" class="btn btn-outline btn-neutral text-base font-medium"> Sign in </a>
 			<a href="/signup" class="btn btn-neutral text-base font-medium"> Get started </a>
 		{/if}
 	</div>
