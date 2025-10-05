@@ -15,7 +15,6 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
   - Profile picture
 - Organization settings page
 - Organization onboarding (WIP)
-  - Stripe onboarding banner (WIP)
   - Stripe event processing ([WIP](https://github.com/stripe/stripe-go/issues/2159))
 - Organization-based billing with free and paid membership tiers (WIP)
 - Stripe connect support (WIP)

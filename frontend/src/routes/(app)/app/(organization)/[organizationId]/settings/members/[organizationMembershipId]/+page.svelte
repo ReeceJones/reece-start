@@ -7,6 +7,7 @@
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
+	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 
 	const { data, form }: PageProps = $props();
 
@@ -43,7 +44,7 @@
 					<User class="rounded-box bg-base-300 size-20" />
 				{/if}
 				<div class="flex flex-col">
-					<h2 class="card-title">{user.attributes.name}</h2>
+					<CardTitle>{user.attributes.name}</CardTitle>
 					<a href={`mailto:${user.attributes.email}`} class="link text-sm text-gray-500">
 						{user.attributes.email}
 					</a>

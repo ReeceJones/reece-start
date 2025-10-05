@@ -13,6 +13,7 @@
 	import deepEqual from 'deep-equal';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
+	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
 
 	const { data, form }: PageProps = $props();
 
@@ -131,7 +132,7 @@
 			</div>
 		{/if}
 
-		<div class="card-actions mt-3 justify-start">
+		<SettingsCardActions>
 			<button type="submit" class="btn btn-primary" disabled={!canSubmit}>
 				{#if submitting}
 					<span class="loading loading-spinner"></span>
@@ -140,7 +141,7 @@
 				{/if}
 				<span>Save</span>
 			</button>
-		</div>
+		</SettingsCardActions>
 	</form>
 
 	<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>

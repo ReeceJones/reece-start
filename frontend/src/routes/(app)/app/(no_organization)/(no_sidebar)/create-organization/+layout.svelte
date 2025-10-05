@@ -19,6 +19,9 @@
 		isBusinessDetailsValid,
 		isContactInformationValid
 	} from '$lib/organization-onboarding';
+	import Card from '$lib/components/Card/Card.svelte';
+	import CardBody from '$lib/components/Card/CardBody.svelte';
+	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 
 	const { children }: LayoutProps = $props();
 
@@ -96,17 +99,17 @@
 	});
 </script>
 
-<a class="btn btn-ghost" href="/app">
+<a class="btn btn-ghost m-1" href="/app">
 	<ArrowLeft class="size-4" />
 	Back
 </a>
 
-<div class="card border-base-300 bg-base-200 mx-auto max-w-2xl space-y-6 border shadow-sm">
-	<div class="card-body">
+<Card class="mx-auto max-w-2xl space-y-6">
+	<CardBody>
 		<div class="space-y-2">
-			<h2 class="card-title">
+			<CardTitle>
 				{activeStep?.label} ({(activeStep?.index ?? 0) + 1} of {steps.length})
-			</h2>
+			</CardTitle>
 			<progress
 				class="progress progress-primary w-full transition-all duration-500"
 				value={activeStep?.index ?? 0}
@@ -175,5 +178,5 @@
 				{/if}
 			</div>
 		</form>
-	</div>
-</div>
+	</CardBody>
+</Card>

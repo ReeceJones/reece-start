@@ -1,12 +1,18 @@
-<div class="container mx-auto grid grid-cols-6 gap-6">
-	<div class="card bg-base-200 border-base-300 col-span-4 border shadow-sm">
-		<div class="card-body">
-			<p class="card-title">Foo</p>
-		</div>
-	</div>
-	<div class="card bg-base-200 border-base-300 col-span-2 border shadow-sm">
-		<div class="card-body">
-			<p class="card-title">Bar</p>
-		</div>
-	</div>
+<script lang="ts">
+	import Card from '$lib/components/Card/Card.svelte';
+	import CardBody from '$lib/components/Card/CardBody.svelte';
+	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+</script>
+
+<div class="grid grid-cols-6 gap-6">
+	<Card class="col-span-4">
+		<CardBody>
+			<CardTitle>Foo</CardTitle>
+		</CardBody>
+	</Card>
+	<Card class="col-span-2">
+		<CardBody>
+			<CardTitle>Bar</CardTitle>
+		</CardBody>
+	</Card>
 </div>

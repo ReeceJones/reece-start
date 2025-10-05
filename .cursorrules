@@ -1,4 +1,7 @@
-// Organization
+# Project organization
+
+## Folder structure
+
 The project is organized into 2 folders:
 
 - backend (The go project housing all the backend logic)
@@ -16,28 +19,64 @@ The project is organized into 2 folders:
 
 The project also has a docker-compose.yml file to run all of the infrastructure and a Makefile to make it easier to build and run the project.
 
-// Authentication
+## Project commands
+
+There is a `Makefile` at the root of the project. The make file contains commands to:
+
+- `backend-dev` - Run a dev backend server
+- `backend-build` - Build the backend server
+- `frontend-dev` - Run a dev frontend server
+- `frontend-lint` - Lint the frontend code
+- `frontend-list-fix` - Run the linter and fix fixable issues in the frontend code
+- `frontend-format` - Run just the prettifier on the frontend code
+- `frontend-typecheck` - Run the typecheck on the frontend code
+- `frontend-build` - Build the frontend code
+- `infra-start` - Start the development docker infrastructure
+- `infra-stop` - Stop the development docker infrastructure
+- `stripe-listen` Start the stripe webhook event listener
+
+# Authentication
+
 Authentication uses a user-organization model. This means that there are users, organizations, and organization memberships that map a user to an organization with a specific role.
 
 Whenever an API request is made you should make sure that the user belongs to the organization and has the correct role within the organization to access the resource. Admins should be allowed to read and write anything, where as standard members should only be able to read and write non-administrative resources.
 
 When an organization is created, the user who created the organization will be assigned membership to the organization with the default role of admin.
 
-// Backend
+# Backend
 
-Place all database models under the backend/internal/models directory. The gorm.io ORM is used to define database models and to perform database operations. When writing new models make sure to use correct database modeling practices for relational databases.
+## Database models
 
-Echo is used for the API. All requests should have a JSON API compatible schema and the requests should all be validated using the validator logic in backend/internal/api/validator.go.
+Place all database models under the `backend/internal/models` directory. The gorm.io ORM is used to define database models and to perform database operations. When writing new models make sure to use correct database modeling practices for relational databases.
 
-When creating a new domain, create a new folder under backend/internal and give it the new domain name, for example backend/internal/users. The file structure within the folder is as follows:
+## API
+
+Echo is used for the API. All requests should have a JSON API compatible schema and the requests should all be validated using the validator logic in `backend/internal/api/validator.go`.
+
+For APIs you implemtn, you should follow the JSON-API spec.
+
+When creating a new domain, create a new folder under `backend/internal` and give it the new domain name, for example `backend/internal/users`. The file structure within the folder is as follows:
+
+## Structure
+
+For each package that maps to a domain in the app (Ex: users, organizations, invoices, etc.), you should use the following structure:
 
 - service.go - All service-layer functionality. For example, writing to the database, executing any third-party API calls, enqueuing any background jobs, executing side-effect logic etc.
-- controller.go - All exposed REST API functionality. For example, this should only include public functions which are used as the callback in the echo handlers.
+- http.go - All exposed REST API functionality. This includes echo request handlers and mappers which map service responses to http responses.
+- entity.go - All of the types shared between the service.go and http.go, including any types that are exported and available to other packages.
 
-// Frontend
+# Frontend
 
-Use +page.ts to fetch data when loading a page. This will ensure that the data is fetched on both the server side during SSR and on the client side during routing changes.
+## Pages
 
-Use +page.server.ts for any server actions that require cookies, or session information. Otherwise, you can make a client-side request to use a mutating API.
+Use `+page.ts` to fetch data when loading a page. This will ensure that the data is fetched on both the server side during SSR and on the client side during routing changes.
+
+Use `+page.server.ts` for any server actions that require cookies, or session information. Otherwise, you can make a client-side request to use a mutating API.
 
 Any time you create a new page that should only allow authenticated users, you should also create an associated +page.server.ts file that calls `authenticate` from `$lib/server/auth`.
+
+## API requests
+
+Use the `get`, `post`, `patch`, and `delete` functions in `$lib/api.ts` to make API calls to the backend. You should always pass the `fetch` function from the request event to these functions as it is critical for correct handling of auth behavior.
+
+When implementating mutations, you should use a Sveltekit form action by default unless there is a strong reason to do the mutation outside of a form. The pattern here is page or component makes form request, then form request handler makes API call to the backend server.

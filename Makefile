@@ -1,11 +1,26 @@
 backend-dev:
 	cd backend; gow run server.go
 
-backend:
+backend-build:
 	cd backend; go build -o bin/server server.go
 
 frontend-dev:
 	cd frontend; npm run dev 
+
+frontend-lint:
+	cd frontend; npm run lint
+
+frontend-lint-fix:
+	cd frontend; npm run lint:fix
+
+frontend-format:
+	cd frontend; npm run format
+
+frontend-typecheck:
+	cd frontend; npm run check
+
+frontend-build:
+	cd frontend; npm run build
 
 infra-start:
 	docker compose up -d

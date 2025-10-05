@@ -43,6 +43,7 @@ var OrganizationRoleToScopes = map[OrganizationRole][]UserScope{
 		UserScopeOrganizationInvitationsCreate,
 		UserScopeOrganizationInvitationsUpdate,
 		UserScopeOrganizationInvitationsDelete,
+		UserScopeOrganizationStripeUpdate,
 	},
 
 	// Grant limited (mostly read scopes) to the member

@@ -1,9 +1,12 @@
 <script lang="ts">
+	import Card from '../Card/Card.svelte';
+	import CardBody from '../Card/CardBody.svelte';
+
 	const { children } = $props();
 </script>
 
-<div class="card rounded-box bg-base-200 border-base-300 border shadow-sm">
-	<div class="card-body">
+<Card>
+	<CardBody>
 		{@render children?.()}
-	</div>
-</div>
+	</CardBody>
+</Card>

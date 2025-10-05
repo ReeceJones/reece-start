@@ -55,11 +55,19 @@
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="text-success size-4" />
+					<span>Billing</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<CircleCheck class="text-success size-4" />
 					<span>Stripe connect</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="text-success size-4" />
-					<span>Analytics & monitoring</span>
+					<span>Analytics</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<CircleCheck class="text-success size-4" />
+					<span>Monitoring</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="text-success size-4" />

@@ -655,7 +655,7 @@ func DeclineOrganizationInvitationEndpoint(c echo.Context, req DeclineOrganizati
 	return c.JSON(http.StatusOK, response)
 }
 
-func CreateStripeRequirementsLinkEndpoint(c echo.Context) error {
+func CreateStripeOnboardingLinkEndpoint(c echo.Context) error {
 	paramOrgID, err := api.ParseOrganizationIDFromString(c.Param("id"))
 	if err != nil {
 		return err
@@ -670,11 +670,13 @@ func CreateStripeRequirementsLinkEndpoint(c echo.Context) error {
 
     db := middleware.GetDB(c)
     stripeClient := middleware.GetStripeClient(c)
+	config := middleware.GetConfig(c)
 
 	link, err := createStripeOnboardingLink(CreateStripeOnboardingLinkServiceRequest{
         Db:           db,
         StripeClient: stripeClient,
         Context:      c.Request().Context(),
+		Config: config,
         Params: CreateStripeOnboardingLinkParams{
             OrganizationID: paramOrgID,
         },
@@ -683,9 +685,9 @@ func CreateStripeRequirementsLinkEndpoint(c echo.Context) error {
         return err
     }
 
-	response := CreateStripeRequirementsLinkResponse{
+	response := CreateStripeOnboardingLinkResponse{
 		Data: StripeAccountLinkData{
-			Type: "stripe-account-link",
+			Type: string(constants.ApiTypeStripeAccountLink),
 			Attributes: StripeAccountLinkAttributes{
 				URL:       link.URL,
 				ExpiresAt: link.ExpiresAt,
@@ -715,12 +717,15 @@ func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta
 					ContactPhone: params.Organization.ContactPhone,
 					ContactPhoneCountry: params.Organization.ContactPhoneCountry,
 				},
-				HasPendingRequirements: params.Organization.Stripe.HasPendingRequirements,
-				OnboardingStatus: params.Organization.Stripe.OnboardingStatus,
 			},
 		},
 		Meta: OrganizationMeta{
 			LogoDistributionUrl: params.LogoDistributionUrl,
+			OnboardingStatus: params.Organization.OnboardingStatus,
+			Stripe: StripeMeta{
+				HasPendingRequirements: params.Organization.Stripe.HasPendingRequirements,
+				OnboardingStatus: params.Organization.Stripe.OnboardingStatus,
+			},
 		},
 	}
 }

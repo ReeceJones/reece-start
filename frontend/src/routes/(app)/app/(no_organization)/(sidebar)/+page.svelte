@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { ChevronRight, Plus, Users } from 'lucide-svelte';
 	import type { PageProps } from './$types';
+	import Card from '$lib/components/Card/Card.svelte';
+	import CardBody from '$lib/components/Card/CardBody.svelte';
+	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import CardActions from '$lib/components/Card/CardActions.svelte';
 
 	const { data }: PageProps = $props();
 	const { organizations } = data;
 </script>
 
-<div class="card bg-base-200 border-base-300 border shadow-sm">
-	<div class="card-body">
-		<h2 class="card-title"><Users /> Organizations</h2>
+<Card>
+	<CardBody>
+		<CardTitle><Users /> Organizations</CardTitle>
 		<p>Select an organization to continue to the app.</p>
 
 		<div class="space-y-2">
@@ -52,11 +56,11 @@
 					</li>
 				{/each}
 			</ul>
-			<div class="card-actions justify-end">
+			<CardActions>
 				<a href="/app/create-organization/basic-information" class="btn btn-primary"
 					><Plus /> Create Organization</a
 				>
-			</div>
+			</CardActions>
 		</div>
-	</div>
-</div>
+	</CardBody>
+</Card>

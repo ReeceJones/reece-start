@@ -822,6 +822,7 @@ func createStripeOnboardingLink(request CreateStripeOnboardingLinkServiceRequest
     params := request.Params
     stripeClient := request.StripeClient
     context := request.Context
+	config := request.Config
 
     var organization models.Organization
     if err := tx.First(&organization, params.OrganizationID).Error; err != nil {
@@ -832,13 +833,16 @@ func createStripeOnboardingLink(request CreateStripeOnboardingLinkServiceRequest
         return nil, fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
     }
 
+	refreshUrl := fmt.Sprintf("%s/app/%d/stripe-onboarding", config.FrontendUrl, params.OrganizationID)
+	returnUrl := fmt.Sprintf("%s/app/%d", config.FrontendUrl, params.OrganizationID)
+
     link, err := stripe.CreateOnboardingLink(stripe.CreateOnboardingLinkServiceRequest{
         Context:      context,
         StripeClient: stripeClient,
         Params: stripe.CreateOnboardingLinkParams{
             AccountID:  organization.Stripe.AccountID,
-            RefreshURL: "",
-            ReturnURL:  "",
+            RefreshURL: refreshUrl,
+            ReturnURL:  returnUrl,
         },
     })
     if err != nil {

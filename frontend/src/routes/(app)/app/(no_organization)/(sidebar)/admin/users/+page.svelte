@@ -9,6 +9,9 @@
 	} from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
+	import Card from '$lib/components/Card/Card.svelte';
+	import CardBody from '$lib/components/Card/CardBody.svelte';
+	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 
 	const defaultSearch = $derived(page.url.searchParams.get('search') ?? '');
 
@@ -32,9 +35,9 @@
 	}
 </script>
 
-<div class="card bg-base-200 border-base-300 border shadow-sm">
-	<div class="card-body">
-		<h2 class="card-title">Users</h2>
+<Card>
+	<CardBody>
+		<CardTitle>Users</CardTitle>
 		<form class="flex gap-2" method="GET" id="search-form">
 			<input type="hidden" name="page[cursor]" value={users.links.next ?? ''} id="page-cursor" />
 
@@ -136,5 +139,5 @@
 				</div>
 			{/if}
 		</div>
-	</div>
-</div>
+	</CardBody>
+</Card>

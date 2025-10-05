@@ -3,5 +3,6 @@ export const API_TYPES = {
 	organization: 'organization',
 	token: 'token',
 	organizationMembership: 'organization-membership',
-	organizationInvitation: 'organization-invitation'
+	organizationInvitation: 'organization-invitation',
+	stripeAccountLink: 'stripe-account-link'
 } as const;

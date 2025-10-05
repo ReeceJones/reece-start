@@ -12,7 +12,7 @@ type Config struct {
 	Host string `env:"HOST" envDefault:"localhost"`
 	Port string `env:"PORT" envDefault:"8080"`
 	
-	FrontendUrl string `env:"FRONTEND_URL" envDefault:"http://localhost:4040"`
+	FrontendUrl string `env:"FRONTEND_URL" envDefault:"https://localhost:4040"`
 	AllowedOrigins string `env:"ALLOWED_ORIGINS" envDefault:"http://localhost:3000"`
 
 	DatabaseUri string `env:"DATABASE_URI" envDefault:"postgres://postgres:postgres@localhost:5432/postgres"`

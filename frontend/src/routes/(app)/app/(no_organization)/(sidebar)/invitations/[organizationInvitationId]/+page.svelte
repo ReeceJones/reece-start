@@ -5,6 +5,9 @@
 	import { Check, CircleX, X } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { enhance } from '$app/forms';
+	import Card from '$lib/components/Card/Card.svelte';
+	import CardBody from '$lib/components/Card/CardBody.svelte';
+	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 
 	const { data, form }: PageProps = $props();
 	const organization = $derived(
@@ -26,14 +29,14 @@
 	let submitting = $state(false);
 </script>
 
-<div class="card bg-base-200 border-base-300 mx-auto max-w-[600px] border shadow-sm">
-	<div class="card-body">
+<Card class="mx-auto max-w-[600px]">
+	<CardBody>
 		{#if status === 'pending'}
 			<div class="flex flex-col items-center justify-center gap-6">
 				<div class="flex flex-col items-center justify-center gap-1">
-					<h1 class="card-title text-center">
+					<CardTitle class="text-center">
 						{invitingUser?.attributes.name} invited you to join "{organization?.attributes.name}"
-					</h1>
+					</CardTitle>
 					<p class="text-center text-gray-500">
 						By accepting, you will be added to the organization, and you will be able to collaborate
 						with your team.
@@ -93,7 +96,7 @@
 			</div>
 		{:else if status === 'accepted'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<h1 class="card-title text-center">This invitation has already been accepted.</h1>
+				<CardTitle class="text-center">This invitation has already been accepted.</CardTitle>
 				<p class="text-center text-gray-500">
 					If you did not accept this invitation, please contact the organization owner for a new
 					invitation.
@@ -101,7 +104,7 @@
 			</div>
 		{:else if status === 'declined'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<h1 class="card-title text-center">This invitation has already been declined.</h1>
+				<CardTitle class="text-center">This invitation has already been declined.</CardTitle>
 				<p class="text-center text-gray-500">
 					If you would like to join this organization, please contact the organization owner for a
 					new invitation.
@@ -109,7 +112,7 @@
 			</div>
 		{:else if status === 'expired'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<h1 class="card-title text-center">This invitation has expired.</h1>
+				<CardTitle class="text-center">This invitation has expired.</CardTitle>
 				<p class="text-center text-gray-500">
 					If you would like to join this organization, please contact the organization owner for a
 					new invitation.
@@ -117,12 +120,12 @@
 			</div>
 		{:else if status === 'revoked'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<h1 class="card-title text-center">This invitation has already been revoked.</h1>
+				<CardTitle class="text-center">This invitation has already been revoked.</CardTitle>
 				<p>
 					If you would like to join this organization, please contact the organization owner for a
 					new invitation.
 				</p>
 			</div>
 		{/if}
-	</div>
-</div>
+	</CardBody>
+</Card>

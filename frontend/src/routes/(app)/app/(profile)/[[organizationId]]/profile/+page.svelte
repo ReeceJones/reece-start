@@ -6,6 +6,7 @@
 	import LogoCrop from '$lib/components/Logo/LogoCrop.svelte';
 	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
+	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
 
 	let { data, form }: PageProps = $props();
 
@@ -112,7 +113,7 @@
 			</div>
 		{/if}
 
-		<div class="card-actions mt-3 justify-start">
+		<SettingsCardActions>
 			<button type="submit" class="btn btn-primary" disabled={!canSubmit || submitting}>
 				{#if submitting}
 					<span class="loading loading-spinner"></span>
@@ -121,7 +122,7 @@
 				{/if}
 				<span>Save</span>
 			</button>
-		</div>
+		</SettingsCardActions>
 	</form>
 
 	<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>

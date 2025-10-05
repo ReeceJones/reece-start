@@ -47,6 +47,14 @@ func GetUserIDFromJWT(c echo.Context) (uint, error) {
 	return uint(userID), nil
 }
 
+func GetRoleFromJWT(c echo.Context) (constants.UserRole, error) {
+	claims := c.Get("claims").(*authentication.JwtClaims)
+	if claims.Role == nil {
+		return constants.UserRole(""), errors.New("role is not set")
+	}
+	return *claims.Role, nil
+}
+
 func GetScopesFromJWT(c echo.Context) ([]constants.UserScope, error) {
 	claims := c.Get("claims").(*authentication.JwtClaims)
 	if claims.Scopes == nil {

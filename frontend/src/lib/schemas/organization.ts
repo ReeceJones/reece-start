@@ -39,7 +39,17 @@ export const organizationDataSchema = z.object({
 	type: z.literal(API_TYPES.organization),
 	attributes: organizationAttributesSchema,
 	meta: z.object({
-		logoDistributionUrl: z.string().optional()
+		logoDistributionUrl: z.string().optional(),
+		onboardingStatus: z.enum(['pending', 'completed', 'in_progress']),
+		stripe: z.object({
+			hasPendingRequirements: z.boolean(),
+			onboardingStatus: z.enum([
+				'pending',
+				'completed',
+				'missing_requirements',
+				'missing_capabilities'
+			])
+		})
 	})
 });
 

@@ -2,6 +2,10 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
+	import Card from '$lib/components/Card/Card.svelte';
+	import CardBody from '$lib/components/Card/CardBody.svelte';
+	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import CardActions from '$lib/components/Card/CardActions.svelte';
 
 	let loading = $state(true);
 	let error = $state('');
@@ -64,22 +68,24 @@
 	<input type="hidden" name="redirect" value="" />
 </form>
 
-<main class="card card-border bg-base-200 mx-auto my-8 max-w-80 shadow-sm">
-	<div class="card-body">
-		{#if loading}
-			<div class="text-center">
-				<span class="loading loading-spinner loading-lg"></span>
-				<h2 class="mt-4">Completing sign in...</h2>
-				<p class="text-gray-500">Please wait while we finish signing you in with Google.</p>
-			</div>
-		{:else if error}
-			<div class="text-center">
-				<h2 class="card-title text-error">Authentication Error</h2>
-				<p class="mb-4 text-gray-500">{error}</p>
-				<div class="card-actions">
-					<a href="/signin" class="btn btn-primary">Try Again</a>
+<main class="mx-auto my-8 max-w-80">
+	<Card>
+		<CardBody>
+			{#if loading}
+				<div class="text-center">
+					<span class="loading loading-spinner loading-lg"></span>
+					<h2 class="mt-4">Completing sign in...</h2>
+					<p class="text-gray-500">Please wait while we finish signing you in with Google.</p>
 				</div>
-			</div>
-		{/if}
-	</div>
+			{:else if error}
+				<div class="text-center">
+					<CardTitle class="text-error">Authentication Error</CardTitle>
+					<p class="mb-4 text-gray-500">{error}</p>
+					<CardActions>
+						<a href="/signin" class="btn btn-primary w-full">Try Again</a>
+					</CardActions>
+				</div>
+			{/if}
+		</CardBody>
+	</Card>
 </main>

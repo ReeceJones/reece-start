@@ -2,6 +2,7 @@
 	import UserNav from '$lib/components/Nav/UserNav.svelte';
 	import OrganizationNav from '$lib/components/Nav/OrganizationNav.svelte';
 	import { setScopes } from '$lib/auth.js';
+	import OnboardingStripeAlert from '$lib/components/Onboarding/OnboardingStripeAlert.svelte';
 
 	const { children, data } = $props();
 
@@ -21,6 +22,7 @@
 		</div>
 	</div>
 	<main class="container mx-auto mr-4 mt-4 flex-1">
+		<OnboardingStripeAlert {organization} />
 		{@render children?.()}
 	</main>
 </div>

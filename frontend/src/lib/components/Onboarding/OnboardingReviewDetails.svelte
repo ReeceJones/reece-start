@@ -38,15 +38,6 @@
 						<p class="text-sm opacity-70">Description</p>
 						<p class="font-medium">{display(onboardingState.description)}</p>
 					</div>
-					<div>
-						<p class="text-sm opacity-70">Language</p>
-						<p class="font-medium">
-							<!-- TODO: add i8n here -->
-							{onboardingState.locale
-								? localeToLanguageName('en', onboardingState.locale)
-								: display(onboardingState.locale)}
-						</p>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -108,6 +99,15 @@
 				<div>
 					<p class="text-sm opacity-70">Organization type</p>
 					<p class="font-medium">{display(onboardingState.entityType)}</p>
+				</div>
+				<div>
+					<p class="text-sm opacity-70">Language</p>
+					<p class="font-medium">
+						<!-- TODO: add i8n here -->
+						{onboardingState.locale
+							? localeToLanguageName('en', onboardingState.locale)
+							: display(onboardingState.locale)}
+					</p>
 				</div>
 			</div>
 		</div>

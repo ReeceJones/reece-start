@@ -16,7 +16,7 @@
 
 <div class="navbar">
 	<div class="flex-1">
-		<a class="btn btn-ghost text-xl tracking-tight" href="/">
+		<a class="btn btn-ghost text-lg tracking-tight" href="/">
 			<Rocket class="size-6" />
 			reece-start
 		</a>
@@ -24,16 +24,16 @@
 
 	<!-- Desktop Navigation -->
 	<div class="hidden lg:flex lg:flex-none lg:items-center lg:gap-2">
-		<a href="/faq" class="btn btn-ghost text-base font-medium">FAQ</a>
-		<a href="/pricing" class="btn btn-ghost text-base font-medium">Pricing</a>
+		<a href="/faq" class="btn btn-ghost font-medium">FAQ</a>
+		<a href="/pricing" class="btn btn-ghost font-medium">Pricing</a>
 		{#if isLoggedIn}
-			<a href="/app" class="btn btn-neutral text-base font-medium">
+			<a href="/app" class="btn btn-neutral font-medium">
 				<DoorOpen class="size-5" />
 				Dashboard
 			</a>
 		{:else}
-			<a href="/signin" class="btn btn-outline btn-neutral text-base font-medium"> Sign in </a>
-			<a href="/signup" class="btn btn-neutral text-base font-medium"> Get started </a>
+			<a href="/signin" class="btn btn-outline btn-neutral font-medium"> Sign in </a>
+			<a href="/signup" class="btn btn-neutral font-medium"> Get started </a>
 		{/if}
 	</div>
 

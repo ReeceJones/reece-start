@@ -35,10 +35,6 @@ type CommonOrganizationAttributes struct {
 
 type OrganizationAttributes struct {
 	CommonOrganizationAttributes
-
-	// Onboarding information populated by the backend
-	HasPendingRequirements bool `json:"hasPendingRequirements"`
-	OnboardingStatus string `json:"onboardingStatus" validate:"required"`
 }
 
 type CreateOrganizationAttributes struct {
@@ -67,8 +63,15 @@ type UpdateOrganizationAttributes struct {
 	ContactPhoneCountry *string `json:"contactPhoneCountry,omitempty" validate:"omitempty"`
 }
 
+type StripeMeta struct {
+	HasPendingRequirements bool `json:"hasPendingRequirements,omitempty"`
+	OnboardingStatus string `json:"onboardingStatus,omitempty"`
+}
+
 type OrganizationMeta struct {
 	LogoDistributionUrl string `json:"logoDistributionUrl,omitempty"`
+	OnboardingStatus string `json:"onboardingStatus,omitempty"`
+	Stripe StripeMeta `json:"stripe,omitempty"`
 }
 
 type OrganizationData struct {
@@ -492,6 +495,7 @@ type CreateStripeOnboardingLinkServiceRequest struct {
     StripeClient *stripe.Client
     Context      context.Context
     Params       CreateStripeOnboardingLinkParams
+    Config       *configuration.Config
 }
 
 // JSON:API response types for Stripe requirements link
@@ -508,6 +512,6 @@ type StripeAccountLinkData struct {
     Attributes StripeAccountLinkAttributes  `json:"attributes"`
 }
 
-type CreateStripeRequirementsLinkResponse struct {
+type CreateStripeOnboardingLinkResponse struct {
     Data StripeAccountLinkData `json:"data"`
 }
