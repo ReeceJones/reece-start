@@ -23,6 +23,12 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
 - Posthog integration (TODO)
 - Sentry integration (TODO)
 - i18n support (TODO)
+- Basic CI checks (TODO)
+  - Tests
+  - Typing
+  - Buildability
+  - Linting
+  - Formatting
 
 ## Getting started
 
