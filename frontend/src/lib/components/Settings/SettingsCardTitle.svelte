@@ -2,4 +2,4 @@
 	const { children } = $props();
 </script>
 
-<p class="card-title mb-4">{@render children?.()}</p>
+<p class="mb-4 card-title">{@render children?.()}</p>

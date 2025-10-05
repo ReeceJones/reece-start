@@ -158,8 +158,8 @@
 					markImageReady();
 					return;
 				}
-			} catch (e) {
-				// Ignore errors checking ready state
+			} catch (e: unknown) {
+				console.error('Error checking ready state:', e);
 			}
 
 			// Try different approaches to detect when image becomes ready
@@ -182,7 +182,7 @@
 					}
 				}, 500); // Increased timeout to be more conservative
 			} catch (error) {
-				console.log('Error setting up ready callback:', error);
+				console.error('Error setting up ready callback:', error);
 				// Immediate fallback if all methods fail
 				setTimeout(markImageReady, 100);
 			}

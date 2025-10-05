@@ -7,7 +7,7 @@ import {
 	createStripeOnboardingLinkResponseSchema
 } from '$lib/schemas/stripe';
 
-export const load = async ({ params }) => {
+export const load = async () => {
 	authenticate();
 };
 

@@ -9,7 +9,7 @@
 	const activeClass = 'bg-base-300';
 </script>
 
-<ul class="menu menu-vertical bg-base-200 rounded-box mt-2 w-full space-y-1">
+<ul class="menu menu-vertical mt-2 w-full space-y-1 rounded-box bg-base-200">
 	<li class="menu-title">Application</li>
 	<li>
 		<a href="/app" class={clsx(page.url.pathname === '/app' && activeClass)}>

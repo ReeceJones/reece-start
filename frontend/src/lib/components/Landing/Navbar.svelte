@@ -16,7 +16,7 @@
 
 <div class="navbar">
 	<div class="flex-1">
-		<a class="btn btn-ghost text-lg tracking-tight" href="/">
+		<a class="btn text-lg tracking-tight btn-ghost" href="/">
 			<Rocket class="size-6" />
 			reece-start
 		</a>
@@ -24,16 +24,16 @@
 
 	<!-- Desktop Navigation -->
 	<div class="hidden lg:flex lg:flex-none lg:items-center lg:gap-2">
-		<a href="/faq" class="btn btn-ghost font-medium">FAQ</a>
-		<a href="/pricing" class="btn btn-ghost font-medium">Pricing</a>
+		<a href="/faq" class="btn font-medium btn-ghost">FAQ</a>
+		<a href="/pricing" class="btn font-medium btn-ghost">Pricing</a>
 		{#if isLoggedIn}
-			<a href="/app" class="btn btn-neutral font-medium">
+			<a href="/app" class="btn font-medium btn-neutral">
 				<DoorOpen class="size-5" />
 				Dashboard
 			</a>
 		{:else}
-			<a href="/signin" class="btn btn-outline btn-neutral font-medium"> Sign in </a>
-			<a href="/signup" class="btn btn-neutral font-medium"> Get started </a>
+			<a href="/signin" class="btn font-medium btn-outline btn-neutral"> Sign in </a>
+			<a href="/signup" class="btn font-medium btn-neutral"> Get started </a>
 		{/if}
 	</div>
 
@@ -51,18 +51,18 @@
 
 <!-- Mobile Menu Dropdown -->
 {#if isMobileMenuOpen}
-	<div class="bg-base-100 border-base-300 border-t shadow-lg lg:hidden">
+	<div class="border-t border-base-300 bg-base-100 shadow-lg lg:hidden">
 		<div class="space-y-3 px-4 py-6">
 			<a
 				href="/faq"
-				class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+				class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 				onclick={closeMobileMenu}
 			>
 				FAQ
 			</a>
 			<a
 				href="/pricing"
-				class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+				class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 				onclick={closeMobileMenu}
 			>
 				Pricing
@@ -70,7 +70,7 @@
 			{#if isLoggedIn}
 				<a
 					href="/app"
-					class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+					class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 					onclick={closeMobileMenu}
 				>
 					<DoorOpen class="mr-2 inline size-5" />
@@ -79,14 +79,14 @@
 			{:else}
 				<a
 					href="/signin"
-					class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+					class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 					onclick={closeMobileMenu}
 				>
 					Sign in
 				</a>
 				<a
 					href="/signup"
-					class="bg-neutral text-neutral-content hover:bg-neutral-focus block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+					class="hover:bg-neutral-focus block rounded-lg bg-neutral px-3 py-2 text-base font-medium text-neutral-content transition-colors"
 					onclick={closeMobileMenu}
 				>
 					Get started

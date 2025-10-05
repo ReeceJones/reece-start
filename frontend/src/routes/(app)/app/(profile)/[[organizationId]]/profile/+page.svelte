@@ -73,7 +73,7 @@
 
 		<fieldset class="fieldset">
 			<legend class="fieldset-legend">Profile picture</legend>
-			<img src={logoPreview} alt="User profile logo" class="rounded-box aspect-square w-48" />
+			<img src={logoPreview} alt="User profile logo" class="aspect-square w-48 rounded-box" />
 			<input
 				type="file"
 				name="logo"
@@ -99,12 +99,12 @@
 		</fieldset>
 
 		{#if form?.success}
-			<div role="alert" class="alert alert-success mt-3">
+			<div role="alert" class="mt-3 alert alert-success">
 				<CircleCheck />
 				<span>Your profile has been updated!</span>
 			</div>
 		{:else if form?.success === false}
-			<div role="alert" class="alert alert-error mt-3">
+			<div role="alert" class="mt-3 alert alert-error">
 				<CircleX />
 				<span
 					>{form.message ??

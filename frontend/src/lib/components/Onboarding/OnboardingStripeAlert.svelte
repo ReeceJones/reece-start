@@ -10,7 +10,7 @@
 </script>
 
 {#if organization.data.meta.stripe.onboardingStatus === 'missing_requirements' || organization.data.meta.stripe.onboardingStatus === 'missing_capabilities'}
-	<div class="alert alert-warning mb-6">
+	<div class="mb-6 alert alert-warning">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
 				To accept payments from your customers, Stripe needs more information about your business.
@@ -23,7 +23,10 @@
 					error = '';
 					return ({ result, update }) => {
 						update();
-						if (result.type === 'error') {
+						if (result.type === 'failure') {
+							loading = false;
+							error = (result.data?.message as string) ?? 'Something went wrong. Please try again.';
+						} else if (result.type === 'error') {
 							loading = false;
 							error = result.error ?? 'Something went wrong. Please try again.';
 						}
@@ -32,7 +35,7 @@
 			>
 				<button class="btn btn-sm" disabled={loading}>
 					{#if loading}
-						<span class="loading loading-spinner loading-xs"></span>
+						<span class="loading loading-xs loading-spinner"></span>
 					{:else}
 						<ExternalLink class="size-4" />
 					{/if}
@@ -40,7 +43,7 @@
 				</button>
 			</form>
 			{#if error}
-				<div class="alert alert-error mt-3">
+				<div class="mt-3 alert alert-error">
 					<span>{error}</span>
 				</div>
 			{/if}
@@ -49,7 +52,7 @@
 {/if}
 
 {#if organization.data.meta.stripe.onboardingStatus === 'pending'}
-	<div class="alert alert-info mb-6">
+	<div class="mb-6 alert alert-info">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
 				We are setting up your Stripe account so that you can accept payments from your customers.

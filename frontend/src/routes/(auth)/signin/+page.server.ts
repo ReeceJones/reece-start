@@ -82,7 +82,7 @@ export const actions = {
 
 		redirect(302, redirectUrl);
 	},
-	oauthGoogle: async ({ cookies, request, fetch }) => {
+	oauthGoogle: async ({ request }) => {
 		const data = await request.formData();
 		const redirectUrl = data.get('redirect') as string | undefined;
 

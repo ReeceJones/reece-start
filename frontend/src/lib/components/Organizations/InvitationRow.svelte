@@ -4,7 +4,7 @@
 	import { UserScope } from '$lib/schemas/jwt';
 	import type { OrganizationInvitation } from '$lib/schemas/organization-invitation';
 	import { Check, Copy, Trash } from 'lucide-svelte';
-	import { draw, slide } from 'svelte/transition';
+	import { slide } from 'svelte/transition';
 
 	const { invitation }: { invitation: OrganizationInvitation } = $props();
 
@@ -65,11 +65,11 @@
 			>
 				<input type="hidden" name="invitationId" value={invitation.id} />
 				<button
-					class="btn btn-ghost btn-error btn-sm btn-square"
+					class="btn btn-square btn-ghost btn-sm btn-error"
 					disabled={submitting || !canDeleteInvitation}
 				>
 					{#if submitting}
-						<span class="loading loading-spinner size-4"></span>
+						<span class="loading size-4 loading-spinner"></span>
 					{:else}
 						<Trash class="size-4" />
 					{/if}

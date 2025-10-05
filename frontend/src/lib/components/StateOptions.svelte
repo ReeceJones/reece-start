@@ -6,7 +6,7 @@
 	const states = $derived(State.getStatesOfCountry(countryCode));
 </script>
 
-{#each states as state}
+{#each states as state (state.isoCode)}
 	<option value={state.isoCode}>
 		{state.name}
 	</option>

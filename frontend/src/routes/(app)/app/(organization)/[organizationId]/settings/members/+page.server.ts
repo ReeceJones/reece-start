@@ -71,7 +71,7 @@ export const actions = {
 			});
 		}
 	},
-	deleteInvitation: async ({ request, fetch, params }) => {
+	deleteInvitation: async ({ request, fetch }) => {
 		const formData = await parseFormData(request, deleteInvitationFormSchema);
 
 		if (!isParseSuccess(formData)) {

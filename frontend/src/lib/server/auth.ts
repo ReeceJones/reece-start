@@ -1,4 +1,3 @@
-import { invalidateAll } from '$app/navigation';
 import { getRequestEvent } from '$app/server';
 import { ApiError, get, post } from '$lib/api';
 import { API_TYPES } from '$lib/schemas/api';

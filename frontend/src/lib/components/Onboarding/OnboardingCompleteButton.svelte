@@ -11,7 +11,7 @@
 
 <button class="btn btn-primary" type="submit" in:fade disabled={loading}>
 	{#if loading}
-		<span class="loading loading-spinner loading-xs"></span>
+		<span class="loading loading-xs loading-spinner"></span>
 	{:else}
 		<Plus class="size-4" />
 	{/if}

@@ -9,7 +9,7 @@ export interface PhoneCodeOption {
 
 export function getPhoneCodeOptions(): PhoneCodeOption[] {
 	return Object.entries(countries)
-		.filter(([_, country]) => country.phone && country.phone.length > 0)
+		.filter(([, country]) => country.phone && country.phone.length > 0)
 		.map(([countryCode, country]) => ({
 			code: country.phone[0].toString(),
 			countryCode,

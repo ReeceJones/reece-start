@@ -1,5 +1,4 @@
 import { ApiError, base64Encode, post } from '$lib';
-import { formatUrl } from '$lib/organization-onboarding';
 import { formatPhoneNumberWithCountryCode } from '$lib/phone-utils';
 import {
 	createOrganizationFormSchema,
@@ -11,7 +10,7 @@ import { isParseSuccess, parseFormData } from '$lib/server/schema';
 import { fail, redirect } from '@sveltejs/kit';
 import type z from 'zod';
 
-export const load = async ({ locals }) => {
+export const load = async () => {
 	authenticate();
 	redirect(302, '/app/create-organization/basic-information');
 };

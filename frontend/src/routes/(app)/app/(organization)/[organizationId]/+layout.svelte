@@ -12,8 +12,8 @@
 	setScopes(userScopes);
 </script>
 
-<div class="max-w-screen flex h-screen flex-row gap-4">
-	<div class="border-base-300 bg-base-200 flex h-full w-56 flex-col justify-between border-r">
+<div class="flex h-screen max-w-screen flex-row gap-4">
+	<div class="flex h-full w-56 flex-col justify-between border-r border-base-300 bg-base-200">
 		<div>
 			<OrganizationNav {organization} />
 		</div>
@@ -21,7 +21,7 @@
 			<UserNav {user} />
 		</div>
 	</div>
-	<main class="container mx-auto mr-4 mt-4 flex-1">
+	<main class="container mx-auto mt-4 mr-4 flex-1">
 		<OnboardingStripeAlert {organization} />
 		{@render children?.()}
 	</main>

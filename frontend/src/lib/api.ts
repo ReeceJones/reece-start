@@ -187,10 +187,10 @@ export async function del(
 	}
 }
 
-function convertParamsToQueryString(params: Record<string, any>, prefix = ''): string {
+function convertParamsToQueryString(params: Record<string, unknown>, prefix = ''): string {
 	const queryString = new URLSearchParams();
 
-	function addParam(key: string, value: any) {
+	function addParam(key: string, value: unknown) {
 		if (value === null || value === undefined) {
 			return;
 		}

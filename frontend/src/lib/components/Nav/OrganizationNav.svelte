@@ -7,7 +7,7 @@
 
 <ul class="menu menu-vertical w-full space-y-1">
 	<li class="w-full">
-		<div class="dropdown dropdown-bottom dropdown-start w-full p-0">
+		<div class="dropdown dropdown-start dropdown-bottom w-full p-0">
 			<div tabindex="0" role="button" class="focus flex w-full gap-2 px-3 py-1.5">
 				{#if organization.data.meta.logoDistributionUrl}
 					<img
@@ -23,7 +23,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
-				class="dropdown-content menu bg-base-100 rounded-box z-1 ml-0 w-52 -translate-y-0.5 p-2 shadow-sm"
+				class="dropdown-content menu z-1 ml-0 w-52 -translate-y-0.5 rounded-box bg-base-100 p-2 shadow-sm"
 			>
 				<li>
 					<a href="/app/{organization.data.id}/settings">

@@ -47,7 +47,7 @@
 					<img
 						src={organization?.meta.logoDistributionUrl}
 						alt={organization?.attributes.name}
-						class="rounded-box size-32"
+						class="size-32 rounded-box"
 					/>
 				{/if}
 
@@ -64,7 +64,7 @@
 							};
 						}}
 					>
-						<button class="btn btn-neutral btn-md" disabled={submitting}>
+						<button class="btn btn-md btn-neutral" disabled={submitting}>
 							<X class="size-4" />
 							Decline
 						</button>
@@ -81,7 +81,7 @@
 							};
 						}}
 					>
-						<button class="btn btn-primary btn-md" disabled={submitting}>
+						<button class="btn btn-md btn-primary" disabled={submitting}>
 							<Check class="size-4" />
 							Accept
 						</button>

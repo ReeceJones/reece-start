@@ -24,11 +24,11 @@
 						started.
 					</li>
 				{/if}
-				{#each organizations.data as organization}
+				{#each organizations.data as organization (organization.id)}
 					<li>
 						<a
 							href={`/app/${organization.id}`}
-							class="bg-base-100 border-base-300 flex w-full items-start justify-between overflow-ellipsis rounded-lg border p-3"
+							class="flex w-full items-start justify-between rounded-lg border border-base-300 bg-base-100 p-3 overflow-ellipsis"
 						>
 							<div class="flex items-center gap-3">
 								{#if organization.meta.logoDistributionUrl}
@@ -39,11 +39,11 @@
 									/>
 								{/if}
 								<div>
-									<p class="line-clamp-1 overflow-ellipsis text-lg font-medium">
+									<p class="line-clamp-1 text-lg font-medium overflow-ellipsis">
 										{organization.attributes.name}
 									</p>
 									{#if organization.attributes.description}
-										<p class="line-clamp-1 overflow-ellipsis text-sm text-gray-500">
+										<p class="line-clamp-1 text-sm overflow-ellipsis text-gray-500">
 											{organization.attributes.description}
 										</p>
 									{:else}

@@ -20,7 +20,7 @@
 </script>
 
 <button
-	class="btn btn-primary w-fit"
+	class="btn w-fit btn-primary"
 	onclick={() => {
 		inviteMemberModal.showModal();
 		email = '';
@@ -75,13 +75,13 @@
 						<input
 							type="radio"
 							required
-							class="radio radio-sm bg-transparent"
+							class="radio bg-transparent radio-sm"
 							name="role"
 							value="admin"
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-base-content text-sm font-bold">Admin</p>
+							<p class="text-sm font-bold text-base-content">Admin</p>
 							<p>Manage organization settings and manage members</p>
 						</div>
 					</label>
@@ -89,13 +89,13 @@
 						<input
 							type="radio"
 							required
-							class="radio radio-sm bg-transparent"
+							class="radio bg-transparent radio-sm"
 							name="role"
 							value="member"
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-base-content text-sm font-bold">Member</p>
+							<p class="text-sm font-bold text-base-content">Member</p>
 							<p>Manage XYZ</p>
 						</div>
 					</label>
@@ -115,7 +115,7 @@
 			</button>
 			<button class="btn btn-primary" disabled={submitting}>
 				{#if submitting}
-					<span class="loading loading-spinner loading-xs"></span>
+					<span class="loading loading-xs loading-spinner"></span>
 				{:else}
 					<UserPlus class="size-4" />
 					Invite

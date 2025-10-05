@@ -6,9 +6,7 @@ const userAttributesSchema = z.object({
 	email: z.string()
 });
 
-const userRoleSchema = z.enum(['admin', 'default']);
-
-export type UserRole = z.infer<typeof userRoleSchema>;
+export type UserRole = 'admin' | 'default';
 
 export const userDataSchema = z.object({
 	id: z.string(),

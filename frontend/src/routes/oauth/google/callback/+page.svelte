@@ -57,7 +57,7 @@
 				return;
 			}
 			if (result.type === 'failure') {
-				error = (result.data as any)?.message || 'Authentication failed. Please try again.';
+				error = (result.data?.message as string) || 'Authentication failed. Please try again.';
 				loading = false;
 			}
 		};
@@ -73,7 +73,7 @@
 		<CardBody>
 			{#if loading}
 				<div class="text-center">
-					<span class="loading loading-spinner loading-lg"></span>
+					<span class="loading loading-lg loading-spinner"></span>
 					<h2 class="mt-4">Completing sign in...</h2>
 					<p class="text-gray-500">Please wait while we finish signing you in with Google.</p>
 				</div>
@@ -82,7 +82,7 @@
 					<CardTitle class="text-error">Authentication Error</CardTitle>
 					<p class="mb-4 text-gray-500">{error}</p>
 					<CardActions>
-						<a href="/signin" class="btn btn-primary w-full">Try Again</a>
+						<a href="/signin" class="btn w-full btn-primary">Try Again</a>
 					</CardActions>
 				</div>
 			{/if}

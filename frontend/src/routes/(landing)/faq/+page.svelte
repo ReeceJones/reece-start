@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { CircleQuestionMark } from 'lucide-svelte';
 
-	function handleAccordionClick(event: MouseEvent) {
+	function handleAccordionClick(event: KeyboardEvent | MouseEvent) {
 		// Find the radio input within the clicked accordion
 		const radioInput = (event.currentTarget as HTMLElement).querySelector(
 			'input[type="radio"]'
@@ -15,7 +15,7 @@
 		// Handle Enter and Space key presses for accessibility
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
-			handleAccordionClick(event as any);
+			handleAccordionClick(event);
 		}
 	}
 </script>
@@ -33,12 +33,12 @@
 	<div class="mx-auto max-w-4xl py-24">
 		<div class="mb-12 text-center">
 			<div class="mb-6 flex justify-center">
-				<div class="bg-info/10 rounded-xl p-2">
-					<CircleQuestionMark class="text-info size-12" />
+				<div class="rounded-xl bg-info/10 p-2">
+					<CircleQuestionMark class="size-12 text-info" />
 				</div>
 			</div>
 			<h1 class="mb-6 text-3xl font-bold md:text-4xl">Frequently Asked Questions</h1>
-			<p class="text-base-content/70 mx-auto max-w-2xl text-xl leading-relaxed">
+			<p class="mx-auto max-w-2xl text-xl leading-relaxed text-base-content/70">
 				Everything you need to know about the technology choices, architecture decisions, and how to
 				get started.
 			</p>
@@ -48,7 +48,7 @@
 		<div class="space-y-3">
 			<!-- Tech Stack Questions -->
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -70,7 +70,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -91,7 +91,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -112,7 +112,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -132,7 +132,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -153,7 +153,7 @@
 
 			<!-- Architecture Questions -->
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -177,7 +177,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -199,7 +199,7 @@
 
 			<!-- Development Questions -->
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -220,7 +220,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -231,7 +231,7 @@
 				<div class="collapse-title font-semibold">How do I get started with development?</div>
 				<div class="collapse-content text-sm">
 					<p class="leading-relaxed">
-						Start by cloning the repository and running <code class="bg-base-300 rounded px-2 py-1"
+						Start by cloning the repository and running <code class="rounded bg-base-300 px-2 py-1"
 							>make dev</code
 						> to start all services with Docker Compose. The Makefile includes commands for database
 						migrations, seeding data, and running both frontend and backend in development mode. Check
@@ -242,7 +242,7 @@
 
 			<!-- Customization Questions -->
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -264,7 +264,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -275,7 +275,7 @@
 				<div class="collapse-title font-semibold">How do I customize the email templates?</div>
 				<div class="collapse-content text-sm">
 					<p class="leading-relaxed">
-						Email templates are located in <code class="bg-base-300 rounded px-2 py-1"
+						Email templates are located in <code class="rounded bg-base-300 px-2 py-1"
 							>backend/internal/email/templates/</code
 						>. You can modify the HTML templates and update the email service configuration to match
 						your branding. The system supports both HTML and plain text emails with template
@@ -285,7 +285,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -306,7 +306,7 @@
 
 			<!-- Deployment Questions -->
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -328,7 +328,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -343,7 +343,7 @@
 					<p class="leading-relaxed">
 						Key environment variables include database connection strings, JWT secrets, OAuth client
 						credentials, email service configuration, and any third-party API keys. Check the <code
-							class="bg-base-300 rounded px-2 py-1">.env.example</code
+							class="rounded bg-base-300 px-2 py-1">.env.example</code
 						> files in both frontend and backend directories for a complete list of required and optional
 						variables.
 					</p>
@@ -352,7 +352,7 @@
 
 			<!-- Billing & Business Questions -->
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"
@@ -370,7 +370,7 @@
 			</div>
 
 			<div
-				class="collapse-arrow bg-base-200 border-base-300 collapse border"
+				class="collapse-arrow collapse border border-base-300 bg-base-200"
 				onclick={handleAccordionClick}
 				onkeydown={handleKeydown}
 				role="button"

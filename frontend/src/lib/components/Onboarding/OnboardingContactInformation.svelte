@@ -31,7 +31,7 @@
 			class="select w-48"
 			bind:value={onboardingState.contactPhoneCountry}
 		>
-			{#each phoneCodeOptions as option}
+			{#each phoneCodeOptions as option (option.countryCode)}
 				<option value={option.countryCode}>
 					{option.flag} +{option.code} ({option.countryName})
 				</option>

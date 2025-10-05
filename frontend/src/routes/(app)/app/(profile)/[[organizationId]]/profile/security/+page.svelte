@@ -93,12 +93,12 @@
 		{/if}
 
 		{#if form?.success}
-			<div role="alert" class="alert alert-success mt-3">
+			<div role="alert" class="mt-3 alert alert-success">
 				<CircleCheck />
 				<span>Your profile has been updated!</span>
 			</div>
 		{:else if form?.success === false}
-			<div role="alert" class="alert alert-error mt-3">
+			<div role="alert" class="mt-3 alert alert-error">
 				<CircleX />
 				<span
 					>{form.message ??

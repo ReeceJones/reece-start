@@ -43,7 +43,7 @@
 
 			<input
 				type="text"
-				class="input input-bordered max-w-96 flex-1"
+				class="input-bordered input max-w-96 flex-1"
 				placeholder="Search users..."
 				name="search"
 				defaultValue={defaultSearch}
@@ -63,7 +63,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each users.data as user}
+					{#each users.data as user (user.id)}
 						<tr>
 							<td>
 								<div class="flex items-start gap-3">
@@ -71,10 +71,10 @@
 										<img
 											src={user.meta.logoDistributionUrl}
 											alt={user.attributes.name}
-											class="rounded-box size-8"
+											class="size-8 rounded-box"
 										/>
 									{:else}
-										<User class="rounded-box bg-base-300 size-8" />
+										<User class="size-8 rounded-box bg-base-300" />
 									{/if}
 									<span class="font-semibold">
 										{user.attributes.name}
@@ -88,13 +88,13 @@
 							</td>
 							<td class="flex justify-end">
 								<div class="dropdown dropdown-end">
-									<div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-square">
+									<div tabindex="0" role="button" class="btn btn-square btn-ghost btn-sm">
 										<EllipsisVertical class="size-4" />
 									</div>
 									<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 									<ul
 										tabindex="0"
-										class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+										class="dropdown-content menu z-1 w-52 rounded-box bg-base-100 p-2 shadow-sm"
 									>
 										<li>
 											<button
@@ -125,13 +125,13 @@
 			{#if users.links.prev || users.links.next}
 				<div class="mt-4 flex justify-center gap-2">
 					{#if users.links.prev}
-						<button class="btn btn-ghost btn-neutral btn-sm" onclick={loadPreviousPage}>
+						<button class="btn btn-ghost btn-sm btn-neutral" onclick={loadPreviousPage}>
 							<ChevronLeft class="size-4" />
 							Previous
 						</button>
 					{/if}
 					{#if users.links.next}
-						<button class="btn btn-ghost btn-neutral btn-sm" onclick={loadNextPage}>
+						<button class="btn btn-ghost btn-sm btn-neutral" onclick={loadNextPage}>
 							Next
 							<ChevronRight class="size-4" />
 						</button>

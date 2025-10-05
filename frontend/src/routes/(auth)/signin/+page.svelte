@@ -43,7 +43,7 @@
 						};
 					}}
 				>
-					<button class="btn btn-neutral w-full" disabled={!googleClientId || submitting}>
+					<button class="btn w-full btn-neutral" disabled={!googleClientId || submitting}>
 						{#if submittingGoogleOAuthForm}
 							<span class="loading loading-spinner"></span>
 						{:else}
@@ -53,7 +53,7 @@
 					</button>
 				</form>
 
-				<div class="divider mb-2 mt-5 text-gray-500">Or continue with</div>
+				<div class="divider mt-5 mb-2 text-gray-500">Or continue with</div>
 
 				<form
 					method="post"
@@ -73,7 +73,7 @@
 							type="email"
 							name="email"
 							required
-							class="input validator w-full"
+							class="validator input w-full"
 							placeholder="Email"
 						/>
 					</fieldset>
@@ -84,14 +84,14 @@
 							type="password"
 							name="password"
 							required
-							class="input validator w-full"
+							class="validator input w-full"
 							placeholder="Password"
 						/>
 					</fieldset>
 
 					<div class="mt-3 space-y-3">
 						<CardActions>
-							<button type="submit" class="btn btn-primary w-full" disabled={submitting}>
+							<button type="submit" class="btn w-full btn-primary" disabled={submitting}>
 								{#if submittingPasswordForm}
 									<span class="loading loading-spinner"></span>
 								{:else}

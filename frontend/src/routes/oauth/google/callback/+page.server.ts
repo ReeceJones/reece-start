@@ -1,4 +1,4 @@
-import { redirect, type Actions, type RequestEvent } from '@sveltejs/kit';
+import { redirect, type Actions } from '@sveltejs/kit';
 import { z } from 'zod';
 import { post } from '$lib/api';
 import { createUserResponseSchema } from '$lib/schemas/user';

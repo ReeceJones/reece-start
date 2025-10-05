@@ -2,9 +2,9 @@
 	import { Rocket } from 'lucide-svelte';
 </script>
 
-<footer class="footer sm:footer-horizontal bg-base-200 text-base-content p-16">
+<footer class="footer bg-base-200 p-16 text-base-content sm:footer-horizontal">
 	<aside>
-		<Rocket class="text-primary size-4" />
+		<Rocket class="size-4 text-primary" />
 		<p>
 			<b>reece-start</b> - Production-ready SvelteKit + Go starter template for building SaaS
 			applications

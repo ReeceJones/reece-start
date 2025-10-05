@@ -43,7 +43,7 @@
 	/>
 
 	{#if invitedMemberEmail}
-		<div class="alert alert-success my-1">
+		<div class="my-1 alert alert-success">
 			<CircleCheck class="size-4" />
 			<span>
 				We've sent an email to
@@ -69,17 +69,17 @@
 						<td colspan="3" class="text-center">No memberships found</td>
 					</tr>
 				{/if}
-				{#each memberships as membership}
+				{#each memberships as membership (membership.membership.id)}
 					<tr class="hover:bg-base-300">
 						<td class="flex items-center gap-3">
 							{#if membership.user?.meta.logoDistributionUrl}
 								<img
 									src={membership.user?.meta.logoDistributionUrl}
 									alt={membership.user?.attributes.name}
-									class="rounded-box size-10"
+									class="size-10 rounded-box"
 								/>
 							{:else}
-								<User class="rounded-box bg-base-300 size-10" />
+								<User class="size-10 rounded-box bg-base-300" />
 							{/if}
 							<div class="flex flex-col">
 								<div class="font-semibold">{membership.user?.attributes.name}</div>
@@ -103,9 +103,9 @@
 							<div class="flex items-center justify-end">
 								<a
 									class={clsx(
-										'btn btn-ghost btn-sm btn-square',
+										'btn btn-square btn-ghost btn-sm',
 										!canUpdateMembership &&
-											'text-base-content/50 pointer-events-none cursor-default'
+											'pointer-events-none cursor-default text-base-content/50'
 									)}
 									href={canUpdateMembership
 										? `/app/${params.organizationId}/settings/members/${membership.membership.id}`
@@ -140,7 +140,7 @@
 						<td colspan="2" class="text-center">No invitations found</td>
 					</tr>
 				{/if}
-				{#each data.invitations.data as invitation}
+				{#each data.invitations.data as invitation (invitation.id)}
 					<InvitationRow {invitation} />
 				{/each}
 			</tbody>

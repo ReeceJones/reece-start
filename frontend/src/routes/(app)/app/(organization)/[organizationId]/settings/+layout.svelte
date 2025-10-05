@@ -35,17 +35,15 @@
 			exact: false
 		}
 	];
-
-	const activeRoute = $derived(routes.find((route) => url === route.href));
 </script>
 
 <div class="flex flex-col gap-8">
 	<div class="space-y-4">
 		<h1 class="text-3xl font-bold">Settings</h1>
 		<ul
-			class="menu menu-horizontal rounded-box bg-base-200 max-w-full flex-nowrap gap-1 overflow-auto shadow-sm"
+			class="menu menu-horizontal max-w-full flex-nowrap gap-1 overflow-auto rounded-box bg-base-200 shadow-sm"
 		>
-			{#each routes as route}
+			{#each routes as route (route.href)}
 				<li
 					class={clsx(
 						(url === route.href || (!route.exact && url.startsWith(route.href))) && activeClass

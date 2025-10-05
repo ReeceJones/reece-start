@@ -66,11 +66,11 @@
 			<img
 				src={logoPreview}
 				alt="Organization logo preview"
-				class="rounded-box mb-4 aspect-square w-48"
+				class="mb-4 aspect-square w-48 rounded-box"
 			/>
 		{:else}
 			<div
-				class="rounded-box bg-base-300 text-base-content/50 mb-4 flex aspect-square w-48 items-center justify-center"
+				class="mb-4 flex aspect-square w-48 items-center justify-center rounded-box bg-base-300 text-base-content/50"
 			>
 				<span>No logo selected</span>
 			</div>

@@ -65,9 +65,9 @@
 		<fieldset class="fieldset">
 			<legend class="fieldset-legend">Organization logo</legend>
 			{#if logoPreview}
-				<img src={logoPreview} alt="Organization logo" class="rounded-box aspect-square w-48" />
+				<img src={logoPreview} alt="Organization logo" class="aspect-square w-48 rounded-box" />
 			{:else}
-				<div class="rounded-box bg-base-300 flex aspect-square w-48 items-center justify-center">
+				<div class="flex aspect-square w-48 items-center justify-center rounded-box bg-base-300">
 					<span class="text-base-content/50">No logo uploaded</span>
 				</div>
 			{/if}
@@ -118,12 +118,12 @@
 		</fieldset>
 
 		{#if form?.success}
-			<div role="alert" class="alert alert-success mt-3">
+			<div role="alert" class="mt-3 alert alert-success">
 				<CircleCheck />
 				<span>Your organization has been updated!</span>
 			</div>
 		{:else if form?.success === false}
-			<div role="alert" class="alert alert-error mt-3">
+			<div role="alert" class="mt-3 alert alert-error">
 				<CircleX />
 				<span
 					>{form.message ??

@@ -12,7 +12,7 @@
 		<CardBody>
 			<CardTitle>User Scopes</CardTitle>
 			<ul class="list-inside list-disc">
-				{#each scopes as scope}
+				{#each scopes as scope (scope)}
 					<li class="font-mono">{scope}</li>
 				{/each}
 			</ul>

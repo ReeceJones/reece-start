@@ -13,7 +13,7 @@
 
 <ul class="menu menu-vertical w-full">
 	<li class="w-full">
-		<div class="dropdown dropdown-top dropdown-start w-full p-0">
+		<div class="dropdown dropdown-start dropdown-top w-full p-0">
 			<div tabindex="0" role="button" class="flex w-full gap-2 px-3 py-1.5">
 				{#if user.data.meta.logoDistributionUrl}
 					<img src={user.data.meta.logoDistributionUrl} alt="User logo" class="size-6 rounded-sm" />
@@ -25,7 +25,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
-				class="dropdown-content menu bg-base-100 rounded-box z-1 ml-0 w-52 -translate-y-1.5 p-2 shadow-sm"
+				class="dropdown-content menu z-1 ml-0 w-52 -translate-y-1.5 rounded-box bg-base-100 p-2 shadow-sm"
 			>
 				<li>
 					<a href={profileHref}>
@@ -34,7 +34,7 @@
 					</a>
 				</li>
 				<li>
-					<button class="text-error flex items-center gap-2" type="submit" form="signout-form">
+					<button class="flex items-center gap-2 text-error" type="submit" form="signout-form">
 						<LogOut class="size-4" />
 						Logout
 					</button>
@@ -42,7 +42,7 @@
 				{#if isImpersonatingUser}
 					<li>
 						<button
-							class="text-error flex items-center gap-2"
+							class="flex items-center gap-2 text-error"
 							type="submit"
 							form="stop-impersonation-form"
 						>
