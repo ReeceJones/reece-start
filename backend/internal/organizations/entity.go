@@ -14,7 +14,6 @@ import (
 	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
-	"reece.start/internal/stripe"
 )
 
 // API Types
@@ -320,7 +319,7 @@ type CreateOrganizationServiceRequest struct {
 	Tx     *gorm.DB
 	MinioClient *minio.Client
 	Config *configuration.Config
-	StripeClient *stripe.Client
+	StripeClient *stripeGo.Client
 	Context context.Context
 }
 
@@ -492,7 +491,7 @@ type CreateStripeOnboardingLinkParams struct {
 
 type CreateStripeOnboardingLinkServiceRequest struct {
     Db           *gorm.DB
-    StripeClient *stripe.Client
+    StripeClient *stripeGo.Client
     Context      context.Context
     Params       CreateStripeOnboardingLinkParams
     Config       *configuration.Config

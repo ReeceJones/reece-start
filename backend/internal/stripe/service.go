@@ -180,40 +180,45 @@ func getMerchantCapabilities(request CreateStripeAccountServiceRequest) *stripeG
 	return cap
 }
 
-func processWebhookEvent(request ProcessWebhookEventServiceRequest) error {
+func processSnapshotWebhookEvent(request ProcessSnapshotWebhookEventServiceRequest) error {
 	// IMPORTANT: do not rely on the data in the event object, as it may not be update to date or delivered out of order.
 	// Always refetch the object from the stripe API.
-	// V2 events are actually "thin" objects and already operate under this assumed behavior.
 	event := request.Event
 
 	switch event.Type {
-	case "v2.core.account.updated":
-		return handleAccountUpdated(request)
-	case "v2.core.account.closed":
-		return handleAccountClosed(request)
-	case "capability.updated":
-		return handleAccountCapabilityStatusUpdated(request)
-	case "v2.core.account[configuration.customer].capability_status_updated":
-		return handleAccountCapabilityStatusUpdated(request)
-	case "v2.core.account[configuration.merchant].capability_status_updated":
-		return handleAccountCapabilityStatusUpdated(request)
-	case "v2.core.account[configuration.recipient].capability_status_updated":
-		return handleAccountCapabilityStatusUpdated(request)
-	case "v2.core.account[requirements].updated":
-		return handleAccountRequirementsUpdated(request)
 	default:
 		// Log unhandled events but don't fail
-		fmt.Printf("Unhandled webhook event type: %s\n", event.Type)
+		fmt.Printf("Unhandled webhook event type (snapshot): %s\n", event.Type)
 		return nil
 	}
 }
 
-func handleAccountUpdated(request ProcessWebhookEventServiceRequest) error {
-	return nil
+func processThinWebhookEvent(request ProcessThinWebhookEventServiceRequest) error {
+	// IMPORTANT: do not rely on the data in the event object, as it may not be update to date or delivered out of order.
+	// Always refetch the object from the stripe API.
+	eventContainer := request.Event
+
+	switch evt := eventContainer.(type) {
+		case *stripeGo.V2CoreAccountClosedEventNotification:
+			return handleAccountClosed(request, evt)
+		case *stripeGo.V2CoreAccountUpdatedEventNotification:
+			return handleAccountUpdated(request, evt)
+		case *stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification:
+			return handleAccountCustomerCapabilityStatusUpdated(request, evt)
+		case *stripeGo.V2CoreAccountIncludingConfigurationMerchantCapabilityStatusUpdatedEventNotification:
+			return handleAccountMerchantCapabilityStatusUpdated(request, evt)
+		case *stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification:
+			return handleAccountRecipientCapabilityStatusUpdated(request, evt)
+		case *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification:
+			return handleAccountRequirementsUpdated(request, evt)
+		default:
+			log.Printf("Unhandled webhook event type (thin): %s\n", evt.GetEventNotification().Type)
+			return nil
+	}
 }
 
-// enqueueWebhookProcessing persists the event in the background job queue for async processing
-func enqueueWebhookProcessing(request EnqueueWebhookProcessingServiceRequest) error {
+// enqueueSnapshotWebhookProcessing persists the event in the background job queue for async processing
+func enqueueSnapshotWebhookProcessing(request EnqueueSnapshotWebhookProcessingServiceRequest) error {
     // Serialize the event for storage in the job
     payload, err := json.Marshal(request.Event)
     if err != nil {
@@ -221,7 +226,7 @@ func enqueueWebhookProcessing(request EnqueueWebhookProcessingServiceRequest) er
     }
 
     // River client expects generic args; we defined a dedicated job type in webhook_processing_job.go
-    _, err = request.RiverClient.Insert(request.Context, WebhookProcessingJob{
+    _, err = request.RiverClient.Insert(request.Context, SnapshotWebhookProcessingJob{
         EventID:   request.Event.ID,
         EventType: string(request.Event.Type),
         EventData: payload,
@@ -229,45 +234,190 @@ func enqueueWebhookProcessing(request EnqueueWebhookProcessingServiceRequest) er
     return err
 }
 
-// handleAccountClosed handles the case where a Stripe account is closed.
-// It removes the Stripe account ID and resets onboarding and Stripe statuses.
-func handleAccountClosed(request ProcessWebhookEventServiceRequest) error {
-    accountID, err := extractAccountIDFromEvent(request)
-    if err != nil {
-        return nil // ignore if we cannot determine, to avoid retries
-    }
+func enqueueThinWebhookProcessing(request EnqueueThinWebhookProcessingServiceRequest) error {
+	// need ot manually serialize these as the correct type so that the related_object field is serialized correctly
+	var eventData []byte
+	var err error
 
-    return request.DB.Transaction(func(tx *gorm.DB) error {
-        var org models.Organization
-        if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
-            if errors.Is(err, gorm.ErrRecordNotFound) {
-                return nil
-            }
-            return err
-        }
+	switch request.Event.(type) {
+	case *stripeGo.UnknownEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.UnknownEventNotification))
+	case *stripeGo.V2CoreAccountUpdatedEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountUpdatedEventNotification))
+	case *stripeGo.V2CoreAccountClosedEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountClosedEventNotification))
+	case *stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification))
+	case *stripeGo.V2CoreAccountIncludingConfigurationMerchantCapabilityStatusUpdatedEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountIncludingConfigurationMerchantCapabilityStatusUpdatedEventNotification))
+	case *stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification))
+	case *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification))
+	default:
+		return fmt.Errorf("unhandled event type (thin): %s", request.Event.GetEventNotification().Type)
+	}
 
-        org.Stripe.AccountID = ""
-        org.Stripe.AutomaticIndirectTaxStatus = ""
-        org.Stripe.CardPaymentsStatus = ""
-        org.Stripe.StripeBalancePayoutsStatus = ""
-        org.Stripe.StripeBalanceTransfersStatus = ""
-        org.Stripe.HasPendingRequirements = false
-        org.Stripe.OnboardingStatus = string(utils.DetermineStripeOnboardingStatus(&org))
-        // Also reset top-level onboarding to in_progress since connect is gone
-        org.OnboardingStatus = string(constants.OnboardingStatusInProgress)
+	if err != nil {
+		return err
+	}
 
-        return tx.Save(&org).Error
-    })
+    _, err = request.RiverClient.Insert(request.Context, ThinWebhookProcessingJob{
+        EventID:   request.Event.GetEventNotification().ID,
+        EventType: string(request.Event.GetEventNotification().Type),
+        EventData: eventData,
+    }, nil)
+    return err
 }
 
-// handleAccountCapabilityStatusUpdated handles capability status changes.
-func handleAccountCapabilityStatusUpdated(request ProcessWebhookEventServiceRequest) error {
-    accountID, err := extractAccountIDFromEvent(request)
-    if err != nil {
-        return nil
-    }
+func handleAccountUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountUpdatedEventNotification) error {
+	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
+		AccountID: event.RelatedObject.ID,
+		DB: request.DB,
+		Config: request.Config,
+		StripeClient: request.StripeClient,
+		Context: request.Context,
+	})
 
-    acc, err := request.StripeClient.V2CoreAccounts.Retrieve(request.Context, accountID, &stripeGo.V2CoreAccountRetrieveParams{
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Account updated: %s", event.RelatedObject.ID)
+
+	return nil
+}
+
+func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountClosedEventNotification) error {	
+	accountID := event.RelatedObject.ID
+
+	log.Printf("Account closed: %s. Reverting stripe information.", accountID)
+
+	// clear out all stripe information on the account
+	err := request.DB.WithContext(request.Context).Transaction(func(tx *gorm.DB) error {
+		var org models.Organization
+		if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil
+			}
+			return err
+		}
+
+		org.Stripe.AccountID = ""
+		org.Stripe.AutomaticIndirectTaxStatus = ""
+		org.Stripe.CardPaymentsStatus = ""
+		org.Stripe.StripeBalancePayoutsStatus = ""
+		org.Stripe.StripeBalanceTransfersStatus = ""
+		org.Stripe.HasPendingRequirements = false
+		org.Stripe.OnboardingStatus = string(utils.DetermineStripeOnboardingStatus(&org))
+		// Also reset top-level onboarding to in_progress since connect is gone
+		org.OnboardingStatus = string(constants.OnboardingStatusInProgress)
+		
+		return tx.Save(&org).Error
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Account closed: %s. Stripe information reverted.", accountID)
+
+	return nil
+}
+
+func handleAccountCustomerCapabilityStatusUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification) error {
+	log.Printf("Account customer capability status updated: %s", event.RelatedObject.ID)
+	
+	// RelatedObject is v2.core.account
+	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
+		AccountID: event.RelatedObject.ID,
+		DB: request.DB,
+		Config: request.Config,
+		StripeClient: request.StripeClient,
+		Context: request.Context,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Account customer capability status updated: %s", event.RelatedObject.ID)
+
+	return nil
+}
+
+func handleAccountMerchantCapabilityStatusUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingConfigurationMerchantCapabilityStatusUpdatedEventNotification) error {
+	log.Printf("Account merchant capability status updated: %s", event.RelatedObject.ID)
+
+	// RelatedObject is v2.core.account
+	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
+		AccountID: event.RelatedObject.ID,
+		DB: request.DB,
+		Config: request.Config,
+		StripeClient: request.StripeClient,
+		Context: request.Context,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Account merchant capability status updated: %s", event.RelatedObject.ID)
+
+	return nil
+}
+
+func handleAccountRecipientCapabilityStatusUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification) error {
+	log.Printf("Account recipient capability status updated: %s", event.RelatedObject.ID)
+
+	// RelatedObject is v2.core.account
+	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
+		AccountID: event.RelatedObject.ID,
+		DB: request.DB,
+		Config: request.Config,
+		StripeClient: request.StripeClient,
+		Context: request.Context,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Account recipient capability status updated: %s", event.RelatedObject.ID)
+
+	return nil
+}
+
+func handleAccountRequirementsUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification) error {
+	log.Printf("Account requirements updated: %s", event.RelatedObject.ID)
+
+	// RelatedObject is v2.core.account
+	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
+		AccountID: event.RelatedObject.ID,
+		DB: request.DB,
+		Config: request.Config,
+		StripeClient: request.StripeClient,
+		Context: request.Context,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Account requirements updated: %s", event.RelatedObject.ID)
+
+	return nil
+}
+
+// fetchAndUpdateAccount handles capability status changes.
+func fetchAndUpdateAccount(request FetchAndUpdateAccountServiceRequest) error {
+	stripeClient := request.StripeClient
+	accountID := request.AccountID
+	context := request.Context
+
+	log.Printf("Updating account capability status for account %s", accountID)
+
+	account, err := stripeClient.V2CoreAccounts.Retrieve(context, accountID, &stripeGo.V2CoreAccountRetrieveParams{
 		Include: []*string{
 			stripeGo.String("configuration.customer"),
 			stripeGo.String("configuration.merchant"),
@@ -275,70 +425,29 @@ func handleAccountCapabilityStatusUpdated(request ProcessWebhookEventServiceRequ
 			stripeGo.String("requirements"),
 		},
 	})
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		log.Printf("failed to fetch account: %v", err)
+		return err
+	}
 
-    return request.DB.Transaction(func(tx *gorm.DB) error {
-        var org models.Organization
-        if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
-            if errors.Is(err, gorm.ErrRecordNotFound) {
-                return nil
-            }
-            return err
-        }
+	err = request.DB.WithContext(context).Transaction(func(tx *gorm.DB) error {
+		var org models.Organization
+		if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil
+			}
+			return err
+		}
+		utils.ApplyStripeAccountToOrganization(&org, account)
+		return tx.Save(&org).Error
+	})
 
-        // Apply all capability and requirements fields from the v2 core account
-        utils.ApplyStripeAccountToOrganization(&org, acc)
-        return tx.Save(&org).Error
-    })
-}
+	if err != nil {
+		log.Printf("failed to update account: %v", err)
+		return err
+	}
 
-// handleAccountRequirementsUpdated handles requirements updates similarly to capability updates.
-func handleAccountRequirementsUpdated(request ProcessWebhookEventServiceRequest) error {
-    accountID, err := extractAccountIDFromEvent(request)
-    if err != nil {
-        return nil
-    }
+	log.Printf("Account updated: %s", accountID)
 
-    acc, err := request.StripeClient.V2CoreAccounts.Retrieve(request.Context, accountID, &stripeGo.V2CoreAccountRetrieveParams{
-        Include: []*string{
-            stripeGo.String("configuration.customer"),
-            stripeGo.String("configuration.merchant"),
-            stripeGo.String("configuration.recipient"),
-            stripeGo.String("requirements"),
-        },
-    })
-    if err != nil {
-        return err
-    }
-
-    return request.DB.Transaction(func(tx *gorm.DB) error {
-        var org models.Organization
-        if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
-            if errors.Is(err, gorm.ErrRecordNotFound) {
-                return nil
-            }
-            return err
-        }
-
-        utils.ApplyStripeAccountToOrganization(&org, acc)
-        return tx.Save(&org).Error
-    })
-}
-
-// extractAccountIDFromEvent attempts to extract the account id from the event's account field or metadata
-func extractAccountIDFromEvent(request ProcessWebhookEventServiceRequest) (string, error) {
-    if request.Event.Account != "" {
-        return request.Event.Account, nil
-    }
-    // fallback: some events may include in data.object.id for account.updated
-    if request.Event.Data.Object != nil {
-        if idRaw, ok := request.Event.Data.Object["id"]; ok {
-            if idStr, ok2 := idRaw.(string); ok2 {
-                return idStr, nil
-            }
-        }
-    }
-    return "", fmt.Errorf("account id not found in event")
+	return nil
 }

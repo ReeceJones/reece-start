@@ -82,10 +82,15 @@ func main() {
 		Config:      config,
 		ResendClient: resendClient,
 	})
-	river.AddWorker(workers, &stripe.WebhookProcessingJobWorker{
+	river.AddWorker(workers, &stripe.SnapshotWebhookProcessingJobWorker{
 		DB:     db,
 		Config: config,
-		StripeClient: (*stripe.Client)(stripeClient),
+		StripeClient: stripeClient,
+	})
+	river.AddWorker(workers, &stripe.ThinWebhookProcessingJobWorker{
+		DB:     db,
+		Config: config,
+		StripeClient: stripeClient,
 	})
 
 	riverClient, err := river.NewClient(riverdatabasesql.New(conn), &river.Config{
@@ -128,7 +133,7 @@ func main() {
 		MinioClient: minioClient,
 		RiverClient: riverClient,
 		ResendClient: resendClient,
-		StripeClient: (*stripe.Client)(stripeClient),
+		StripeClient: stripeClient,
 	}))
 	
 	// Add error handling middleware
@@ -147,7 +152,8 @@ func main() {
 	e.POST("/oauth/google/callback", api.Validated(users.GoogleOAuthCallbackEndpoint))
 
 	// Webhook routes
-	e.POST("/webhooks/stripe", stripe.StripeWebhookEndpoint)
+	e.POST("/webhooks/stripe/snapshot", stripe.StripeSnapshotWebhookEndpoint)
+	e.POST("/webhooks/stripe/thin", stripe.StripeThinWebhookEndpoint)
 
 	// Protected user routes (authentication required)
 	protected := e.Group("")

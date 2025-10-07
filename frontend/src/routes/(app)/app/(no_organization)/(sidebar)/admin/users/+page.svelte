@@ -71,10 +71,10 @@
 										<img
 											src={user.meta.logoDistributionUrl}
 											alt={user.attributes.name}
-											class="size-8 rounded-box"
+											class="rounded-box size-8"
 										/>
 									{:else}
-										<User class="size-8 rounded-box bg-base-300" />
+										<User class="rounded-box bg-base-300 size-8" />
 									{/if}
 									<span class="font-semibold">
 										{user.attributes.name}
@@ -94,7 +94,7 @@
 									<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 									<ul
 										tabindex="0"
-										class="dropdown-content menu z-1 w-52 rounded-box bg-base-100 p-2 shadow-sm"
+										class="dropdown-content menu z-1 rounded-box bg-base-100 w-52 p-2 shadow-sm"
 									>
 										<li>
 											<button
@@ -111,7 +111,12 @@
 												Impersonate
 											</button>
 
-											<form method="POST" action="?/impersonate" id={`impersonate-form-${user.id}`}>
+											<form
+												method="POST"
+												action="?/impersonate"
+												id={`impersonate-form-${user.id}`}
+												hidden
+											>
 												<input type="hidden" name="impersonatedUserId" value={user.id} />
 											</form>
 										</li>

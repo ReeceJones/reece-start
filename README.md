@@ -4,22 +4,20 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
 
 ## Features
 
-- Organization-Member-User authentication model
+- Organization-Member-User authentication
   - Organization invitation links & emails
   - RBAC using scopes
   - Sudo users
   - Impersonation
   - Google OAuth
-  - Organization logo
-- User settings page
-  - Profile picture
-- Organization settings page
-- Organization onboarding (WIP)
-  - Stripe event processing ([WIP](https://github.com/stripe/stripe-go/issues/2159))
-- Organization-based billing with free and paid membership tiers (WIP)
-- Stripe connect support (WIP)
+  - User & organization logos
+  - Settings pages
 - Landing, pricing, and faq page templates
 - Email notification API
+- Organization onboarding (WIP)
+  - Stripe event processing ([WIP](https://github.com/stripe/stripe-go/issues/2159))
+- Billing with free and paid plans (WIP)
+- Stripe connect support (WIP)
 - Posthog integration (TODO)
 - Sentry integration (TODO)
 - i18n support (TODO)
@@ -29,6 +27,8 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
   - Buildability
   - Linting
   - Formatting
+- Railway deployment template (TODO)
+- Structured logging (json) (TODO)
 
 ## Getting started
 

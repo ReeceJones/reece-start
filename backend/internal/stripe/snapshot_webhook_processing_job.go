@@ -11,28 +11,28 @@ import (
 	"reece.start/internal/configuration"
 )
 
-// WebhookProcessingJob represents a background job for processing Stripe webhooks
-type WebhookProcessingJob struct {
+// SnapshotWebhookProcessingJob represents a background job for processing Stripe webhooks
+type SnapshotWebhookProcessingJob struct {
 	EventID   string `json:"event_id"`
 	EventType string `json:"event_type"`
 	EventData []byte `json:"event_data"`
 }
 
 // Kind returns the job kind for River
-func (WebhookProcessingJob) Kind() string {
-	return "stripe_webhook_processing"
+func (SnapshotWebhookProcessingJob) Kind() string {
+	return "snapshot_stripe_webhook_processing"
 }
 
-// WebhookProcessingJobWorker handles the background processing of Stripe webhook events
-type WebhookProcessingJobWorker struct {
-	river.WorkerDefaults[WebhookProcessingJob]
+// SnapshotWebhookProcessingJobWorker handles the background processing of Stripe webhook events
+type SnapshotWebhookProcessingJobWorker struct {
+	river.WorkerDefaults[SnapshotWebhookProcessingJob]
 	DB     *gorm.DB
 	Config *configuration.Config
-    StripeClient *Client
+    StripeClient *stripeGo.Client
 }
 
 // Work processes the webhook event in the background
-func (w *WebhookProcessingJobWorker) Work(ctx context.Context, job *river.Job[WebhookProcessingJob]) error {
+func (w *SnapshotWebhookProcessingJobWorker) Work(ctx context.Context, job *river.Job[SnapshotWebhookProcessingJob]) error {
 	// Parse the event data back into a Stripe event
     var event stripeGo.Event
 	if err := json.Unmarshal(job.Args.EventData, &event); err != nil {
@@ -40,7 +40,7 @@ func (w *WebhookProcessingJobWorker) Work(ctx context.Context, job *river.Job[We
 	}
 
 	// Process the webhook event
-	return processWebhookEvent(ProcessWebhookEventServiceRequest{
+	return processSnapshotWebhookEvent(ProcessSnapshotWebhookEventServiceRequest{
 		Event:  &event,
 		DB:     w.DB,
 		Config: w.Config,

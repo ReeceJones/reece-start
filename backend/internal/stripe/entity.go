@@ -45,29 +45,51 @@ type CreateStripeAccountParams struct {
 type CreateStripeAccountServiceRequest struct {
 	Context context.Context
 	Config *configuration.Config
-	StripeClient *Client
+	StripeClient *stripeGo.Client
 	Params CreateStripeAccountParams
 }
 
-// ProcessWebhookEventServiceRequest contains parameters for processing webhook events
-type ProcessWebhookEventServiceRequest struct {
+// ProcessSnapshotWebhookEventServiceRequest contains parameters for processing webhook events
+type ProcessSnapshotWebhookEventServiceRequest struct {
     Event  *stripeGo.Event
 	DB     *gorm.DB
 	Config *configuration.Config
-    StripeClient *Client
+    StripeClient *stripeGo.Client
     Context context.Context
 }
 
-// EnqueueWebhookProcessingServiceRequest contains parameters for enqueueing webhook processing
-type EnqueueWebhookProcessingServiceRequest struct {
+type ProcessThinWebhookEventServiceRequest struct {
+    Event  stripeGo.EventNotificationContainer
+	DB     *gorm.DB
+	Config *configuration.Config
+    StripeClient *stripeGo.Client
+    Context context.Context
+}
+
+type FetchAndUpdateAccountServiceRequest struct {
+    AccountID string
+	DB     *gorm.DB
+	Config *configuration.Config
+    StripeClient *stripeGo.Client
+    Context context.Context
+}
+
+// EnqueueSnapshotWebhookProcessingServiceRequest contains parameters for enqueueing webhook processing
+type EnqueueSnapshotWebhookProcessingServiceRequest struct {
     RiverClient *river.Client[*sql.Tx]
     Event       *stripeGo.Event
     Context     context.Context
 }
 
+type EnqueueThinWebhookProcessingServiceRequest struct {
+    RiverClient *river.Client[*sql.Tx]
+    Event       stripeGo.EventNotificationContainer
+    Context     context.Context
+}
+
 type CreateOnboardingLinkServiceRequest struct {
 	Context context.Context
-	StripeClient *Client
+	StripeClient *stripeGo.Client
     Db *gorm.DB
 	Params CreateOnboardingLinkParams
 }
