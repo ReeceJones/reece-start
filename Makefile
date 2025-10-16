@@ -36,4 +36,4 @@ stripe-listen:
 		--events "invoice.paid,invoice.payment_failed,invoice.payment_action_required" \
 		--forward-thin-to localhost:4040/api/webhooks/stripe/thin \
 		--forward-thin-connect-to localhost:4040/api/webhooks/stripe/thin \
-		--thin-events "v2.core.account.updated,v2.core.account.closed,v2.core.account[configuration.customer].capability_status_updated,v2.core.account[configuration.merchant].capability_status_updated,v2.core.account[configuration.recipient].capability_status_updated,v2.core.account[requirements].updated" \
+		--thin-events "v2.core.account.created,v2.core.account.updated,v2.core.account.closed,v2.core.account_person.updated,v2.core.account[identity].updated,v2.core.account[configuration.customer].capability_status_updated,v2.core.account[configuration.merchant].capability_status_updated,v2.core.account[configuration.recipient].capability_status_updated,v2.core.account[requirements].updated,v2.core.account.updated" \

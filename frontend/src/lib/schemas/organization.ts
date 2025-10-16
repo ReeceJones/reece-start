@@ -42,7 +42,7 @@ export const organizationDataSchema = z.object({
 		logoDistributionUrl: z.string().optional(),
 		onboardingStatus: z.enum(['pending', 'completed', 'in_progress']),
 		stripe: z.object({
-			hasPendingRequirements: z.boolean(),
+			hasPendingRequirements: z.boolean().optional(),
 			onboardingStatus: z.enum([
 				'pending',
 				'completed',

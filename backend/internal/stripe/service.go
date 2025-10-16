@@ -15,6 +15,7 @@ import (
 	"reece.start/internal/utils"
 )
 
+
 func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*stripeGo.V2CoreAccount, error) {
 	stripeClient := request.StripeClient
 	context := request.Context
@@ -211,6 +212,8 @@ func processThinWebhookEvent(request ProcessThinWebhookEventServiceRequest) erro
 			return handleAccountRecipientCapabilityStatusUpdated(request, evt)
 		case *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification:
 			return handleAccountRequirementsUpdated(request, evt)
+		case *stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification:
+			return handleAccountIdentityUpdated(request, evt)
 		default:
 			log.Printf("Unhandled webhook event type (thin): %s\n", evt.GetEventNotification().Type)
 			return nil
@@ -254,6 +257,8 @@ func enqueueThinWebhookProcessing(request EnqueueThinWebhookProcessingServiceReq
 		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification))
 	case *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification:
 		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification))
+	case *stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification))
 	default:
 		return fmt.Errorf("unhandled event type (thin): %s", request.Event.GetEventNotification().Type)
 	}
@@ -298,6 +303,7 @@ func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *s
 		var org models.Organization
 		if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Printf("Organization not found for stripe_account_id: %s during account closure", accountID)
 				return nil
 			}
 			return err
@@ -409,6 +415,27 @@ func handleAccountRequirementsUpdated(request ProcessThinWebhookEventServiceRequ
 	return nil
 }
 
+func handleAccountIdentityUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification) error {
+	log.Printf("Account identity updated: %s", event.RelatedObject.ID)
+
+	// RelatedObject is v2.core.account
+	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
+		AccountID: event.RelatedObject.ID,
+		DB: request.DB,
+		Config: request.Config,
+		StripeClient: request.StripeClient,
+		Context: request.Context,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Account identity updated: %s", event.RelatedObject.ID)
+
+	return nil
+}
+
 // fetchAndUpdateAccount handles capability status changes.
 func fetchAndUpdateAccount(request FetchAndUpdateAccountServiceRequest) error {
 	stripeClient := request.StripeClient
@@ -417,23 +444,32 @@ func fetchAndUpdateAccount(request FetchAndUpdateAccountServiceRequest) error {
 
 	log.Printf("Updating account capability status for account %s", accountID)
 
-	account, err := stripeClient.V2CoreAccounts.Retrieve(context, accountID, &stripeGo.V2CoreAccountRetrieveParams{
-		Include: []*string{
-			stripeGo.String("configuration.customer"),
-			stripeGo.String("configuration.merchant"),
-			stripeGo.String("configuration.recipient"),
-			stripeGo.String("requirements"),
-		},
-	})
+	params := &stripeGo.V2CoreAccountRetrieveParams{}
+	params.AddExtra("include", "configuration.customer")
+	params.AddExtra("include", "configuration.merchant")
+	params.AddExtra("include", "configuration.recipient")
+	params.AddExtra("include", "requirements")
+
+	account, err := stripeClient.V2CoreAccounts.Retrieve(context, accountID, params)
 	if err != nil {
 		log.Printf("failed to fetch account: %v", err)
 		return err
 	}
 
+	accountJson, _ := json.Marshal(account)
+	log.Printf("Account fetched: %s", string(accountJson))
+	configurationJson, _ := json.Marshal(account.Configuration)
+	log.Printf("Account configuration: %s", string(configurationJson))
+	requirementsJson, _ := json.Marshal(account.Requirements)
+	log.Printf("Account requirements: %s", string(requirementsJson))
+	identityJson, _ := json.Marshal(account.Identity)
+	log.Printf("Account identity: %s", string(identityJson))
+
 	err = request.DB.WithContext(context).Transaction(func(tx *gorm.DB) error {
 		var org models.Organization
 		if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Printf("Organization not found for stripe_account_id: %s", accountID)
 				return nil
 			}
 			return err
