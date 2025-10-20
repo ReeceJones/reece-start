@@ -170,6 +170,7 @@ func main() {
 	protected.PATCH("/organizations/:id", api.Validated(organizations.UpdateOrganizationEndpoint))
 	protected.DELETE("/organizations/:id", organizations.DeleteOrganizationEndpoint)
 	protected.POST("/organizations/:id/stripe-onboarding-link", organizations.CreateStripeOnboardingLinkEndpoint)
+	protected.POST("/organizations/:id/stripe-dashboard-link", organizations.CreateStripeDashboardLinkEndpoint)
 
 	protected.GET("/organization-memberships", api.ValidatedQuery(organizations.GetOrganizationMembershipsEndpoint))
 	protected.GET("/organization-memberships/:id", organizations.GetOrganizationMembershipEndpoint)

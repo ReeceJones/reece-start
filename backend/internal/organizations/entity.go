@@ -514,3 +514,29 @@ type StripeAccountLinkData struct {
 type CreateStripeOnboardingLinkResponse struct {
     Data StripeAccountLinkData `json:"data"`
 }
+
+// Stripe dashboard link service types
+type CreateStripeDashboardLinkParams struct {
+    OrganizationID uint
+}
+
+type CreateStripeDashboardLinkServiceRequest struct {
+    Db           *gorm.DB
+    StripeClient *stripeGo.Client
+    Context      context.Context
+    Params       CreateStripeDashboardLinkParams
+}
+
+// JSON:API response types for Stripe dashboard link
+type StripeDashboardLinkAttributes struct {
+    URL string `json:"url"`
+}
+
+type StripeDashboardLinkData struct {
+    Type       string                       `json:"type"`
+    Attributes StripeDashboardLinkAttributes  `json:"attributes"`
+}
+
+type CreateStripeDashboardLinkResponse struct {
+    Data StripeDashboardLinkData `json:"data"`
+}

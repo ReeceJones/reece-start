@@ -139,3 +139,17 @@ export function getFormDataFromOrganization(organization: Organization): Organiz
 		locale: organization.data.attributes.locale
 	};
 }
+
+// Stripe dashboard link schema
+export const createStripeDashboardLinkResponseSchema = z.object({
+	data: z.object({
+		type: z.literal('stripe-dashboard-link'),
+		attributes: z.object({
+			url: z.string()
+		})
+	})
+});
+
+export type CreateStripeDashboardLinkResponse = z.infer<
+	typeof createStripeDashboardLinkResponseSchema
+>;

@@ -2,19 +2,28 @@
 	import type { Organization } from '$lib/schemas/organization';
 	import { ExternalLink } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
+	import { hasScope } from '$lib/auth';
+	import { UserScope } from '$lib/schemas/jwt';
 
 	const { organization }: { organization: Organization } = $props();
 
 	let loading = $state(false);
 	let error = $state('');
+
+	const canAccessStripe = $derived(hasScope(UserScope.OrganizationStripeUpdate));
 </script>
 
 {#if organization.data.meta.stripe.onboardingStatus === 'missing_requirements' || organization.data.meta.stripe.onboardingStatus === 'missing_capabilities'}
-	<div class="mb-6 alert alert-warning">
+	<div class="alert alert-warning mb-6">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
 				To accept payments from your customers, Stripe needs more information about your business.
 			</p>
+			{#if !canAccessStripe}
+				<p class="text-base-content/70 text-sm">
+					You need admin permissions to complete Stripe onboarding.
+				</p>
+			{/if}
 			<form
 				method="post"
 				action={`/app/${organization.data.id}/stripe-onboarding`}
@@ -33,7 +42,7 @@
 					};
 				}}
 			>
-				<button class="btn btn-sm" disabled={loading}>
+				<button class="btn btn-sm" disabled={loading || !canAccessStripe}>
 					{#if loading}
 						<span class="loading loading-xs loading-spinner"></span>
 					{:else}
@@ -43,7 +52,7 @@
 				</button>
 			</form>
 			{#if error}
-				<div class="mt-3 alert alert-error">
+				<div class="alert alert-error mt-3">
 					<span>{error}</span>
 				</div>
 			{/if}
@@ -52,7 +61,7 @@
 {/if}
 
 {#if organization.data.meta.stripe.onboardingStatus === 'pending'}
-	<div class="mb-6 alert alert-info">
+	<div class="alert alert-info mb-6">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
 				We are setting up your Stripe account so that you can accept payments from your customers.

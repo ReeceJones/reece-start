@@ -701,6 +701,46 @@ func CreateStripeOnboardingLinkEndpoint(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+func CreateStripeDashboardLinkEndpoint(c echo.Context) error {
+	paramOrgID, err := api.ParseOrganizationIDFromString(c.Param("id"))
+	if err != nil {
+		return err
+	}
+
+	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
+		OrganizationID: paramOrgID,
+		Scopes: []constants.UserScope{constants.UserScopeOrganizationStripeUpdate},
+	}); err != nil {
+		return err
+	}
+
+    db := middleware.GetDB(c)
+    stripeClient := middleware.GetStripeClient(c)
+
+	dashboardURL, err := createStripeDashboardLink(CreateStripeDashboardLinkServiceRequest{
+        Db:           db,
+        StripeClient: stripeClient,
+        Context:      c.Request().Context(),
+        Params: CreateStripeDashboardLinkParams{
+            OrganizationID: paramOrgID,
+        },
+    })
+    if err != nil {
+        return err
+    }
+
+	response := CreateStripeDashboardLinkResponse{
+		Data: StripeDashboardLinkData{
+			Type: string(constants.ApiTypeStripeDashboardLink),
+			Attributes: StripeDashboardLinkAttributes{
+				URL: dashboardURL,
+			},
+		},
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
 // Type mappers
 func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta {
 	return OrganizationDataWithMeta{

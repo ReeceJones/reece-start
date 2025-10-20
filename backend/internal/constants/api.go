@@ -9,4 +9,5 @@ const (
 	ApiTypeOrganizationMembership ApiType = "organization-membership"
 	ApiTypeOrganizationInvitation ApiType = "organization-invitation"
 	ApiTypeStripeAccountLink ApiType = "stripe-account-link"
+	ApiTypeStripeDashboardLink ApiType = "stripe-dashboard-link"
 )

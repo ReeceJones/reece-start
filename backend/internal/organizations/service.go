@@ -851,3 +851,22 @@ func createStripeOnboardingLink(request CreateStripeOnboardingLinkServiceRequest
 
     return link, nil
 }
+
+func createStripeDashboardLink(request CreateStripeDashboardLinkServiceRequest) (string, error) {
+    tx := request.Db
+    params := request.Params
+
+    var organization models.Organization
+    if err := tx.First(&organization, params.OrganizationID).Error; err != nil {
+        return "", err
+    }
+
+    if organization.Stripe.AccountID == "" {
+        return "", fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
+    }
+
+    // For Standard Connect accounts, construct the dashboard URL directly
+    dashboardURL := fmt.Sprintf("https://dashboard.stripe.com/b/%s", organization.Stripe.AccountID)
+    
+    return dashboardURL, nil
+}
