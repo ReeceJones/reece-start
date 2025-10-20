@@ -26,24 +26,28 @@
 	<fieldset class="fieldset">
 		<legend class="fieldset-legend">Contact Phone</legend>
 
-		<select
-			name="contactPhoneCountry"
-			class="select w-48"
-			bind:value={onboardingState.contactPhoneCountry}
-		>
-			{#each phoneCodeOptions as option (option.countryCode)}
-				<option value={option.countryCode}>
-					{option.flag} +{option.code} ({option.countryName})
-				</option>
-			{/each}
-		</select>
-		<input
-			type="tel"
-			name="contactPhone"
-			class="input flex-1"
-			placeholder="Phone number"
-			bind:value={onboardingState.contactPhone}
-		/>
+		<div class="flex gap-2">
+			<select
+				name="contactPhoneCountry"
+				class="select w-48"
+				placeholder="Select your country"
+				bind:value={onboardingState.contactPhoneCountry}
+			>
+				{#each phoneCodeOptions as option (option.countryCode)}
+					<option value={option.countryCode}>
+						+{option.code} ({option.countryName}
+						{option.flag})
+					</option>
+				{/each}
+			</select>
+			<input
+				type="tel"
+				name="contactPhone"
+				class="input flex-1"
+				placeholder="Phone number"
+				bind:value={onboardingState.contactPhone}
+			/>
+		</div>
 		<p class="fieldset-label">Enter a phone number we can contact your organization at.</p>
 	</fieldset>
 </OnboardingStepContainer>

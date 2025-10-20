@@ -14,10 +14,9 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
   - Settings pages
 - Landing, pricing, and faq page templates
 - Email notification API
-- Organization onboarding (WIP)
-  - Stripe event processing (WIP)
+- Organization onboarding
 - Billing with free and paid plans (WIP)
-- Stripe connect support (WIP)
+- Stripe connect support
 - Posthog integration (TODO)
 - Sentry integration (TODO)
 - i18n support (TODO)
