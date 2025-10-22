@@ -3,11 +3,16 @@ package stripe
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"encoding/json"
 	"errors"
+	"time"
 
 	stripeGo "github.com/stripe/stripe-go/v83"
+	"github.com/stripe/stripe-go/v83/billingportal/session"
+	checkoutSession "github.com/stripe/stripe-go/v83/checkout/session"
+	"github.com/stripe/stripe-go/v83/subscription"
 
 	"gorm.io/gorm"
 	"reece.start/internal/constants"
@@ -187,11 +192,143 @@ func processSnapshotWebhookEvent(request ProcessSnapshotWebhookEventServiceReque
 	event := request.Event
 
 	switch event.Type {
+	case "customer.subscription.created", "customer.subscription.updated":
+		return handleSubscriptionCreatedOrUpdated(request)
+	case "customer.subscription.deleted":
+		return handleSubscriptionDeleted(request)
 	default:
 		// Log unhandled events but don't fail
 		fmt.Printf("Unhandled webhook event type (snapshot): %s\n", event.Type)
 		return nil
 	}
+}
+
+func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServiceRequest) error {
+	var sub stripeGo.Subscription
+	err := json.Unmarshal(request.Event.Data.Raw, &sub)
+	if err != nil {
+		log.Printf("Failed to unmarshal subscription: %v", err)
+		return err
+	}
+
+	// Fetch the subscription from Stripe to get the latest data
+	fetchedSub, err := subscription.Get(sub.ID, nil)
+	if err != nil {
+		log.Printf("Failed to fetch subscription from Stripe: %v", err)
+		return err
+	}
+
+	// Get organization from subscription metadata
+	// We store the organization_id in metadata when creating the checkout session
+	var org models.Organization
+	
+	orgIDStr, ok := fetchedSub.Metadata["organization_id"]
+	if !ok {
+		log.Printf("No organization_id found in subscription metadata for subscription: %s", fetchedSub.ID)
+		return nil
+	}
+	
+	orgID, err := strconv.ParseUint(orgIDStr, 10, 32)
+	if err != nil {
+		log.Printf("Failed to parse organization ID from metadata: %v", err)
+		return err
+	}
+	
+	err = request.DB.WithContext(request.Context).First(&org, uint(orgID)).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("Organization %d not found for subscription: %s", orgID, fetchedSub.ID)
+			return nil
+		}
+		return err
+	}
+	
+	log.Printf("Found organization %d for subscription %s", org.ID, fetchedSub.ID)
+
+	// Only process active or trialing subscriptions
+	if fetchedSub.Status != stripeGo.SubscriptionStatusActive && 
+	   fetchedSub.Status != stripeGo.SubscriptionStatusTrialing {
+		log.Printf("Subscription %s is not active or trialing, skipping", fetchedSub.ID)
+		return nil
+	}
+
+	// Determine the plan based on the product ID
+	var plan constants.MembershipPlan
+	for _, item := range fetchedSub.Items.Data {
+		log.Printf("Item price product ID: %s", item.Price.Product.ID)
+		log.Printf("Stripe pro plan product ID: %s", request.Config.StripeProPlanProductId)
+		if item.Price.Product.ID == request.Config.StripeProPlanProductId {
+			plan = constants.MembershipPlanPro
+			break
+		}
+	}
+
+	if plan == "" {
+		log.Printf("Unknown product in subscription, defaulting to free plan")
+		plan = constants.MembershipPlanFree
+	}
+
+	// Create or update the plan period
+	planPeriod := models.OrganizationPlanPeriod{
+		OrganizationID: org.ID,
+		Plan: plan,
+		StripeSubscriptionID: fetchedSub.ID,
+		BillingPeriodStart: time.Unix(fetchedSub.BillingCycleAnchor, 0),
+		BillingPeriodEnd: time.Unix(fetchedSub.BillingCycleAnchor, 0).AddDate(0, 1, 0), // Assuming monthly subscription
+		BillingPeriodAmount: int(fetchedSub.Items.Data[0].Price.UnitAmount),
+	}
+
+	// Check if a plan period already exists for this subscription
+	var existingPlanPeriod models.OrganizationPlanPeriod
+	err = request.DB.WithContext(request.Context).
+		Where("stripe_subscription_id = ?", fetchedSub.ID).
+		First(&existingPlanPeriod).Error
+
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Create new plan period
+		if err := request.DB.WithContext(request.Context).Create(&planPeriod).Error; err != nil {
+			return err
+		}
+		log.Printf("Created new plan period for organization %d", org.ID)
+	} else {
+		// Update existing plan period
+		existingPlanPeriod.Plan = planPeriod.Plan
+		existingPlanPeriod.BillingPeriodStart = planPeriod.BillingPeriodStart
+		existingPlanPeriod.BillingPeriodEnd = planPeriod.BillingPeriodEnd
+		existingPlanPeriod.BillingPeriodAmount = planPeriod.BillingPeriodAmount
+		if err := request.DB.WithContext(request.Context).Save(&existingPlanPeriod).Error; err != nil {
+			return err
+		}
+		log.Printf("Updated plan period for organization %d", org.ID)
+	}
+
+	return nil
+}
+
+func handleSubscriptionDeleted(request ProcessSnapshotWebhookEventServiceRequest) error {
+	var sub stripeGo.Subscription
+	err := json.Unmarshal(request.Event.Data.Raw, &sub)
+	if err != nil {
+		log.Printf("Failed to unmarshal subscription: %v", err)
+		return err
+	}
+
+	// Delete the plan period for this subscription
+	err = request.DB.WithContext(request.Context).
+		Where("stripe_subscription_id = ?", sub.ID).
+		Delete(&models.OrganizationPlanPeriod{}).Error
+
+	if err != nil {
+		log.Printf("Failed to delete plan period: %v", err)
+		return err
+	}
+
+	log.Printf("Deleted plan period for subscription %s", sub.ID)
+	return nil
 }
 
 func processThinWebhookEvent(request ProcessThinWebhookEventServiceRequest) error {
@@ -434,6 +571,125 @@ func handleAccountIdentityUpdated(request ProcessThinWebhookEventServiceRequest,
 	log.Printf("Account identity updated: %s", event.RelatedObject.ID)
 
 	return nil
+}
+
+func CreateCheckoutSession(request CreateCheckoutSessionServiceRequest) (*stripeGo.CheckoutSession, error) {
+	db := request.DB
+	context := request.Context
+	params := request.Params
+	config := request.Config
+	// Note: Package-level functions use the API key configured when stripeClient was created in server.go
+
+	if config.StripeProPlanPriceId == "" {
+		return nil, errors.New("stripe pro plan price ID is not configured")
+	}
+
+	if config.StripeProPlanProductId == "" {
+		return nil, errors.New("stripe pro plan product ID is not configured")
+	}
+
+	// Get the organization
+	var org models.Organization
+	if err := db.WithContext(context).First(&org, params.OrganizationID).Error; err != nil {
+		return nil, err
+	}
+
+	// Check if organization has a Stripe Connect account
+	if org.Stripe.AccountID == "" {
+		return nil, errors.New("organization does not have a Stripe Connect account")
+	}
+
+	// In Accounts v2, the account ID is used as the customer ID via customer_account parameter
+	// Create checkout session
+	sessionParams := &stripeGo.CheckoutSessionParams{
+		Mode: stripeGo.String(string(stripeGo.CheckoutSessionModeSubscription)),
+		LineItems: []*stripeGo.CheckoutSessionLineItemParams{
+			{
+				Price: stripeGo.String(config.StripeProPlanPriceId),
+				Quantity: stripeGo.Int64(1),
+			},
+		},
+		SuccessURL: stripeGo.String(params.SuccessURL),
+		CancelURL: stripeGo.String(params.CancelURL),
+		Metadata: map[string]string{
+			"organization_id": fmt.Sprintf("%d", org.ID),
+		},
+	}
+	
+	// Use customer_account instead of customer for Accounts v2
+	sessionParams.AddExtra("customer_account", org.Stripe.AccountID)
+	
+	// Create the session (uses the API key configured in stripeClient)
+	sess, err := checkoutSession.New(sessionParams)
+	if err != nil {
+		log.Printf("Failed to create checkout session: %v", err)
+		return nil, err
+	}
+
+	return sess, nil
+}
+
+func CreateBillingPortalSession(request CreateBillingPortalSessionServiceRequest) (*stripeGo.BillingPortalSession, error) {
+	db := request.DB
+	context := request.Context
+	params := request.Params
+	config := request.Config
+	// Note: Package-level functions use the API key configured when stripeClient was created in server.go
+
+	// Get the organization
+	var org models.Organization
+	if err := db.WithContext(context).First(&org, params.OrganizationID).Error; err != nil {
+		return nil, err
+	}
+
+	if org.Stripe.AccountID == "" {
+		return nil, errors.New("organization does not have a Stripe Connect account")
+	}
+
+	// Create billing portal session using customer_account for Accounts v2
+	sessionParams := &stripeGo.BillingPortalSessionParams{
+		ReturnURL: stripeGo.String(params.ReturnURL),
+	}
+	
+	// Add billing portal configuration if provided
+	if config.StripeBillingPortalConfigurationId != "" {
+		sessionParams.Configuration = stripeGo.String(config.StripeBillingPortalConfigurationId)
+	}
+	
+	// Use customer_account instead of customer for Accounts v2
+	sessionParams.AddExtra("customer_account", org.Stripe.AccountID)
+
+	// Create the session (uses the API key configured in stripeClient)
+	sess, err := session.New(sessionParams)
+	if err != nil {
+		log.Printf("Failed to create billing portal session: %v", err)
+		return nil, err
+	}
+
+	return sess, nil
+}
+
+func GetSubscription(request GetSubscriptionServiceRequest) (*models.OrganizationPlanPeriod, error) {
+	db := request.DB
+	context := request.Context
+
+	// Get the most recent active subscription for the organization
+	var planPeriod models.OrganizationPlanPeriod
+	err := db.WithContext(context).
+		Where("organization_id = ?", request.OrganizationID).
+		Where("billing_period_end > ?", time.Now()).
+		Order("billing_period_end DESC").
+		First(&planPeriod).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// No active subscription found
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &planPeriod, nil
 }
 
 // fetchAndUpdateAccount handles capability status changes.

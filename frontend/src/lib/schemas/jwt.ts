@@ -18,6 +18,7 @@ export enum UserScope {
 	OrganizationInvitationsUpdate = 'organization:invitations:update',
 	OrganizationInvitationsDelete = 'organization:invitations:delete',
 	OrganizationStripeUpdate = 'organization:stripe:update',
+	OrganizationBillingUpdate = 'organization:billing:update',
 
 	// Admin
 	Admin = 'admin',

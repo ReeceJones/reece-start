@@ -99,3 +99,92 @@ type CreateOnboardingLinkParams struct {
 	RefreshURL string
 	ReturnURL string
 }
+
+type CreateCheckoutSessionServiceRequest struct {
+	Context context.Context
+	Config *configuration.Config
+	StripeClient *stripeGo.Client
+	DB *gorm.DB
+	Params CreateCheckoutSessionParams
+}
+
+type CreateCheckoutSessionParams struct {
+	OrganizationID uint
+	SuccessURL string
+	CancelURL string
+}
+
+type CreateBillingPortalSessionServiceRequest struct {
+	Context context.Context
+	Config *configuration.Config
+	StripeClient *stripeGo.Client
+	DB *gorm.DB
+	Params CreateBillingPortalSessionParams
+}
+
+type CreateBillingPortalSessionParams struct {
+	OrganizationID uint
+	ReturnURL string
+}
+
+type GetSubscriptionServiceRequest struct {
+	Context context.Context
+	DB *gorm.DB
+	OrganizationID uint
+}
+
+// Response structs for HTTP endpoints
+type CheckoutSessionResponse struct {
+	Data CheckoutSessionData `json:"data"`
+}
+
+type CheckoutSessionData struct {
+	Type       string                      `json:"type"`
+	ID         string                      `json:"id"`
+	Attributes CheckoutSessionAttributes `json:"attributes"`
+}
+
+type CheckoutSessionAttributes struct {
+	URL string `json:"url"`
+}
+
+type BillingPortalSessionResponse struct {
+	Data BillingPortalSessionData `json:"data"`
+}
+
+type BillingPortalSessionData struct {
+	Type       string                           `json:"type"`
+	ID         string                           `json:"id"`
+	Attributes BillingPortalSessionAttributes `json:"attributes"`
+}
+
+type BillingPortalSessionAttributes struct {
+	URL string `json:"url"`
+}
+
+type SubscriptionResponse struct {
+	Data SubscriptionData `json:"data"`
+}
+
+type SubscriptionData struct {
+	Type       string                   `json:"type"`
+	ID         string                   `json:"id,omitempty"`
+	Attributes SubscriptionAttributes `json:"attributes"`
+}
+
+type SubscriptionAttributes struct {
+	Plan               string  `json:"plan"`
+	BillingPeriodStart *string `json:"billingPeriodStart"`
+	BillingPeriodEnd   *string `json:"billingPeriodEnd"`
+	BillingAmount      int     `json:"billingAmount"`
+}
+
+// Request structs for HTTP endpoints
+type CreateCheckoutSessionRequest struct {
+	SuccessURL string `json:"successUrl" validate:"required,url"`
+	CancelURL  string `json:"cancelUrl" validate:"required,url"`
+}
+
+type CreateBillingPortalSessionRequest struct {
+	ReturnURL string `json:"returnUrl" validate:"required,url"`
+}

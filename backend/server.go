@@ -72,7 +72,8 @@ func main() {
 
 	log.Printf("Resend client created\n")
 
-	// Create stripe client
+	// Create stripe client and configure the global API key
+	stripeGo.Key = config.StripeSecretKey
 	stripeClient := stripeGo.NewClient(config.StripeSecretKey)
 
 	// Create river client (Background jobs)
@@ -171,6 +172,9 @@ func main() {
 	protected.DELETE("/organizations/:id", organizations.DeleteOrganizationEndpoint)
 	protected.POST("/organizations/:id/stripe-onboarding-link", organizations.CreateStripeOnboardingLinkEndpoint)
 	protected.POST("/organizations/:id/stripe-dashboard-link", organizations.CreateStripeDashboardLinkEndpoint)
+	protected.GET("/organizations/:id/subscription", stripe.GetSubscriptionEndpoint)
+	protected.POST("/organizations/:id/checkout-session", api.Validated(stripe.CreateCheckoutSessionEndpoint))
+	protected.POST("/organizations/:id/billing-portal-session", api.Validated(stripe.CreateBillingPortalSessionEndpoint))
 
 	protected.GET("/organization-memberships", api.ValidatedQuery(organizations.GetOrganizationMembershipsEndpoint))
 	protected.GET("/organization-memberships/:id", organizations.GetOrganizationMembershipEndpoint)

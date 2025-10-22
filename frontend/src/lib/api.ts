@@ -161,6 +161,8 @@ export async function get<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 
 	const parsedData = await response.json();
 
+	console.log('Parsed data:', parsedData);
+
 	return options.responseSchema.parse(parsedData);
 }
 

@@ -15,10 +15,8 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
 - Landing, pricing, and faq page templates
 - Email notification API
 - Organization onboarding
-- Billing with free and paid plans (WIP)
+- Billing with free and paid plans
 - Stripe connect support
-- Posthog integration (TODO)
-- Sentry integration (TODO)
 - i18n support (TODO)
 - Basic CI checks (TODO)
   - Tests
@@ -28,6 +26,8 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
   - Formatting
 - Railway deployment template (TODO)
 - Structured logging (json) (TODO)
+- Posthog integration (TODO)
+- Sentry integration (TODO)
 
 ## Getting started
 
