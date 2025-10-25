@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Plus } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
+	import { t } from '$lib/i18n';
 
 	const {
 		loading
@@ -15,5 +16,5 @@
 	{:else}
 		<Plus class="size-4" />
 	{/if}
-	Create Organization
+	{$t('createOrganization')}
 </button>

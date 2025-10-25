@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { setIsImpersonatingUser, setScopes } from '$lib/auth';
+	import { t } from '$lib/i18n';
 
 	const { children, data } = $props();
 
@@ -10,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard - reece-start</title>
+	<title>{$t('dashboard')} - reece-start</title>
 	<meta name="description" content="Dashboard for reece-start" />
 </svelte:head>
 

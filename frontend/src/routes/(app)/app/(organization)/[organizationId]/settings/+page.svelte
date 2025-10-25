@@ -14,6 +14,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
+	import { t } from '$lib/i18n';
 
 	const { data, form }: PageProps = $props();
 
@@ -48,7 +49,7 @@
 </script>
 
 <SettingsCard>
-	<SettingsCardTitle>General</SettingsCardTitle>
+	<SettingsCardTitle>{$t('settings.organization.general.title')}</SettingsCardTitle>
 	<form
 		method="post"
 		use:enhance={() => {
@@ -63,12 +64,14 @@
 		enctype="multipart/form-data"
 	>
 		<fieldset class="fieldset">
-			<legend class="fieldset-legend">Organization logo</legend>
+			<legend class="fieldset-legend">{$t('settings.organization.general.logo.label')}</legend>
 			{#if logoPreview}
-				<img src={logoPreview} alt="Organization logo" class="aspect-square w-48 rounded-box" />
+				<img src={logoPreview} alt="Organization logo" class="rounded-box aspect-square w-48" />
 			{:else}
-				<div class="flex aspect-square w-48 items-center justify-center rounded-box bg-base-300">
-					<span class="text-base-content/50">No logo uploaded</span>
+				<div class="rounded-box bg-base-300 flex aspect-square w-48 items-center justify-center">
+					<span class="text-base-content/50"
+						>{$t('settings.organization.general.logo.noLogoUploaded')}</span
+					>
 				</div>
 			{/if}
 			<input
@@ -87,47 +90,49 @@
 				}}
 				disabled={!canUpdate}
 			/>
-			<p class="fieldset-label">Upload your organization logo</p>
+			<p class="fieldset-label">{$t('settings.organization.general.logo.description')}</p>
 		</fieldset>
 
 		<fieldset class="fieldset">
-			<legend class="fieldset-legend">Name</legend>
+			<legend class="fieldset-legend">{$t('settings.organization.general.name.label')}</legend>
 			<input
 				type="text"
 				name="name"
 				required
 				class="input"
-				placeholder="Organization name"
+				placeholder={$t('settings.organization.general.name.placeholder')}
 				bind:value={formData.name}
 				disabled={!canUpdate}
 			/>
-			<p class="fieldset-label">What should we call your organization?</p>
+			<p class="fieldset-label">{$t('settings.organization.general.name.description')}</p>
 		</fieldset>
 
 		<fieldset class="fieldset">
-			<legend class="fieldset-legend">Description</legend>
+			<legend class="fieldset-legend"
+				>{$t('settings.organization.general.description.label')}</legend
+			>
 			<textarea
 				name="description"
 				class="textarea"
-				placeholder="Organization description"
+				placeholder={$t('settings.organization.general.description.placeholder')}
 				bind:value={formData.description}
 				maxlength={255}
 				disabled={!canUpdate}
 			></textarea>
-			<p class="fieldset-label">A brief description of your organization</p>
+			<p class="fieldset-label">{$t('settings.organization.general.description.description')}</p>
 		</fieldset>
 
 		{#if form?.success}
-			<div role="alert" class="mt-3 alert alert-success">
+			<div role="alert" class="alert alert-success mt-3">
 				<CircleCheck />
-				<span>Your organization has been updated!</span>
+				<span>{$t('settings.organization.general.success.organizationUpdated')}</span>
 			</div>
 		{:else if form?.success === false}
-			<div role="alert" class="mt-3 alert alert-error">
+			<div role="alert" class="alert alert-error mt-3">
 				<CircleX />
 				<span
 					>{form.message ??
-						'There was an error updating your organization. Make sure you have filled out all the fields correctly.'}</span
+						$t('settings.organization.general.success.organizationUpdateError')}</span
 				>
 			</div>
 		{/if}
@@ -139,15 +144,15 @@
 				{:else}
 					<Save />
 				{/if}
-				<span>Save</span>
+				<span>{$t('save')}</span>
 			</button>
 		</SettingsCardActions>
 	</form>
 
 	<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
 		<div class="modal-box">
-			<h3 class="text-lg font-bold">Update logo</h3>
-			<p class="py-4">Edit the logo to your liking and click save.</p>
+			<h3 class="text-lg font-bold">{$t('settings.organization.general.logo.updateLogo')}</h3>
+			<p class="py-4">{$t('settings.organization.general.logo.updateLogoDescription')}</p>
 			{#if uncroppedLogo && uncroppedLogo.length > 0}
 				<LogoCrop
 					imageFile={uncroppedLogo[0]}
@@ -180,7 +185,7 @@
 			{/if}
 		</div>
 		<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
-			<button>close</button>
+			<button>{$t('close')}</button>
 		</form>
 	</dialog>
 </SettingsCard>

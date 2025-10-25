@@ -8,6 +8,7 @@
 	import Card from '$lib/components/Card/Card.svelte';
 	import CardBody from '$lib/components/Card/CardBody.svelte';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import { t } from '$lib/i18n';
 
 	const { data, form }: PageProps = $props();
 	const organization = $derived(
@@ -35,11 +36,13 @@
 			<div class="flex flex-col items-center justify-center gap-6">
 				<div class="flex flex-col items-center justify-center gap-1">
 					<CardTitle class="text-center">
-						{invitingUser?.attributes.name} invited you to join "{organization?.attributes.name}"
+						{$t('noOrganization.invitation.invitedBy', {
+							inviterName: invitingUser?.attributes.name || '',
+							organizationName: organization?.attributes.name || ''
+						})}
 					</CardTitle>
 					<p class="text-center text-gray-500">
-						By accepting, you will be added to the organization, and you will be able to collaborate
-						with your team.
+						{$t('noOrganization.invitation.invitationDescription')}
 					</p>
 				</div>
 
@@ -47,7 +50,7 @@
 					<img
 						src={organization?.meta.logoDistributionUrl}
 						alt={organization?.attributes.name}
-						class="size-32 rounded-box"
+						class="rounded-box size-32"
 					/>
 				{/if}
 
@@ -66,7 +69,7 @@
 					>
 						<button class="btn btn-md btn-neutral" disabled={submitting}>
 							<X class="size-4" />
-							Decline
+							{$t('noOrganization.invitation.decline')}
 						</button>
 					</form>
 					<form
@@ -83,7 +86,7 @@
 					>
 						<button class="btn btn-md btn-primary" disabled={submitting}>
 							<Check class="size-4" />
-							Accept
+							{$t('noOrganization.invitation.accept')}
 						</button>
 					</form>
 				</div>
@@ -96,34 +99,30 @@
 			</div>
 		{:else if status === 'accepted'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">This invitation has already been accepted.</CardTitle>
+				<CardTitle class="text-center">{$t('noOrganization.invitation.accepted.title')}</CardTitle>
 				<p class="text-center text-gray-500">
-					If you did not accept this invitation, please contact the organization owner for a new
-					invitation.
+					{$t('noOrganization.invitation.accepted.description')}
 				</p>
 			</div>
 		{:else if status === 'declined'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">This invitation has already been declined.</CardTitle>
+				<CardTitle class="text-center">{$t('noOrganization.invitation.declined.title')}</CardTitle>
 				<p class="text-center text-gray-500">
-					If you would like to join this organization, please contact the organization owner for a
-					new invitation.
+					{$t('noOrganization.invitation.declined.description')}
 				</p>
 			</div>
 		{:else if status === 'expired'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">This invitation has expired.</CardTitle>
+				<CardTitle class="text-center">{$t('noOrganization.invitation.expired.title')}</CardTitle>
 				<p class="text-center text-gray-500">
-					If you would like to join this organization, please contact the organization owner for a
-					new invitation.
+					{$t('noOrganization.invitation.expired.description')}
 				</p>
 			</div>
 		{:else if status === 'revoked'}
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">This invitation has already been revoked.</CardTitle>
-				<p>
-					If you would like to join this organization, please contact the organization owner for a
-					new invitation.
+				<CardTitle class="text-center">{$t('noOrganization.invitation.revoked.title')}</CardTitle>
+				<p class="text-center text-gray-500">
+					{$t('noOrganization.invitation.revoked.description')}
 				</p>
 			</div>
 		{/if}

@@ -3,6 +3,7 @@
 	import type { LayoutProps } from './$types';
 	import { page } from '$app/state';
 	import clsx from 'clsx/lite';
+	import { t } from '$lib/i18n';
 	// TODO: refactor this into common component since it is also used in user settings
 
 	const { children, params }: LayoutProps = $props();
@@ -11,25 +12,25 @@
 	const activeClass = 'bg-base-300 rounded-md';
 	const routes = [
 		{
-			name: 'General',
+			name: $t('settings.general'),
 			icon: Settings,
 			href: `/app/${params.organizationId}/settings`,
 			exact: true
 		},
 		{
-			name: 'Members',
+			name: $t('settings.members'),
 			icon: Users,
 			href: `/app/${params.organizationId}/settings/members`,
 			exact: false
 		},
 		{
-			name: 'Billing',
+			name: $t('settings.billing'),
 			icon: Receipt,
 			href: `/app/${params.organizationId}/settings/billing`,
 			exact: false
 		},
 		{
-			name: 'Payments',
+			name: $t('settings.payments'),
 			icon: DollarSign,
 			href: `/app/${params.organizationId}/settings/payments`,
 			exact: false
@@ -39,9 +40,9 @@
 
 <div class="flex flex-col gap-8">
 	<div class="space-y-4">
-		<h1 class="text-3xl font-bold">Settings</h1>
+		<h1 class="text-3xl font-bold">{$t('settings.title')}</h1>
 		<ul
-			class="menu menu-horizontal max-w-full flex-nowrap gap-1 overflow-auto rounded-box bg-base-200 shadow-sm"
+			class="menu menu-horizontal rounded-box bg-base-200 max-w-full flex-nowrap gap-1 overflow-auto shadow-sm"
 		>
 			{#each routes as route (route.href)}
 				<li

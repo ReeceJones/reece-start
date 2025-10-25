@@ -9,6 +9,7 @@
 	import InvitationRow from '$lib/components/Organizations/InvitationRow.svelte';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
+	import { t } from '$lib/i18n';
 
 	const { data, params }: PageProps = $props();
 	let invitedMemberEmail = $state('');
@@ -36,20 +37,21 @@
 </script>
 
 <SettingsCard>
-	<SettingsCardTitle>Members</SettingsCardTitle>
+	<SettingsCardTitle>{$t('settings.organization.members.title')}</SettingsCardTitle>
 	<InviteMember
 		organizationId={params.organizationId}
 		onMemberInvited={(email) => (invitedMemberEmail = email)}
 	/>
 
 	{#if invitedMemberEmail}
-		<div class="my-1 alert alert-success">
+		<div class="alert alert-success my-1">
 			<CircleCheck class="size-4" />
 			<span>
-				We've sent an email to
+				{$t('members.invitationSent')}
 				<strong
 					><a href={`mailto:${invitedMemberEmail}`} class="link">{invitedMemberEmail}</a></strong
-				> with instructions to join your organization.
+				>
+				{$t('members.withInstructionsToJoin')}
 			</span>
 		</div>
 	{/if}
@@ -58,15 +60,15 @@
 		<table class="table">
 			<thead>
 				<tr>
-					<th>Name</th>
-					<th>Role</th>
+					<th>{$t('members.name')}</th>
+					<th>{$t('members.role')}</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 				{#if memberships.length === 0}
 					<tr>
-						<td colspan="3" class="text-center">No memberships found</td>
+						<td colspan="3" class="text-center">{$t('members.noMembershipsFound')}</td>
 					</tr>
 				{/if}
 				{#each memberships as membership (membership.membership.id)}
@@ -76,10 +78,10 @@
 								<img
 									src={membership.user?.meta.logoDistributionUrl}
 									alt={membership.user?.attributes.name}
-									class="size-10 rounded-box"
+									class="rounded-box size-10"
 								/>
 							{:else}
-								<User class="size-10 rounded-box bg-base-300" />
+								<User class="rounded-box bg-base-300 size-10" />
 							{/if}
 							<div class="flex flex-col">
 								<div class="font-semibold">{membership.user?.attributes.name}</div>
@@ -105,7 +107,7 @@
 									class={clsx(
 										'btn btn-square btn-ghost btn-sm',
 										!canUpdateMembership &&
-											'pointer-events-none cursor-default text-base-content/50'
+											'text-base-content/50 pointer-events-none cursor-default'
 									)}
 									href={canUpdateMembership
 										? `/app/${params.organizationId}/settings/members/${membership.membership.id}`
@@ -124,12 +126,12 @@
 </SettingsCard>
 
 <SettingsCard>
-	<SettingsCardTitle>Pending Invitations</SettingsCardTitle>
+	<SettingsCardTitle>{$t('members.pendingInvitations')}</SettingsCardTitle>
 	<div class="overflow-auto">
 		<table class="table">
 			<thead>
 				<tr>
-					<th>Email</th>
+					<th>{$t('members.email')}</th>
 					<th></th>
 					<th></th>
 				</tr>
@@ -137,7 +139,7 @@
 			<tbody>
 				{#if data.invitations.data.length === 0}
 					<tr>
-						<td colspan="2" class="text-center">No invitations found</td>
+						<td colspan="2" class="text-center">{$t('members.noInvitationsFound')}</td>
 					</tr>
 				{/if}
 				{#each data.invitations.data as invitation (invitation.id)}

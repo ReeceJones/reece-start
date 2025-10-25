@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import type { PageProps } from './$types';
 	import { enhance, applyAction } from '$app/forms';
 	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
@@ -30,7 +31,7 @@
 </script>
 
 <SettingsCard>
-	<SettingsCardTitle>Security</SettingsCardTitle>
+	<SettingsCardTitle>{$t('settings.security')}</SettingsCardTitle>
 	<form
 		method="post"
 		use:enhance={() => {
@@ -47,63 +48,64 @@
 		<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
 
 		<fieldset class="fieldset">
-			<legend class="fieldset-legend">Email</legend>
+			<legend class="fieldset-legend">{$t('settings.fields.email.label')}</legend>
 			<input
 				type="email"
 				name="email"
 				required
 				class="input"
-				placeholder="Email"
+				placeholder={$t('settings.fields.email.placeholder')}
 				bind:value={email}
 			/>
 			<p class="fieldset-label">
-				The email you use to log into your account and receive notifications
+				{$t('settings.fields.email.description')}
 			</p>
 		</fieldset>
 
 		<fieldset class="fieldset">
-			<legend class="fieldset-legend">Update Password</legend>
+			<legend class="fieldset-legend">{$t('settings.fields.updatePassword.label')}</legend>
 			<input
 				type="password"
 				name="password"
 				class="input"
-				placeholder="Password"
+				placeholder={$t('settings.fields.updatePassword.placeholder')}
 				bind:value={password}
 			/>
-			<p class="fieldset-label">Update your password used to sign in to your account</p>
+			<p class="fieldset-label">{$t('settings.fields.updatePassword.description')}</p>
 			{#if password.length > 0 && password.length < 8}
-				<p class="fieldset-label text-error">Password must be at least 8 characters long.</p>
+				<p class="fieldset-label text-error">
+					{$t('settings.fields.updatePassword.passwordTooShort')}
+				</p>
 			{/if}
 		</fieldset>
 
 		{#if password !== ''}
 			<fieldset class="fieldset">
-				<legend class="fieldset-legend">Confirm password</legend>
+				<legend class="fieldset-legend">{$t('settings.fields.confirmPassword.label')}</legend>
 				<input
 					type="password"
 					name="confirmPassword"
 					class={clsx('input', password !== confirmPassword && 'input-error')}
-					placeholder="Confirm password"
+					placeholder={$t('settings.fields.confirmPassword.placeholder')}
 					bind:value={confirmPassword}
 				/>
 				{#if password !== confirmPassword}
-					<p class={clsx('fieldset-label', 'text-error')}>Passwords do not match.</p>
+					<p class={clsx('fieldset-label', 'text-error')}>
+						{$t('settings.fields.confirmPassword.passwordDoesNotMatch')}
+					</p>
 				{/if}
 			</fieldset>
 		{/if}
 
 		{#if form?.success}
-			<div role="alert" class="mt-3 alert alert-success">
+			<div role="alert" class="alert alert-success mt-3">
 				<CircleCheck />
-				<span>Your profile has been updated!</span>
+				<span>{$t('settings.success.profileUpdated')}</span>
 			</div>
 		{:else if form?.success === false}
-			<div role="alert" class="mt-3 alert alert-error">
+			<div role="alert" class="alert alert-error mt-3">
 				<CircleX />
-				<span
-					>{form.message ??
-						'There was an error updating your profile. Make sure you have filled out all the fields correctly.'}</span
-				>
+				<span>{form.message ?? $t('settings.success.profileUpdateError')}</span>
 			</div>
 		{/if}
 
@@ -114,7 +116,7 @@
 				{:else}
 					<Save />
 				{/if}
-				<span>Save</span>
+				<span>{$t('save')}</span>
 			</button>
 		</SettingsCardActions>
 	</form>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
@@ -74,15 +75,15 @@
 			{#if loading}
 				<div class="text-center">
 					<span class="loading loading-lg loading-spinner"></span>
-					<h2 class="mt-4">Completing sign in...</h2>
-					<p class="text-gray-500">Please wait while we finish signing you in with Google.</p>
+					<h2 class="mt-4">{$t('oauth.completingSignIn')}</h2>
+					<p class="text-gray-500">{$t('oauth.pleaseWait')}</p>
 				</div>
 			{:else if error}
 				<div class="text-center">
-					<CardTitle class="text-error">Authentication Error</CardTitle>
+					<CardTitle class="text-error">{$t('oauth.authenticationError')}</CardTitle>
 					<p class="mb-4 text-gray-500">{error}</p>
 					<CardActions>
-						<a href="/signin" class="btn w-full btn-primary">Try Again</a>
+						<a href="/signin" class="btn btn-primary w-full">{$t('oauth.tryAgain')}</a>
 					</CardActions>
 				</div>
 			{/if}

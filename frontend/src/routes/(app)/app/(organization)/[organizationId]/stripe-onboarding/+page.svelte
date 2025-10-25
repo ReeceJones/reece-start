@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import Card from '$lib/components/Card/Card.svelte';
@@ -20,9 +21,9 @@
 <div class="mx-auto max-w-80">
 	<Card>
 		<CardBody>
-			<CardTitle>Redirecting to Stripe...</CardTitle>
+			<CardTitle>{$t('payments.redirectingToStripe')}</CardTitle>
 			{#if loading}
-				<span class="loading mx-auto loading-lg loading-spinner"></span>
+				<span class="loading loading-lg loading-spinner mx-auto"></span>
 			{:else if error}
 				<div class="alert alert-error">
 					<CircleX />

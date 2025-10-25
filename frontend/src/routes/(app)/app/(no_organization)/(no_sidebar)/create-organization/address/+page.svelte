@@ -1,7 +1,8 @@
+<script lang="ts">
+	import { t } from '$lib/i18n';
+</script>
+
 <div class="space-y-3 text-sm">
-	<p>
-		Next, we need to know where your organization is located. This will be displayed on invoices,
-		used to calculate taxes, and more.
-	</p>
-	<p>If your address changes, you can always update it later!</p>
+	<p>{$t('createOrganizationPages.descriptions.address.intro')}</p>
+	<p>{$t('createOrganizationPages.descriptions.address.note')}</p>
 </div>

@@ -3,6 +3,7 @@
 	import Card from '$lib/components/Card/Card.svelte';
 	import CardBody from '$lib/components/Card/CardBody.svelte';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import { t } from '$lib/i18n';
 
 	const scopes = $derived(getScopes());
 </script>
@@ -10,7 +11,7 @@
 <div class="grid grid-cols-3 gap-6">
 	<Card>
 		<CardBody>
-			<CardTitle>User Scopes</CardTitle>
+			<CardTitle>{$t('noOrganization.admin.debug.userScopes')}</CardTitle>
 			<ul class="list-inside list-disc">
 				{#each scopes as scope (scope)}
 					<li class="font-mono">{scope}</li>

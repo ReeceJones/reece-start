@@ -5,6 +5,7 @@
 	import type { OrganizationInvitation } from '$lib/schemas/organization-invitation';
 	import { Check, Copy, Trash } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
+	import { t } from '$lib/i18n';
 
 	const { invitation }: { invitation: OrganizationInvitation } = $props();
 
@@ -18,7 +19,7 @@
 	<div class="toast" transition:slide>
 		<div class="alert">
 			<Check class="size-4" />
-			<span>Invitation link copied to clipboard.</span>
+			<span>{$t('invitationLinkCopied')}</span>
 		</div>
 	</div>
 {/if}
@@ -46,7 +47,7 @@
 			{:else}
 				<Copy class="size-4 transition-all" />
 			{/if}
-			<span> Copy Invitation Link </span>
+			<span> {$t('copyInvitationLink')} </span>
 		</button>
 	</td>
 	<td>
@@ -69,7 +70,7 @@
 					disabled={submitting || !canDeleteInvitation}
 				>
 					{#if submitting}
-						<span class="loading size-4 loading-spinner"></span>
+						<span class="loading loading-spinner size-4"></span>
 					{:else}
 						<Trash class="size-4" />
 					{/if}

@@ -7,6 +7,7 @@
 	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
 	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
+	import { t } from '$lib/i18n';
 
 	let { data, form }: PageProps = $props();
 
@@ -55,7 +56,7 @@
 </script>
 
 <SettingsCard>
-	<SettingsCardTitle>Profile</SettingsCardTitle>
+	<SettingsCardTitle>{$t('profile.title')}</SettingsCardTitle>
 	<form
 		method="post"
 		use:enhance={() => {
@@ -72,8 +73,8 @@
 		<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
 
 		<fieldset class="fieldset">
-			<legend class="fieldset-legend">Profile picture</legend>
-			<img src={logoPreview} alt="User profile logo" class="aspect-square w-48 rounded-box" />
+			<legend class="fieldset-legend">{$t('profile.profilePicture')}</legend>
+			<img src={logoPreview} alt="User profile logo" class="rounded-box aspect-square w-48" />
 			<input
 				type="file"
 				name="logo"
@@ -89,27 +90,31 @@
 					}
 				}}
 			/>
-			<p class="fieldset-label">Upload your profile picture</p>
+			<p class="fieldset-label">{$t('profile.uploadProfilePicture')}</p>
 		</fieldset>
 
 		<fieldset class="fieldset">
-			<legend class="fieldset-legend">Name</legend>
-			<input type="text" name="name" required class="input" placeholder="Name" bind:value={name} />
-			<p class="fieldset-label">What should we call you?</p>
+			<legend class="fieldset-legend">{$t('profile.name')}</legend>
+			<input
+				type="text"
+				name="name"
+				required
+				class="input"
+				placeholder={$t('profile.namePlaceholder')}
+				bind:value={name}
+			/>
+			<p class="fieldset-label">{$t('profile.nameDescription')}</p>
 		</fieldset>
 
 		{#if form?.success}
-			<div role="alert" class="mt-3 alert alert-success">
+			<div role="alert" class="alert alert-success mt-3">
 				<CircleCheck />
-				<span>Your profile has been updated!</span>
+				<span>{$t('profile.profileUpdated')}</span>
 			</div>
 		{:else if form?.success === false}
-			<div role="alert" class="mt-3 alert alert-error">
+			<div role="alert" class="alert alert-error mt-3">
 				<CircleX />
-				<span
-					>{form.message ??
-						'There was an error updating your profile. Make sure you have filled out all the fields correctly.'}</span
-				>
+				<span>{form.message ?? $t('profile.profileUpdateError')}</span>
 			</div>
 		{/if}
 
@@ -120,15 +125,15 @@
 				{:else}
 					<Save />
 				{/if}
-				<span>Save</span>
+				<span>{$t('save')}</span>
 			</button>
 		</SettingsCardActions>
 	</form>
 
 	<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
 		<div class="modal-box">
-			<h3 class="text-lg font-bold">Update image</h3>
-			<p class="py-4">Edit the image to your liking and click save.</p>
+			<h3 class="text-lg font-bold">{$t('profile.updateImage')}</h3>
+			<p class="py-4">{$t('profile.editImageDescription')}</p>
 			{#if uncroppedLogo && uncroppedLogo.length > 0}
 				<LogoCrop
 					imageFile={uncroppedLogo[0]}
@@ -161,7 +166,7 @@
 			{/if}
 		</div>
 		<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
-			<button>close</button>
+			<button>{$t('close')}</button>
 		</form>
 	</dialog>
 </SettingsCard>

@@ -15,6 +15,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import type { PageProps } from './$types';
+	import { t } from '$lib/i18n';
 
 	const { data }: PageProps = $props();
 
@@ -69,7 +70,7 @@
 			window.location.href = response.data.attributes.url;
 		} catch (err) {
 			console.error('Failed to create checkout session:', err);
-			error = 'Failed to start checkout. Please try again.';
+			error = $t('billing.failedToStartCheckout');
 			loading = false;
 		}
 	}
@@ -100,14 +101,14 @@
 			window.location.href = response.data.attributes.url;
 		} catch (err) {
 			console.error('Failed to create billing portal session:', err);
-			error = 'Failed to open billing portal. Please try again.';
+			error = $t('billing.failedToOpenBillingPortal');
 			loading = false;
 		}
 	}
 </script>
 
 <SettingsCard>
-	<SettingsCardTitle>Billing & Subscription</SettingsCardTitle>
+	<SettingsCardTitle>{$t('billing.title')}</SettingsCardTitle>
 
 	<div class="space-y-6">
 		<!-- Current Plan Display -->
@@ -121,22 +122,21 @@
 							{#if isProPlan}
 								<span class="flex items-center gap-2">
 									<Sparkles class="text-primary size-6" />
-									Pro Plan
+									{$t('billing.proPlan')}
 								</span>
 							{:else}
-								Free Plan
+								{$t('billing.freePlan')}
 							{/if}
 						</h3>
 					</div>
 
 					{#if isProPlan}
 						<p class="text-base-content/70 mt-2">
-							You're subscribed to the Pro plan with all premium features.
+							{$t('billing.proDescription')}
 						</p>
 					{:else}
 						<p class="text-base-content/70 mt-2">
-							You're currently on the Free plan. Upgrade to Pro to unlock advanced features and grow
-							your business.
+							{$t('billing.freeDescription')}
 						</p>
 					{/if}
 
@@ -152,9 +152,11 @@
 								{:else}
 									<Sparkles class="size-5" />
 								{/if}
-								Upgrade to Pro Now
+								{$t('billing.upgradeToPro')}
 							</button>
-							<span class="text-base-content/60 text-sm font-medium"> Get started in minutes </span>
+							<span class="text-base-content/60 text-sm font-medium"
+								>{$t('billing.getStartedInMinutes')}</span
+							>
 						</div>
 					{/if}
 				</div>
@@ -162,7 +164,7 @@
 				{#if isProPlan}
 					<div class="badge badge-primary badge-lg gap-2">
 						<CheckCircle2 class="size-4" />
-						Active
+						{$t('billing.active')}
 					</div>
 				{/if}
 			</div>
@@ -170,11 +172,11 @@
 			{#if isProPlan && data.subscription.data.attributes.billingPeriodEnd}
 				<div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div>
-						<p class="text-base-content/60 text-sm">Billing Amount</p>
-						<p class="text-lg font-semibold">{formattedBillingAmount()}/month</p>
+						<p class="text-base-content/60 text-sm">{$t('billing.billingAmount')}</p>
+						<p class="text-lg font-semibold">{formattedBillingAmount()}{$t('billing.perMonth')}</p>
 					</div>
 					<div>
-						<p class="text-base-content/60 text-sm">Next Billing Date</p>
+						<p class="text-base-content/60 text-sm">{$t('billing.nextBillingDate')}</p>
 						<p class="text-lg font-semibold">
 							{formatDate(data.subscription.data.attributes.billingPeriodEnd)}
 						</p>
@@ -187,20 +189,22 @@
 		<div class="grid gap-4 md:grid-cols-2">
 			<!-- Free Plan Card -->
 			<div class="rounded-box border-base-300 bg-base-100 border p-6">
-				<h4 class="text-lg font-semibold">Free Plan</h4>
-				<p class="mt-2 text-3xl font-bold">$0<span class="text-base font-normal">/month</span></p>
+				<h4 class="text-lg font-semibold">{$t('billing.freePlan')}</h4>
+				<p class="mt-2 text-3xl font-bold">
+					$0<span class="text-base font-normal">{$t('billing.perMonth')}</span>
+				</p>
 				<ul class="mt-4 space-y-2">
 					<li class="flex items-start gap-2">
 						<CheckCircle2 class="text-success mt-0.5 size-5 flex-shrink-0" />
-						<span class="text-sm">Basic features</span>
+						<span class="text-sm">{$t('billing.basicFeatures')}</span>
 					</li>
 					<li class="flex items-start gap-2">
 						<CheckCircle2 class="text-success mt-0.5 size-5 flex-shrink-0" />
-						<span class="text-sm">Standard support</span>
+						<span class="text-sm">{$t('billing.standardSupport')}</span>
 					</li>
 					<li class="flex items-start gap-2">
 						<CheckCircle2 class="text-success mt-0.5 size-5 flex-shrink-0" />
-						<span class="text-sm">Community access</span>
+						<span class="text-sm">{$t('billing.communityAccess')}</span>
 					</li>
 				</ul>
 			</div>
@@ -210,33 +214,35 @@
 				class={`rounded-box border-primary border-2 p-6 shadow-lg transition-all ${isFreePlan ? 'from-primary/5 to-secondary/5 bg-gradient-to-br' : 'bg-base-100 ring-primary ring-2'}`}
 			>
 				<div class="flex items-center justify-between">
-					<h4 class="text-lg font-semibold">Pro Plan</h4>
+					<h4 class="text-lg font-semibold">{$t('billing.proPlan')}</h4>
 					<div class="flex items-center gap-2">
 						{#if isProPlan}
-							<span class="badge badge-sm badge-primary">Current</span>
+							<span class="badge badge-sm badge-primary">{$t('billing.current')}</span>
 						{:else}
-							<span class="badge badge-sm badge-accent">Recommended</span>
+							<span class="badge badge-sm badge-accent">{$t('billing.recommended')}</span>
 						{/if}
 						<Sparkles class="text-primary size-5" />
 					</div>
 				</div>
-				<p class="mt-2 text-3xl font-bold">$29<span class="text-base font-normal">/month</span></p>
+				<p class="mt-2 text-3xl font-bold">
+					$29<span class="text-base font-normal">{$t('billing.perMonth')}</span>
+				</p>
 				<ul class="mt-4 space-y-2">
 					<li class="flex items-start gap-2">
 						<CheckCircle2 class="text-success mt-0.5 size-5 flex-shrink-0" />
-						<span class="text-sm">All Free features</span>
+						<span class="text-sm">{$t('billing.allFreeFeatures')}</span>
 					</li>
 					<li class="flex items-start gap-2">
 						<CheckCircle2 class="text-success mt-0.5 size-5 flex-shrink-0" />
-						<span class="text-sm">Advanced features</span>
+						<span class="text-sm">{$t('billing.advancedFeatures')}</span>
 					</li>
 					<li class="flex items-start gap-2">
 						<CheckCircle2 class="text-success mt-0.5 size-5 flex-shrink-0" />
-						<span class="text-sm">Priority support</span>
+						<span class="text-sm">{$t('billing.prioritySupport')}</span>
 					</li>
 					<li class="flex items-start gap-2">
 						<CheckCircle2 class="text-success mt-0.5 size-5 flex-shrink-0" />
-						<span class="text-sm">Custom integrations</span>
+						<span class="text-sm">{$t('billing.customIntegrations')}</span>
 					</li>
 				</ul>
 
@@ -251,7 +257,7 @@
 						{:else}
 							<Sparkles class="size-4" />
 						{/if}
-						Get Pro
+						{$t('billing.getPro')}
 					</button>
 				{/if}
 			</div>
@@ -276,7 +282,7 @@
 				{:else}
 					<CreditCard class="size-4" />
 				{/if}
-				Manage Subscription
+				{$t('billing.manageSubscription')}
 			</button>
 		{/if}
 	</SettingsCardActions>

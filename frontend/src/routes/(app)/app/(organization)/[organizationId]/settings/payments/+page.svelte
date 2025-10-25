@@ -8,6 +8,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import { z } from 'zod';
+	import { t } from '$lib/i18n';
 
 	const { data }: { data: { organization: any } } = $props();
 
@@ -37,7 +38,7 @@
 			window.open(response.data.attributes.url, '_blank');
 		} catch (err) {
 			console.error('Failed to create Stripe dashboard link:', err);
-			error = 'Failed to open Stripe dashboard. Please try again.';
+			error = $t('payments.failedToOpenStripeDashboard');
 		} finally {
 			loading = false;
 		}
@@ -45,11 +46,11 @@
 </script>
 
 <SettingsCard>
-	<SettingsCardTitle>Payments</SettingsCardTitle>
+	<SettingsCardTitle>{$t('payments.title')}</SettingsCardTitle>
 
 	<div class="space-y-4">
 		<p class="text-base-content/70 text-sm">
-			Manage your payment settings and view transaction history in your Stripe dashboard.
+			{$t('payments.description')}
 		</p>
 
 		{#if error}
@@ -69,7 +70,7 @@
 				{:else}
 					<ExternalLink class="h-4 w-4" />
 				{/if}
-				Open Stripe Dashboard
+				{$t('payments.openStripeDashboard')}
 			</button>
 		</SettingsCardActions>
 	</div>

@@ -2,6 +2,7 @@
 	import { ArrowLeft } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
 	import clsx from 'clsx/lite';
+	import { t } from '$lib/i18n';
 
 	const {
 		step,
@@ -16,5 +17,5 @@
 
 <a class={clsx('btn btn-outline', disabled && 'pointer-events-none')} href={step.path} in:fade>
 	<ArrowLeft class="size-4" />
-	Back
+	{$t('back')}
 </a>

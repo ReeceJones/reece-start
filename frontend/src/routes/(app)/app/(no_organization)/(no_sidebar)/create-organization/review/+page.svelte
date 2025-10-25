@@ -1,3 +1,7 @@
+<script lang="ts">
+	import { t } from '$lib/i18n';
+</script>
+
 <div class="space-y-3 text-sm">
-	<p>Lastly, let's review the details of your organization to make sure everything is correct!</p>
+	<p>{$t('createOrganizationPages.descriptions.review.intro')}</p>
 </div>

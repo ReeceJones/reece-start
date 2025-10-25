@@ -3,6 +3,259 @@ export const translations = {
 		// Common
 		getStarted: 'Get started',
 		learnMore: 'Learn more',
+		signIn: 'Sign in',
+		signUp: 'Sign up',
+		dashboard: 'Dashboard',
+		home: 'Home',
+		logout: 'Logout',
+		profileTitle: 'Profile',
+		next: 'Next',
+		back: 'Back',
+		organization: 'Organization',
+		switchOrganization: 'Switch Organization',
+		foo: 'Foo',
+		bar: 'Bar',
+		close: 'Close',
+		cancel: 'Cancel',
+		save: 'Save',
+		create: 'Create',
+		edit: 'Edit',
+		delete: 'Delete',
+		copy: 'Copy',
+		invite: 'Invite',
+		admin: 'Admin',
+		member: 'Member',
+		users: 'Users',
+		debug: 'Debug',
+		application: 'Application',
+		stopImpersonation: 'Stop Impersonation',
+		addMember: 'Add Member',
+		inviteMember: 'Invite member',
+		email: 'Email',
+		role: 'Role',
+		copyInvitationLink: 'Copy Invitation Link',
+		invitationLinkCopied: 'Invitation link copied to clipboard.',
+		createOrganization: 'Create Organization',
+
+		// Auth pages
+		auth: {
+			signIn: {
+				title: 'Sign in',
+				description: 'Enter your details below to sign in to your account.',
+				signInWithGoogle: 'Sign in with Google',
+				orContinueWith: 'Or continue with',
+				email: 'Email',
+				password: 'Password',
+				signInButton: 'Sign in',
+				successMessage:
+					'You have been signed in successfully! You will be redirected to the dashboard soon.',
+				errorMessage:
+					'There was an error signing in. Make sure you have filled out all the fields correctly.',
+				noAccount: "Don't have an account?",
+				signUpLink: 'Sign up'
+			},
+			signUp: {
+				title: 'Sign up',
+				description: 'Enter your details below to sign up for an account.',
+				signUpWithGoogle: 'Sign up with Google',
+				orContinueWith: 'Or continue with',
+				name: 'Name',
+				email: 'Email',
+				password: 'Password',
+				signUpButton: 'Sign up',
+				successMessage:
+					'You have been signed up successfully! You will be redirected to the dashboard soon.',
+				errorMessage:
+					'There was an error signing up. Make sure you have filled out all the fields correctly.',
+				hasAccount: 'Already have an account?',
+				signInLink: 'Sign in'
+			}
+		},
+
+		// Settings
+		settings: {
+			title: 'Settings',
+			general: 'General',
+			members: 'Members',
+			billing: 'Billing',
+			payments: 'Payments',
+			profile: 'Profile',
+			security: 'Security',
+			fields: {
+				email: {
+					label: 'Email',
+					placeholder: 'Email',
+					description: 'The email you use to log into your account and receive notifications'
+				},
+				updatePassword: {
+					label: 'Update Password',
+					placeholder: 'Password',
+					description: ' Update your password used to sign in to your account',
+					passwordTooShort: 'Password must be at least 8 characters long'
+				},
+				confirmPassword: {
+					label: 'Confirm Password',
+					placeholder: 'Confirm Password',
+					passwordDoesNotMatch: 'Passwords do not match'
+				}
+			},
+			success: {
+				profileUpdated: 'Your profile has been updated!',
+				profileUpdateError:
+					'There was an error updating your profile. Make sure you have filled out all the fields correctly.'
+			},
+			organization: {
+				title: 'Organization Settings',
+				general: {
+					title: 'General',
+					logo: {
+						label: 'Organization logo',
+						description: 'Upload your organization logo',
+						noLogoUploaded: 'No logo uploaded',
+						updateLogo: 'Update logo',
+						updateLogoDescription: 'Edit the logo to your liking and click save.'
+					},
+					name: {
+						label: 'Name',
+						placeholder: 'Organization name',
+						description: 'What should we call your organization?'
+					},
+					description: {
+						label: 'Description',
+						placeholder: 'Organization description',
+						description: 'A brief description of your organization'
+					},
+					success: {
+						organizationUpdated: 'Your organization has been updated!',
+						organizationUpdateError:
+							'There was an error updating your organization. Make sure you have filled out all the fields correctly.'
+					}
+				},
+				members: {
+					title: 'Members',
+					memberInformation: 'Member Information',
+					dangerZone: 'Danger Zone',
+					role: {
+						label: 'Role',
+						admin: 'Admin',
+						member: 'Member'
+					},
+					success: {
+						memberUpdated: 'The member has been updated!',
+						memberUpdateError:
+							'There was an error updating the member. Make sure you have filled out all the fields correctly.'
+					},
+					removeMember: 'Remove member'
+				}
+			}
+		},
+
+		// Onboarding
+		onboarding: {
+			back: 'Back',
+			organizationInformation: 'Organization Information',
+			contactInformation: 'Contact Information',
+			address: 'Address',
+			businessDetails: 'Business Details',
+			reviewDetails: 'Review Details'
+		},
+
+		// Billing
+		billing: {
+			title: 'Billing & Subscription',
+			proPlan: 'Pro Plan',
+			freePlan: 'Free Plan',
+			active: 'Active',
+			current: 'Current',
+			recommended: 'Recommended',
+			proDescription: "You're subscribed to the Pro plan with all premium features.",
+			freeDescription:
+				"You're currently on the Free plan. Upgrade to Pro to unlock advanced features and grow your business.",
+			upgradeToPro: 'Upgrade to Pro Now',
+			getStartedInMinutes: 'Get started in minutes',
+			billingAmount: 'Billing Amount',
+			nextBillingDate: 'Next Billing Date',
+			basicFeatures: 'Basic features',
+			standardSupport: 'Standard support',
+			communityAccess: 'Community access',
+			allFreeFeatures: 'All Free features',
+			advancedFeatures: 'Advanced features',
+			prioritySupport: 'Priority support',
+			customIntegrations: 'Custom integrations',
+			getPro: 'Get Pro',
+			manageSubscription: 'Manage Subscription',
+			failedToStartCheckout: 'Failed to start checkout. Please try again.',
+			failedToOpenBillingPortal: 'Failed to open billing portal. Please try again.',
+			perMonth: '/month'
+		},
+
+		// Payments
+		payments: {
+			title: 'Payments',
+			description:
+				'Manage your payment settings and view transaction history in your Stripe dashboard.',
+			openStripeDashboard: 'Open Stripe Dashboard',
+			failedToOpenStripeDashboard: 'Failed to open Stripe dashboard. Please try again.',
+			redirectingToStripe: 'Redirecting to Stripe...'
+		},
+
+		// Members
+		members: {
+			title: 'Members',
+			name: 'Name',
+			role: 'Role',
+			noMembershipsFound: 'No memberships found',
+			pendingInvitations: 'Pending Invitations',
+			email: 'Email',
+			noInvitationsFound: 'No invitations found',
+			invitationSent: "We've sent an email to",
+			withInstructionsToJoin: 'with instructions to join your organization.'
+		},
+
+		// Profile page
+		profile: {
+			title: 'Profile',
+			profilePicture: 'Profile picture',
+			uploadProfilePicture: 'Upload your profile picture',
+			name: 'Name',
+			namePlaceholder: 'Name',
+			nameDescription: 'What should we call you?',
+			profileUpdated: 'Your profile has been updated!',
+			profileUpdateError:
+				'There was an error updating your profile. Make sure you have filled out all the fields correctly.',
+			updateImage: 'Update image',
+			editImageDescription: 'Edit the image to your liking and click save.'
+		},
+
+		// Footer
+		footer: {
+			description:
+				'Production-ready SvelteKit + Go starter template for building SaaS applications',
+			copyright: 'Copyright © 2025 - All rights reserved',
+			pricing: 'Pricing',
+			faq: 'FAQ',
+			github: 'GitHub'
+		},
+
+		// Organization roles
+		roles: {
+			admin: {
+				title: 'Admin',
+				description: 'Manage organization settings and manage members'
+			},
+			member: {
+				title: 'Member',
+				description: 'Manage XYZ'
+			}
+		},
+
+		// OAuth
+		oauth: {
+			completingSignIn: 'Completing sign in...',
+			pleaseWait: 'Please wait while we finish signing you in with Google.',
+			authenticationError: 'Authentication Error',
+			tryAgain: 'Try Again'
+		},
 
 		// Landing Page
 		landing: {
@@ -99,6 +352,102 @@ export const translations = {
 					'Start building your SaaS with a solid foundation. No more reinventing the wheel.',
 				startBuilding: 'Start building now',
 				viewGithub: 'View on GitHub'
+			}
+		},
+
+		// No Organization Pages
+		noOrganization: {
+			title: 'Select Organization',
+			organizations: 'Organizations',
+			selectOrganization: 'Select an organization to continue to the app.',
+			noOrganizations:
+				'You are not a member of any organizations. Create or join an organization to get started.',
+			createOrganization: 'Create Organization',
+			noDescription: 'No description',
+			invitation: {
+				title: 'Organization Invitation',
+				invitedBy: '{inviterName} invited you to join "{organizationName}"',
+				invitationDescription:
+					'By accepting, you will be added to the organization, and you will be able to collaborate with your team.',
+				accept: 'Accept',
+				decline: 'Decline',
+				accepted: {
+					title: 'This invitation has already been accepted.',
+					description:
+						'If you did not accept this invitation, please contact the organization owner for a new invitation.'
+				},
+				declined: {
+					title: 'This invitation has already been declined.',
+					description:
+						'If you would like to join this organization, please contact the organization owner for a new invitation.'
+				},
+				expired: {
+					title: 'This invitation has expired.',
+					description:
+						'If you would like to join this organization, please contact the organization owner for a new invitation.'
+				},
+				revoked: {
+					title: 'This invitation has already been revoked.',
+					description:
+						'If you would like to join this organization, please contact the organization owner for a new invitation.'
+				}
+			},
+			admin: {
+				title: 'Admin Portal',
+				welcome: 'Welcome to the admin portal',
+				users: {
+					title: 'Users',
+					searchPlaceholder: 'Search users...',
+					search: 'Search',
+					name: 'Name',
+					email: 'Email',
+					impersonate: 'Impersonate',
+					previous: 'Previous',
+					next: 'Next'
+				},
+				debug: {
+					title: 'Debug',
+					userScopes: 'User Scopes'
+				}
+			}
+		},
+
+		// Create Organization Pages
+		createOrganizationPages: {
+			title: 'Create Organization',
+			steps: {
+				basicInformation: 'Organization Information',
+				contactInformation: 'Contact Information',
+				address: 'Address',
+				businessDetails: 'Business Details',
+				review: 'Review Details'
+			},
+			descriptions: {
+				basicInformation: {
+					intro:
+						"Let's start with the basics. Give your organization a name. You can also add a logo and description if you would like.",
+					note: 'You can always change this information later!'
+				},
+				contactInformation: {
+					intro:
+						"Now, we need to know how to contact your organization. We'll use this information to send you important updates and notifications. We may also use this information to confirm your identity and keep your account secure."
+				},
+				address: {
+					intro:
+						'Next, we need to know where your organization is located. This will be displayed on invoices, used to calculate taxes, and more.',
+					note: 'If your address changes, you can always update it later!'
+				},
+				businessDetails: {
+					intro:
+						'We need some final details about your organization. We need this information to ensure legal compliance and provide you the best possible experience.'
+				},
+				review: {
+					intro:
+						"Lastly, let's review the details of your organization to make sure everything is correct!"
+				}
+			},
+			progress: {
+				stepOf: '{current} of {total}'
 			}
 		},
 

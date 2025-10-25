@@ -8,6 +8,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import { t } from '$lib/i18n';
 
 	const { data, form }: PageProps = $props();
 
@@ -27,21 +28,21 @@
 <div class="space-y-10">
 	<button class="btn btn-ghost" onclick={() => history.back()}>
 		<ArrowLeft class="size-4" />
-		Back
+		{$t('back')}
 	</button>
 
 	<SettingsCard>
-		<SettingsCardTitle>Member Information</SettingsCardTitle>
+		<SettingsCardTitle>{$t('settings.organization.members.memberInformation')}</SettingsCardTitle>
 		<div class="space-y-2">
 			<div class="flex gap-3">
 				{#if user.meta.logoDistributionUrl}
 					<img
 						src={user.meta.logoDistributionUrl}
 						alt={user.attributes.name}
-						class="size-20 rounded-box"
+						class="rounded-box size-20"
 					/>
 				{:else}
-					<User class="size-20 rounded-box bg-base-300" />
+					<User class="rounded-box bg-base-300 size-20" />
 				{/if}
 				<div class="flex flex-col">
 					<CardTitle>{user.attributes.name}</CardTitle>
@@ -66,29 +67,28 @@
 				}}
 			>
 				<fieldset class="fieldset">
-					<legend class="fieldset-legend">Role</legend>
+					<legend class="fieldset-legend">{$t('settings.organization.members.role.label')}</legend>
 					<select
 						class="select-bordered select"
 						name="role"
 						bind:value={role}
 						disabled={!canUpdateMembership}
 					>
-						<option value="admin">Admin</option>
-						<option value="member">Member</option>
+						<option value="admin">{$t('settings.organization.members.role.admin')}</option>
+						<option value="member">{$t('settings.organization.members.role.member')}</option>
 					</select>
 				</fieldset>
 
 				{#if form?.success}
-					<div role="alert" class="mt-3 alert alert-success">
+					<div role="alert" class="alert alert-success mt-3">
 						<CircleCheck />
-						<span>The member has been updated!</span>
+						<span>{$t('settings.organization.members.success.memberUpdated')}</span>
 					</div>
 				{:else if form?.success === false}
-					<div role="alert" class="mt-3 alert alert-error">
+					<div role="alert" class="alert alert-error mt-3">
 						<CircleX />
 						<span
-							>{form.message ??
-								'There was an error updating the member. Make sure you have filled out all the fields correctly.'}</span
+							>{form.message ?? $t('settings.organization.members.success.memberUpdateError')}</span
 						>
 					</div>
 				{/if}
@@ -99,14 +99,14 @@
 					{:else}
 						<Save class="size-4" />
 					{/if}
-					Save
+					{$t('save')}
 				</button>
 			</form>
 		</div>
 	</SettingsCard>
 
 	<SettingsCard>
-		<SettingsCardTitle>Danger Zone</SettingsCardTitle>
+		<SettingsCardTitle>{$t('settings.organization.members.dangerZone')}</SettingsCardTitle>
 		<div>
 			<form
 				method="post"
@@ -126,7 +126,7 @@
 					{:else}
 						<Trash class="size-4" />
 					{/if}
-					Remove member
+					{$t('settings.organization.members.removeMember')}
 				</button>
 			</form>
 		</div>

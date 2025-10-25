@@ -22,33 +22,34 @@
 	import Card from '$lib/components/Card/Card.svelte';
 	import CardBody from '$lib/components/Card/CardBody.svelte';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import { t } from '$lib/i18n';
 
 	const { children }: LayoutProps = $props();
 
 	const steps = [
 		{
 			path: '/app/create-organization/basic-information',
-			label: 'Organization Information',
+			label: $t('createOrganizationPages.steps.basicInformation'),
 			index: 0
 		},
 		{
 			path: '/app/create-organization/contact-information',
-			label: 'Contact Information',
+			label: $t('createOrganizationPages.steps.contactInformation'),
 			index: 1
 		},
 		{
 			path: '/app/create-organization/address',
-			label: 'Address',
+			label: $t('createOrganizationPages.steps.address'),
 			index: 2
 		},
 		{
 			path: '/app/create-organization/business-details',
-			label: 'Business Details',
+			label: $t('createOrganizationPages.steps.businessDetails'),
 			index: 3
 		},
 		{
 			path: '/app/create-organization/review',
-			label: 'Review Details',
+			label: $t('createOrganizationPages.steps.review'),
 			index: 4
 		}
 	];
@@ -101,14 +102,14 @@
 
 <a class="btn btn-ghost m-1" href="/app">
 	<ArrowLeft class="size-4" />
-	Back
+	{$t('onboarding.back')}
 </a>
 
 <Card class="mx-auto max-w-2xl space-y-6">
 	<CardBody>
 		<div class="space-y-2">
 			<CardTitle>
-				{activeStep?.label} ({(activeStep?.index ?? 0) + 1} of {steps.length})
+				{activeStep?.label} ({activeStep?.index ? activeStep.index + 1 : 1} of {steps.length})
 			</CardTitle>
 			<progress
 				class="progress progress-primary w-full transition-all duration-500"

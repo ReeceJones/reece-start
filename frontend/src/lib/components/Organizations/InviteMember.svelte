@@ -3,6 +3,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import { CircleX, UserPlus, X } from 'lucide-svelte';
+	import { t } from '$lib/i18n';
 
 	const {
 		organizationId,
@@ -20,7 +21,7 @@
 </script>
 
 <button
-	class="btn w-fit btn-primary"
+	class="btn btn-primary w-fit"
 	onclick={() => {
 		inviteMemberModal.showModal();
 		email = '';
@@ -29,7 +30,8 @@
 	}}
 	disabled={!canAddMember}
 >
-	<UserPlus class="size-5" /> Add Member
+	<UserPlus class="size-5" />
+	{$t('addMember')}
 </button>
 
 <dialog bind:this={inviteMemberModal} class="modal">
@@ -55,48 +57,48 @@
 			};
 		}}
 	>
-		<h3 class="text-lg font-bold">Invite member</h3>
+		<h3 class="text-lg font-bold">{$t('inviteMember')}</h3>
 		<div class="my-6 space-y-3">
 			<fieldset class="fieldset">
-				<legend class="fieldset-legend">Email</legend>
+				<legend class="fieldset-legend">{$t('email')}</legend>
 				<input
 					class="input w-full"
 					type="email"
 					bind:value={email}
-					placeholder="Email"
+					placeholder={$t('email')}
 					required
 					name="email"
 				/>
 			</fieldset>
 			<fieldset class="fieldset">
-				<legend class="fieldset-legend">Role</legend>
+				<legend class="fieldset-legend">{$t('role')}</legend>
 				<div class="flex flex-col gap-3">
 					<label class="label">
 						<input
 							type="radio"
 							required
-							class="radio bg-transparent radio-sm"
+							class="radio radio-sm bg-transparent"
 							name="role"
 							value="admin"
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-sm font-bold text-base-content">Admin</p>
-							<p>Manage organization settings and manage members</p>
+							<p class="text-base-content text-sm font-bold">{$t('roles.admin.title')}</p>
+							<p>{$t('roles.admin.description')}</p>
 						</div>
 					</label>
 					<label class="label">
 						<input
 							type="radio"
 							required
-							class="radio bg-transparent radio-sm"
+							class="radio radio-sm bg-transparent"
 							name="role"
 							value="member"
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-sm font-bold text-base-content">Member</p>
-							<p>Manage XYZ</p>
+							<p class="text-base-content text-sm font-bold">{$t('roles.member.title')}</p>
+							<p>{$t('roles.member.description')}</p>
 						</div>
 					</label>
 				</div>
@@ -111,14 +113,14 @@
 		<div class="modal-action">
 			<button class="btn" type="button" onclick={() => inviteMemberModal.close()}>
 				<X class="size-4" />
-				Close
+				{$t('close')}
 			</button>
 			<button class="btn btn-primary" disabled={submitting}>
 				{#if submitting}
 					<span class="loading loading-xs loading-spinner"></span>
 				{:else}
 					<UserPlus class="size-4" />
-					Invite
+					{$t('invite')}
 				{/if}
 			</button>
 		</div>

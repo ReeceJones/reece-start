@@ -12,6 +12,7 @@
 	import Card from '$lib/components/Card/Card.svelte';
 	import CardBody from '$lib/components/Card/CardBody.svelte';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import { t } from '$lib/i18n';
 
 	const defaultSearch = $derived(page.url.searchParams.get('search') ?? '');
 
@@ -37,28 +38,28 @@
 
 <Card>
 	<CardBody>
-		<CardTitle>Users</CardTitle>
+		<CardTitle>{$t('noOrganization.admin.users.title')}</CardTitle>
 		<form class="flex gap-2" method="GET" id="search-form">
 			<input type="hidden" name="page[cursor]" value={users.links.next ?? ''} id="page-cursor" />
 
 			<input
 				type="text"
 				class="input-bordered input max-w-96 flex-1"
-				placeholder="Search users..."
+				placeholder={$t('noOrganization.admin.users.searchPlaceholder')}
 				name="search"
 				defaultValue={defaultSearch}
 			/>
 			<button class="btn btn-primary">
 				<Search class="size-4" />
-				Search
+				{$t('noOrganization.admin.users.search')}
 			</button>
 		</form>
 		<div>
 			<table class="table">
 				<thead>
 					<tr>
-						<th>Name</th>
-						<th>Email</th>
+						<th>{$t('noOrganization.admin.users.name')}</th>
+						<th>{$t('noOrganization.admin.users.email')}</th>
 						<th></th>
 					</tr>
 				</thead>
@@ -108,7 +109,7 @@
 												}}
 											>
 												<HatGlasses class="size-4" />
-												Impersonate
+												{$t('noOrganization.admin.users.impersonate')}
 											</button>
 
 											<form
@@ -132,12 +133,12 @@
 					{#if users.links.prev}
 						<button class="btn btn-ghost btn-sm btn-neutral" onclick={loadPreviousPage}>
 							<ChevronLeft class="size-4" />
-							Previous
+							{$t('noOrganization.admin.users.previous')}
 						</button>
 					{/if}
 					{#if users.links.next}
 						<button class="btn btn-ghost btn-sm btn-neutral" onclick={loadNextPage}>
-							Next
+							{$t('noOrganization.admin.users.next')}
 							<ChevronRight class="size-4" />
 						</button>
 					{/if}
