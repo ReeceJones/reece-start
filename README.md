@@ -18,6 +18,7 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
 - Billing with free and paid plans
 - Stripe connect support
 - i18n support
+  - Persisted locale via cookie (TODO)
 - Basic CI checks (TODO)
   - Tests
   - Typing

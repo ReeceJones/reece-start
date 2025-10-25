@@ -22,7 +22,7 @@
 	import Card from '$lib/components/Card/Card.svelte';
 	import CardBody from '$lib/components/Card/CardBody.svelte';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
-	import { t } from '$lib/i18n';
+	import { t, locale } from '$lib/i18n';
 
 	const { children }: LayoutProps = $props();
 
@@ -59,7 +59,7 @@
 		name: '',
 		description: '',
 		logo: undefined,
-		locale: 'en',
+		locale: $locale,
 		entityType: 'individual',
 		addressCity: '',
 		addressStateOrProvince: '',

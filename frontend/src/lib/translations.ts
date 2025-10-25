@@ -607,7 +607,7 @@ export const translations = {
 				paymentMethods: {
 					question: 'What payment methods do you accept?',
 					answer:
-						'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. All payments are processed securely through Stripe.'
+						'We accept all major credit cards (Visa, MasterCard, American Express). All payments are processed securely through Stripe.'
 				},
 				cancelSubscription: {
 					question: 'Can I cancel my subscription at any time?',
