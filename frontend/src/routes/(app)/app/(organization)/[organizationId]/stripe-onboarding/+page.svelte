@@ -23,7 +23,7 @@
 		<CardBody>
 			<CardTitle>{$t('payments.redirectingToStripe')}</CardTitle>
 			{#if loading}
-				<span class="loading loading-lg loading-spinner mx-auto"></span>
+				<span class="loading mx-auto loading-lg loading-spinner"></span>
 			{:else if error}
 				<div class="alert alert-error">
 					<CircleX />

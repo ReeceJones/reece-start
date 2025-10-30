@@ -49,7 +49,7 @@
 	<SettingsCardTitle>{$t('payments.title')}</SettingsCardTitle>
 
 	<div class="space-y-4">
-		<p class="text-base-content/70 text-sm">
+		<p class="text-sm text-base-content/70">
 			{$t('payments.description')}
 		</p>
 
@@ -66,7 +66,7 @@
 				disabled={loading || !canAccessStripe}
 			>
 				{#if loading}
-					<span class="loading loading-spinner loading-sm"></span>
+					<span class="loading loading-sm loading-spinner"></span>
 				{:else}
 					<ExternalLink class="h-4 w-4" />
 				{/if}

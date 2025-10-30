@@ -54,7 +54,7 @@
 			>
 				<select
 					name="locale"
-					class="select select-bordered w-full"
+					class="select-bordered select w-full"
 					bind:value={selectedLocale}
 					onchange={(e) => {
 						const form = e.currentTarget.form;
@@ -69,7 +69,7 @@
 					{/each}
 				</select>
 				{#if error}
-					<div role="alert" class="alert alert-error mt-2">
+					<div role="alert" class="mt-2 alert alert-error">
 						<span>{error}</span>
 					</div>
 				{/if}

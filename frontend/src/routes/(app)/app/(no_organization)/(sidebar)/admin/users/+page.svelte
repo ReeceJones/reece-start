@@ -72,10 +72,10 @@
 										<img
 											src={user.meta.logoDistributionUrl}
 											alt={user.attributes.name}
-											class="rounded-box size-8"
+											class="size-8 rounded-box"
 										/>
 									{:else}
-										<User class="rounded-box bg-base-300 size-8" />
+										<User class="size-8 rounded-box bg-base-300" />
 									{/if}
 									<span class="font-semibold">
 										{user.attributes.name}
@@ -95,7 +95,7 @@
 									<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 									<ul
 										tabindex="0"
-										class="dropdown-content menu z-1 rounded-box bg-base-100 w-52 p-2 shadow-sm"
+										class="dropdown-content menu z-1 w-52 rounded-box bg-base-100 p-2 shadow-sm"
 									>
 										<li>
 											<button

@@ -42,7 +42,7 @@
 	<div class="space-y-4">
 		<h1 class="text-3xl font-bold">{$t('settings.title')}</h1>
 		<ul
-			class="menu menu-horizontal rounded-box bg-base-200 max-w-full flex-nowrap gap-1 overflow-auto shadow-sm"
+			class="menu menu-horizontal max-w-full flex-nowrap gap-1 overflow-auto rounded-box bg-base-200 shadow-sm"
 		>
 			{#each routes as route (route.href)}
 				<li

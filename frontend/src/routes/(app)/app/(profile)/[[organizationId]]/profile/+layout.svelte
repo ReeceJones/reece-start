@@ -27,7 +27,7 @@
 <div class="flex flex-col gap-6">
 	<div class="space-y-4">
 		<h1 class="text-3xl font-bold">{$t('settings.title')}</h1>
-		<ul class="menu menu-horizontal rounded-box bg-base-200 gap-1 shadow-sm">
+		<ul class="menu menu-horizontal gap-1 rounded-box bg-base-200 shadow-sm">
 			{#each routes as route (route.href)}
 				<li class={clsx(url === route.href && activeClass)}>
 					<a href={route.href}>

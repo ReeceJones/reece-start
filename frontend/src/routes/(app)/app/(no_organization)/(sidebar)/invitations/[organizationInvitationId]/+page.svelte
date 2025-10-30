@@ -50,7 +50,7 @@
 					<img
 						src={organization?.meta.logoDistributionUrl}
 						alt={organization?.attributes.name}
-						class="rounded-box size-32"
+						class="size-32 rounded-box"
 					/>
 				{/if}
 

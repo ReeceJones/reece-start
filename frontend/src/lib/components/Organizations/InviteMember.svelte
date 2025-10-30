@@ -21,7 +21,7 @@
 </script>
 
 <button
-	class="btn btn-primary w-fit"
+	class="btn w-fit btn-primary"
 	onclick={() => {
 		inviteMemberModal.showModal();
 		email = '';
@@ -77,13 +77,13 @@
 						<input
 							type="radio"
 							required
-							class="radio radio-sm bg-transparent"
+							class="radio bg-transparent radio-sm"
 							name="role"
 							value="admin"
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-base-content text-sm font-bold">{$t('roles.admin.title')}</p>
+							<p class="text-sm font-bold text-base-content">{$t('roles.admin.title')}</p>
 							<p>{$t('roles.admin.description')}</p>
 						</div>
 					</label>
@@ -91,13 +91,13 @@
 						<input
 							type="radio"
 							required
-							class="radio radio-sm bg-transparent"
+							class="radio bg-transparent radio-sm"
 							name="role"
 							value="member"
 							bind:group={role}
 						/>
 						<div class="ml-3">
-							<p class="text-base-content text-sm font-bold">{$t('roles.member.title')}</p>
+							<p class="text-sm font-bold text-base-content">{$t('roles.member.title')}</p>
 							<p>{$t('roles.member.description')}</p>
 						</div>
 					</label>

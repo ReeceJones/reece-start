@@ -83,7 +83,7 @@
 					<CardTitle class="text-error">{$t('oauth.authenticationError')}</CardTitle>
 					<p class="mb-4 text-gray-500">{error}</p>
 					<CardActions>
-						<a href="/signin" class="btn btn-primary w-full">{$t('oauth.tryAgain')}</a>
+						<a href="/signin" class="btn w-full btn-primary">{$t('oauth.tryAgain')}</a>
 					</CardActions>
 				</div>
 			{/if}

@@ -17,7 +17,7 @@
 
 <div class="navbar">
 	<div class="flex-1">
-		<a class="btn btn-ghost text-lg tracking-tight" href="/">
+		<a class="btn text-lg tracking-tight btn-ghost" href="/">
 			<Rocket class="size-6" />
 			reece-start
 		</a>
@@ -25,16 +25,16 @@
 
 	<!-- Desktop Navigation -->
 	<div class="hidden lg:flex lg:flex-none lg:items-center lg:gap-2">
-		<a href="/faq" class="btn btn-ghost font-medium">{$t('footer.faq')}</a>
-		<a href="/pricing" class="btn btn-ghost font-medium">{$t('footer.pricing')}</a>
+		<a href="/faq" class="btn font-medium btn-ghost">{$t('footer.faq')}</a>
+		<a href="/pricing" class="btn font-medium btn-ghost">{$t('footer.pricing')}</a>
 		{#if isLoggedIn}
-			<a href="/app" class="btn btn-neutral font-medium">
+			<a href="/app" class="btn font-medium btn-neutral">
 				<DoorOpen class="size-5" />
 				{$t('dashboard')}
 			</a>
 		{:else}
-			<a href="/signin" class="btn btn-outline btn-neutral font-medium"> {$t('signIn')} </a>
-			<a href="/signup" class="btn btn-neutral font-medium"> {$t('getStarted')} </a>
+			<a href="/signin" class="btn font-medium btn-outline btn-neutral"> {$t('signIn')} </a>
+			<a href="/signup" class="btn font-medium btn-neutral"> {$t('getStarted')} </a>
 		{/if}
 	</div>
 
@@ -52,18 +52,18 @@
 
 <!-- Mobile Menu Dropdown -->
 {#if isMobileMenuOpen}
-	<div class="border-base-300 bg-base-100 border-t shadow-lg lg:hidden">
+	<div class="border-t border-base-300 bg-base-100 shadow-lg lg:hidden">
 		<div class="space-y-3 px-4 py-6">
 			<a
 				href="/faq"
-				class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+				class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 				onclick={closeMobileMenu}
 			>
 				{$t('footer.faq')}
 			</a>
 			<a
 				href="/pricing"
-				class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+				class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 				onclick={closeMobileMenu}
 			>
 				{$t('footer.pricing')}
@@ -71,7 +71,7 @@
 			{#if isLoggedIn}
 				<a
 					href="/app"
-					class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+					class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 					onclick={closeMobileMenu}
 				>
 					<DoorOpen class="mr-2 inline size-5" />
@@ -80,14 +80,14 @@
 			{:else}
 				<a
 					href="/signin"
-					class="hover:bg-base-200 block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+					class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
 					onclick={closeMobileMenu}
 				>
 					{$t('signIn')}
 				</a>
 				<a
 					href="/signup"
-					class="hover:bg-neutral-focus bg-neutral text-neutral-content block rounded-lg px-3 py-2 text-base font-medium transition-colors"
+					class="hover:bg-neutral-focus block rounded-lg bg-neutral px-3 py-2 text-base font-medium text-neutral-content transition-colors"
 					onclick={closeMobileMenu}
 				>
 					{$t('getStarted')}

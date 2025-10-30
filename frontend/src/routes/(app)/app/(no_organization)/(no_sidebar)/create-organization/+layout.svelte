@@ -100,7 +100,7 @@
 	});
 </script>
 
-<a class="btn btn-ghost m-1" href="/app">
+<a class="btn m-1 btn-ghost" href="/app">
 	<ArrowLeft class="size-4" />
 	{$t('onboarding.back')}
 </a>
@@ -112,7 +112,7 @@
 				{activeStep?.label} ({activeStep?.index ? activeStep.index + 1 : 1} of {steps.length})
 			</CardTitle>
 			<progress
-				class="progress progress-primary w-full transition-all duration-500"
+				class="progress w-full progress-primary transition-all duration-500"
 				value={activeStep?.index ?? 0}
 				max={steps.length - 1}
 			></progress>

@@ -44,7 +44,7 @@
 	/>
 
 	{#if invitedMemberEmail}
-		<div class="alert alert-success my-1">
+		<div class="my-1 alert alert-success">
 			<CircleCheck class="size-4" />
 			<span>
 				{$t('members.invitationSent')}
@@ -78,10 +78,10 @@
 								<img
 									src={membership.user?.meta.logoDistributionUrl}
 									alt={membership.user?.attributes.name}
-									class="rounded-box size-10"
+									class="size-10 rounded-box"
 								/>
 							{:else}
-								<User class="rounded-box bg-base-300 size-10" />
+								<User class="size-10 rounded-box bg-base-300" />
 							{/if}
 							<div class="flex flex-col">
 								<div class="font-semibold">{membership.user?.attributes.name}</div>
@@ -107,7 +107,7 @@
 									class={clsx(
 										'btn btn-square btn-ghost btn-sm',
 										!canUpdateMembership &&
-											'text-base-content/50 pointer-events-none cursor-default'
+											'pointer-events-none cursor-default text-base-content/50'
 									)}
 									href={canUpdateMembership
 										? `/app/${params.organizationId}/settings/members/${membership.membership.id}`

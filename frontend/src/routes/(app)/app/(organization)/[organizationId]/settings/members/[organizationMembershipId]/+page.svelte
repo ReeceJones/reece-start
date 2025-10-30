@@ -39,10 +39,10 @@
 					<img
 						src={user.meta.logoDistributionUrl}
 						alt={user.attributes.name}
-						class="rounded-box size-20"
+						class="size-20 rounded-box"
 					/>
 				{:else}
-					<User class="rounded-box bg-base-300 size-20" />
+					<User class="size-20 rounded-box bg-base-300" />
 				{/if}
 				<div class="flex flex-col">
 					<CardTitle>{user.attributes.name}</CardTitle>
@@ -80,12 +80,12 @@
 				</fieldset>
 
 				{#if form?.success}
-					<div role="alert" class="alert alert-success mt-3">
+					<div role="alert" class="mt-3 alert alert-success">
 						<CircleCheck />
 						<span>{$t('settings.organization.members.success.memberUpdated')}</span>
 					</div>
 				{:else if form?.success === false}
-					<div role="alert" class="alert alert-error mt-3">
+					<div role="alert" class="mt-3 alert alert-error">
 						<CircleX />
 						<span
 							>{form.message ?? $t('settings.organization.members.success.memberUpdateError')}</span
