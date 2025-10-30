@@ -590,7 +590,7 @@ export const translations = {
 					advanced: 'Advanced nothing, but with extra steps',
 					gratitude: 'Our eternal gratitude (worth $20/month, apparently)'
 				},
-				cta: 'Start Pro trial'
+				cta: 'Go Pro Now'
 			},
 			faq: {
 				title: 'Frequently Asked Questions',

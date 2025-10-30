@@ -3,8 +3,13 @@ import { translations } from './translations';
 
 const DEFAULT_LOCALE = 'en';
 
-export const locale = writable(DEFAULT_LOCALE);
+export const locale = writable<string>(DEFAULT_LOCALE);
 export const locales = Object.keys(translations);
+
+// Initialize locale from server-provided value
+export function initializeLocale(serverLocale: string) {
+	locale.set(serverLocale || DEFAULT_LOCALE);
+}
 
 // Helper function to get nested value from object using dot notation
 function getNestedValue(obj: any, path: string): string | undefined {
