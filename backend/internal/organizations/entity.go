@@ -19,16 +19,16 @@ import (
 // API Types
 type CommonOrganizationAttributes struct {
 	// Basic information
-	Name string `json:"name" validate:"required,min=1,max=100"`
-	Description string `json:"description,omitempty" validate:"omitempty,min=1,max=255"`
-	Address api.Address `json:"address"`
+	Name        string      `json:"name" validate:"required,min=1,max=100"`
+	Description string      `json:"description,omitempty" validate:"omitempty,min=1,max=255"`
+	Address     api.Address `json:"address"`
 
 	// Localization fields
 	Locale string `json:"locale" validate:"required"`
 
 	// Contact information
-	ContactEmail string `json:"contactEmail" validate:"omitempty,email"`
-	ContactPhone string `json:"contactPhone" validate:"omitempty"`
+	ContactEmail        string `json:"contactEmail" validate:"omitempty,email"`
+	ContactPhone        string `json:"contactPhone" validate:"omitempty"`
 	ContactPhoneCountry string `json:"contactPhoneCountry" validate:"omitempty"`
 }
 
@@ -47,35 +47,35 @@ type CreateOrganizationAttributes struct {
 
 type UpdateOrganizationAttributes struct {
 	// Basic information
-	Name *string `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
-	Description *string `json:"description,omitempty" validate:"omitempty,min=1,max=255"`
-	Logo *string `json:"logo,omitempty" validate:"omitempty,base64"`
-	Address *api.Address `json:"address,omitempty" validate:"omitempty"`
+	Name        *string      `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
+	Description *string      `json:"description,omitempty" validate:"omitempty,min=1,max=255"`
+	Logo        *string      `json:"logo,omitempty" validate:"omitempty,base64"`
+	Address     *api.Address `json:"address,omitempty" validate:"omitempty"`
 
 	// Localization fields
 	Currency *string `json:"currency,omitempty" validate:"omitempty"`
-	Locale *string `json:"locale,omitempty" validate:"omitempty"`
+	Locale   *string `json:"locale,omitempty" validate:"omitempty"`
 
 	// Contact information
-	ContactEmail *string `json:"contactEmail,omitempty" validate:"omitempty,email"`
-	ContactPhone *string `json:"contactPhone,omitempty" validate:"omitempty"`
+	ContactEmail        *string `json:"contactEmail,omitempty" validate:"omitempty,email"`
+	ContactPhone        *string `json:"contactPhone,omitempty" validate:"omitempty"`
 	ContactPhoneCountry *string `json:"contactPhoneCountry,omitempty" validate:"omitempty"`
 }
 
 type StripeMeta struct {
-	HasPendingRequirements bool `json:"hasPendingRequirements,omitempty"`
-	OnboardingStatus string `json:"onboardingStatus,omitempty"`
+	HasPendingRequirements bool   `json:"hasPendingRequirements,omitempty"`
+	OnboardingStatus       string `json:"onboardingStatus,omitempty"`
 }
 
 type OrganizationMeta struct {
-	LogoDistributionUrl string `json:"logoDistributionUrl,omitempty"`
-	OnboardingStatus string `json:"onboardingStatus,omitempty"`
-	Stripe StripeMeta `json:"stripe,omitempty"`
+	LogoDistributionUrl string     `json:"logoDistributionUrl,omitempty"`
+	OnboardingStatus    string     `json:"onboardingStatus,omitempty"`
+	Stripe              StripeMeta `json:"stripe,omitempty"`
 }
 
 type OrganizationData struct {
-	Id         string                `json:"id"`
-	Type       constants.ApiType     `json:"type"`
+	Id         string                 `json:"id"`
+	Type       constants.ApiType      `json:"type"`
 	Attributes OrganizationAttributes `json:"attributes"`
 }
 
@@ -158,7 +158,7 @@ type OrganizationMembershipData struct {
 
 type CreateOrganizationMembershipRequest struct {
 	Data struct {
-		Attributes    OrganizationMembershipAttributes           `json:"attributes"`
+		Attributes    OrganizationMembershipAttributes          `json:"attributes"`
 		Relationships CreateOrganizationMembershipRelationships `json:"relationships"`
 	} `json:"data"`
 }
@@ -201,7 +201,7 @@ type InviteToOrganizationRelationships struct {
 
 type InviteToOrganizationRequest struct {
 	Data struct {
-		Type          constants.ApiType                   `json:"type" validate:"required,oneof=organization-invitation"`
+		Type          constants.ApiType                 `json:"type" validate:"required,oneof=organization-invitation"`
 		Attributes    InviteToOrganizationAttributes    `json:"attributes"`
 		Relationships InviteToOrganizationRelationships `json:"relationships"`
 	} `json:"data"`
@@ -235,33 +235,33 @@ type OrganizationIncludedMeta struct {
 }
 
 type OrganizationIncludedData struct {
-	Id         string                          `json:"id"`
-	Type       constants.ApiType               `json:"type"`
+	Id         string                         `json:"id"`
+	Type       constants.ApiType              `json:"type"`
 	Attributes OrganizationIncludedAttributes `json:"attributes"`
 	Meta       OrganizationIncludedMeta       `json:"meta,omitempty"`
 }
 
 type OrganizationInvitationAttributes struct {
-	Email string `json:"email" validate:"required,email"`
-	Role string `json:"role" validate:"required,oneof=admin member"`
+	Email  string `json:"email" validate:"required,email"`
+	Role   string `json:"role" validate:"required,oneof=admin member"`
 	Status string `json:"status" validate:"required,oneof=pending accepted declined expired revoked"`
 }
 
 type OrganizationInvitationRelationships struct {
 	Organization OrganizationRelationshipData `json:"organization" validate:"required"`
-	InvitingUser UserRelationshipData `json:"invitingUser" validate:"required"`
+	InvitingUser UserRelationshipData         `json:"invitingUser" validate:"required"`
 }
 
 type OrganizationInvitationData struct {
-	Id         string                `json:"id"`
-	Type       constants.ApiType     `json:"type" validate:"required,oneof=organization-invitation"`
-	Attributes OrganizationInvitationAttributes `json:"attributes"`
+	Id            string                              `json:"id"`
+	Type          constants.ApiType                   `json:"type" validate:"required,oneof=organization-invitation"`
+	Attributes    OrganizationInvitationAttributes    `json:"attributes"`
 	Relationships OrganizationInvitationRelationships `json:"relationships"`
 }
 
 type InviteToOrganizationAttributes struct {
 	Email string `json:"email" validate:"required,email"`
-	Role string `json:"role" validate:"required,oneof=admin member"`
+	Role  string `json:"role" validate:"required,oneof=admin member"`
 }
 
 type InviteToOrganizationResponse struct {
@@ -302,36 +302,36 @@ type DeclineOrganizationInvitationResponse struct {
 
 // Service request/response types
 type CreateOrganizationParams struct {
-	Name   string
-	Description string
-	UserID uint
-	Logo   string
-	ContactEmail string
-	ContactPhone string
+	Name                string
+	Description         string
+	UserID              uint
+	Logo                string
+	ContactEmail        string
+	ContactPhone        string
 	ContactPhoneCountry string
-	Locale string
-	EntityType string
-	Address api.Address
+	Locale              string
+	EntityType          string
+	Address             api.Address
 }
 
 type CreateOrganizationServiceRequest struct {
-	Params CreateOrganizationParams
-	Tx     *gorm.DB
-	MinioClient *minio.Client
-	Config *configuration.Config
+	Params       CreateOrganizationParams
+	Tx           *gorm.DB
+	MinioClient  *minio.Client
+	Config       *configuration.Config
 	StripeClient *stripeGo.Client
-	Context context.Context
+	Context      context.Context
 }
 
 type GetOrganizationsByUserIDServiceRequest struct {
-	UserID uint
-	Tx     *gorm.DB
+	UserID      uint
+	Tx          *gorm.DB
 	MinioClient *minio.Client
 }
 
 type GetOrganizationByIDServiceRequest struct {
 	OrganizationID uint
-	UserID uint
+	UserID         uint
 	Tx             *gorm.DB
 	MinioClient    *minio.Client
 }
@@ -345,8 +345,8 @@ type UpdateOrganizationParams struct {
 }
 
 type UpdateOrganizationServiceRequest struct {
-	Params UpdateOrganizationParams
-	Tx     *gorm.DB
+	Params      UpdateOrganizationParams
+	Tx          *gorm.DB
 	MinioClient *minio.Client
 }
 
@@ -379,10 +379,10 @@ type OrganizationDto struct {
 }
 
 type OrganizationMembershipDto struct {
-	Membership          *models.OrganizationMembership
-	User                *models.User
+	Membership              *models.OrganizationMembership
+	User                    *models.User
 	UserLogoDistributionUrl string
-	Organization        *models.Organization
+	Organization            *models.Organization
 }
 
 // Organization Membership Service Types
@@ -480,63 +480,63 @@ type DeclineOrganizationInvitationServiceRequest struct {
 }
 
 type UpdateOrganizationStripeInformationServiceRequest struct {
-	Organization *models.Organization
+	Organization  *models.Organization
 	StripeAccount stripeGo.V2CoreAccount
 }
 
 // Stripe onboarding link service types
 type CreateStripeOnboardingLinkParams struct {
-    OrganizationID uint
+	OrganizationID uint
 }
 
 type CreateStripeOnboardingLinkServiceRequest struct {
-    Db           *gorm.DB
-    StripeClient *stripeGo.Client
-    Context      context.Context
-    Params       CreateStripeOnboardingLinkParams
-    Config       *configuration.Config
+	Db           *gorm.DB
+	StripeClient *stripeGo.Client
+	Context      context.Context
+	Params       CreateStripeOnboardingLinkParams
+	Config       *configuration.Config
 }
 
 // JSON:API response types for Stripe requirements link
 type StripeAccountLinkAttributes struct {
-    URL       string    `json:"url"`
-    ExpiresAt time.Time `json:"expiresAt"`
-    Livemode  bool      `json:"livemode"`
-    AccountID string    `json:"accountId"`
-    CreatedAt time.Time `json:"createdAt"`
+	URL       string    `json:"url"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	Livemode  bool      `json:"livemode"`
+	AccountID string    `json:"accountId"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type StripeAccountLinkData struct {
-    Type       string                       `json:"type"`
-    Attributes StripeAccountLinkAttributes  `json:"attributes"`
+	Type       string                      `json:"type"`
+	Attributes StripeAccountLinkAttributes `json:"attributes"`
 }
 
 type CreateStripeOnboardingLinkResponse struct {
-    Data StripeAccountLinkData `json:"data"`
+	Data StripeAccountLinkData `json:"data"`
 }
 
 // Stripe dashboard link service types
 type CreateStripeDashboardLinkParams struct {
-    OrganizationID uint
+	OrganizationID uint
 }
 
 type CreateStripeDashboardLinkServiceRequest struct {
-    Db           *gorm.DB
-    StripeClient *stripeGo.Client
-    Context      context.Context
-    Params       CreateStripeDashboardLinkParams
+	Db           *gorm.DB
+	StripeClient *stripeGo.Client
+	Context      context.Context
+	Params       CreateStripeDashboardLinkParams
 }
 
 // JSON:API response types for Stripe dashboard link
 type StripeDashboardLinkAttributes struct {
-    URL string `json:"url"`
+	URL string `json:"url"`
 }
 
 type StripeDashboardLinkData struct {
-    Type       string                       `json:"type"`
-    Attributes StripeDashboardLinkAttributes  `json:"attributes"`
+	Type       string                        `json:"type"`
+	Attributes StripeDashboardLinkAttributes `json:"attributes"`
 }
 
 type CreateStripeDashboardLinkResponse struct {
-    Data StripeDashboardLinkData `json:"data"`
+	Data StripeDashboardLinkData `json:"data"`
 }

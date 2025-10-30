@@ -20,19 +20,18 @@ import (
 	"reece.start/internal/utils"
 )
 
-
 func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*stripeGo.V2CoreAccount, error) {
 	stripeClient := request.StripeClient
 	context := request.Context
 
 	params := &stripeGo.V2CoreAccountCreateParams{
-		Dashboard: stripeGo.String(string(stripeGo.V2CoreAccountDashboardFull)),
+		Dashboard:   stripeGo.String(string(stripeGo.V2CoreAccountDashboardFull)),
 		DisplayName: stripeGo.String(request.Params.DisplayName),
 		Identity: &stripeGo.V2CoreAccountCreateIdentityParams{
-			EntityType: stripeGo.String(string(request.Params.Type)),
-			Country: stripeGo.String(request.Params.ResidingCountry),
+			EntityType:      stripeGo.String(string(request.Params.Type)),
+			Country:         stripeGo.String(request.Params.ResidingCountry),
 			BusinessDetails: getBusinessDetails(request),
-			Individual: getIndividual(request),
+			Individual:      getIndividual(request),
 		},
 		Defaults: &stripeGo.V2CoreAccountCreateDefaultsParams{
 			Currency: stripeGo.String(request.Params.Currency),
@@ -40,7 +39,7 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 				stripeGo.String(request.Params.Locale),
 			},
 			Responsibilities: &stripeGo.V2CoreAccountCreateDefaultsResponsibilitiesParams{
-				FeesCollector: stripeGo.String("stripe"),
+				FeesCollector:   stripeGo.String("stripe"),
 				LossesCollector: stripeGo.String("stripe"),
 			},
 		},
@@ -80,7 +79,6 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 		params.ContactEmail = stripeGo.String(request.Params.ContactEmail)
 	}
 
-
 	log.Printf("Creating stripe connect account with params: %+v", params)
 
 	account, err := stripeClient.V2CoreAccounts.Create(context, params)
@@ -104,7 +102,7 @@ func CreateOnboardingLink(request CreateOnboardingLinkServiceRequest) (*stripeGo
 			Type: stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseTypeAccountOnboarding)),
 			AccountOnboarding: &stripeGo.V2CoreAccountLinkCreateUseCaseAccountOnboardingParams{
 				CollectionOptions: &stripeGo.V2CoreAccountLinkCreateUseCaseAccountOnboardingCollectionOptionsParams{
-					Fields: stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingCollectionOptionsFieldsCurrentlyDue)),
+					Fields:             stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingCollectionOptionsFieldsCurrentlyDue)),
 					FutureRequirements: stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingCollectionOptionsFutureRequirementsInclude)),
 				},
 				Configurations: []*string{
@@ -113,7 +111,7 @@ func CreateOnboardingLink(request CreateOnboardingLinkServiceRequest) (*stripeGo
 					stripeGo.String(string(stripeGo.V2CoreAccountLinkUseCaseAccountOnboardingConfigurationRecipient)),
 				},
 				RefreshURL: stripeGo.String(params.RefreshURL),
-				ReturnURL: stripeGo.String(params.ReturnURL),
+				ReturnURL:  stripeGo.String(params.ReturnURL),
 			},
 		},
 	})
@@ -149,12 +147,12 @@ func getIndividual(request CreateStripeAccountServiceRequest) *stripeGo.V2CoreAc
 
 	params := &stripeGo.V2CoreAccountCreateIdentityIndividualParams{
 		Address: &stripeGo.V2CoreAccountCreateIdentityIndividualAddressParams{
-			Line1: stripeGo.String(request.Params.Address.Line1),
-			Line2: line2,
-			City: stripeGo.String(request.Params.Address.City),
-			State: stripeGo.String(request.Params.Address.StateOrProvince),
+			Line1:      stripeGo.String(request.Params.Address.Line1),
+			Line2:      line2,
+			City:       stripeGo.String(request.Params.Address.City),
+			State:      stripeGo.String(request.Params.Address.StateOrProvince),
 			PostalCode: stripeGo.String(request.Params.Address.Zip),
-			Country: stripeGo.String(request.Params.Address.Country),
+			Country:    stripeGo.String(request.Params.Address.Country),
 		},
 	}
 
@@ -221,19 +219,19 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 	// Get organization from subscription metadata
 	// We store the organization_id in metadata when creating the checkout session
 	var org models.Organization
-	
+
 	orgIDStr, ok := fetchedSub.Metadata["organization_id"]
 	if !ok {
 		log.Printf("No organization_id found in subscription metadata for subscription: %s", fetchedSub.ID)
 		return nil
 	}
-	
+
 	orgID, err := strconv.ParseUint(orgIDStr, 10, 32)
 	if err != nil {
 		log.Printf("Failed to parse organization ID from metadata: %v", err)
 		return err
 	}
-	
+
 	err = request.DB.WithContext(request.Context).First(&org, uint(orgID)).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -242,12 +240,12 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 		}
 		return err
 	}
-	
+
 	log.Printf("Found organization %d for subscription %s", org.ID, fetchedSub.ID)
 
 	// Only process active or trialing subscriptions
-	if fetchedSub.Status != stripeGo.SubscriptionStatusActive && 
-	   fetchedSub.Status != stripeGo.SubscriptionStatusTrialing {
+	if fetchedSub.Status != stripeGo.SubscriptionStatusActive &&
+		fetchedSub.Status != stripeGo.SubscriptionStatusTrialing {
 		log.Printf("Subscription %s is not active or trialing, skipping", fetchedSub.ID)
 		return nil
 	}
@@ -270,12 +268,12 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 
 	// Create or update the plan period
 	planPeriod := models.OrganizationPlanPeriod{
-		OrganizationID: org.ID,
-		Plan: plan,
+		OrganizationID:       org.ID,
+		Plan:                 plan,
 		StripeSubscriptionID: fetchedSub.ID,
-		BillingPeriodStart: time.Unix(fetchedSub.BillingCycleAnchor, 0),
-		BillingPeriodEnd: time.Unix(fetchedSub.BillingCycleAnchor, 0).AddDate(0, 1, 0), // Assuming monthly subscription
-		BillingPeriodAmount: int(fetchedSub.Items.Data[0].Price.UnitAmount),
+		BillingPeriodStart:   time.Unix(fetchedSub.BillingCycleAnchor, 0),
+		BillingPeriodEnd:     time.Unix(fetchedSub.BillingCycleAnchor, 0).AddDate(0, 1, 0), // Assuming monthly subscription
+		BillingPeriodAmount:  int(fetchedSub.Items.Data[0].Price.UnitAmount),
 	}
 
 	// Check if a plan period already exists for this subscription
@@ -337,41 +335,41 @@ func processThinWebhookEvent(request ProcessThinWebhookEventServiceRequest) erro
 	eventContainer := request.Event
 
 	switch evt := eventContainer.(type) {
-		case *stripeGo.V2CoreAccountClosedEventNotification:
-			return handleAccountClosed(request, evt)
-		case *stripeGo.V2CoreAccountUpdatedEventNotification:
-			return handleAccountUpdated(request, evt)
-		case *stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification:
-			return handleAccountCustomerCapabilityStatusUpdated(request, evt)
-		case *stripeGo.V2CoreAccountIncludingConfigurationMerchantCapabilityStatusUpdatedEventNotification:
-			return handleAccountMerchantCapabilityStatusUpdated(request, evt)
-		case *stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification:
-			return handleAccountRecipientCapabilityStatusUpdated(request, evt)
-		case *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification:
-			return handleAccountRequirementsUpdated(request, evt)
-		case *stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification:
-			return handleAccountIdentityUpdated(request, evt)
-		default:
-			log.Printf("Unhandled webhook event type (thin): %s\n", evt.GetEventNotification().Type)
-			return nil
+	case *stripeGo.V2CoreAccountClosedEventNotification:
+		return handleAccountClosed(request, evt)
+	case *stripeGo.V2CoreAccountUpdatedEventNotification:
+		return handleAccountUpdated(request, evt)
+	case *stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification:
+		return handleAccountCustomerCapabilityStatusUpdated(request, evt)
+	case *stripeGo.V2CoreAccountIncludingConfigurationMerchantCapabilityStatusUpdatedEventNotification:
+		return handleAccountMerchantCapabilityStatusUpdated(request, evt)
+	case *stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification:
+		return handleAccountRecipientCapabilityStatusUpdated(request, evt)
+	case *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification:
+		return handleAccountRequirementsUpdated(request, evt)
+	case *stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification:
+		return handleAccountIdentityUpdated(request, evt)
+	default:
+		log.Printf("Unhandled webhook event type (thin): %s\n", evt.GetEventNotification().Type)
+		return nil
 	}
 }
 
 // enqueueSnapshotWebhookProcessing persists the event in the background job queue for async processing
 func enqueueSnapshotWebhookProcessing(request EnqueueSnapshotWebhookProcessingServiceRequest) error {
-    // Serialize the event for storage in the job
-    payload, err := json.Marshal(request.Event)
-    if err != nil {
-        return err
-    }
+	// Serialize the event for storage in the job
+	payload, err := json.Marshal(request.Event)
+	if err != nil {
+		return err
+	}
 
-    // River client expects generic args; we defined a dedicated job type in webhook_processing_job.go
-    _, err = request.RiverClient.Insert(request.Context, SnapshotWebhookProcessingJob{
-        EventID:   request.Event.ID,
-        EventType: string(request.Event.Type),
-        EventData: payload,
-    }, nil)
-    return err
+	// River client expects generic args; we defined a dedicated job type in webhook_processing_job.go
+	_, err = request.RiverClient.Insert(request.Context, SnapshotWebhookProcessingJob{
+		EventID:   request.Event.ID,
+		EventType: string(request.Event.Type),
+		EventData: payload,
+	}, nil)
+	return err
 }
 
 func enqueueThinWebhookProcessing(request EnqueueThinWebhookProcessingServiceRequest) error {
@@ -404,21 +402,21 @@ func enqueueThinWebhookProcessing(request EnqueueThinWebhookProcessingServiceReq
 		return err
 	}
 
-    _, err = request.RiverClient.Insert(request.Context, ThinWebhookProcessingJob{
-        EventID:   request.Event.GetEventNotification().ID,
-        EventType: string(request.Event.GetEventNotification().Type),
-        EventData: eventData,
-    }, nil)
-    return err
+	_, err = request.RiverClient.Insert(request.Context, ThinWebhookProcessingJob{
+		EventID:   request.Event.GetEventNotification().ID,
+		EventType: string(request.Event.GetEventNotification().Type),
+		EventData: eventData,
+	}, nil)
+	return err
 }
 
 func handleAccountUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountUpdatedEventNotification) error {
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
-		AccountID: event.RelatedObject.ID,
-		DB: request.DB,
-		Config: request.Config,
+		AccountID:    event.RelatedObject.ID,
+		DB:           request.DB,
+		Config:       request.Config,
 		StripeClient: request.StripeClient,
-		Context: request.Context,
+		Context:      request.Context,
 	})
 
 	if err != nil {
@@ -430,7 +428,7 @@ func handleAccountUpdated(request ProcessThinWebhookEventServiceRequest, event *
 	return nil
 }
 
-func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountClosedEventNotification) error {	
+func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountClosedEventNotification) error {
 	accountID := event.RelatedObject.ID
 
 	log.Printf("Account closed: %s. Reverting stripe information.", accountID)
@@ -455,7 +453,7 @@ func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *s
 		org.Stripe.OnboardingStatus = string(utils.DetermineStripeOnboardingStatus(&org))
 		// Also reset top-level onboarding to in_progress since connect is gone
 		org.OnboardingStatus = string(constants.OnboardingStatusInProgress)
-		
+
 		return tx.Save(&org).Error
 	})
 
@@ -470,14 +468,14 @@ func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *s
 
 func handleAccountCustomerCapabilityStatusUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification) error {
 	log.Printf("Account customer capability status updated: %s", event.RelatedObject.ID)
-	
+
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
-		AccountID: event.RelatedObject.ID,
-		DB: request.DB,
-		Config: request.Config,
+		AccountID:    event.RelatedObject.ID,
+		DB:           request.DB,
+		Config:       request.Config,
 		StripeClient: request.StripeClient,
-		Context: request.Context,
+		Context:      request.Context,
 	})
 
 	if err != nil {
@@ -494,11 +492,11 @@ func handleAccountMerchantCapabilityStatusUpdated(request ProcessThinWebhookEven
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
-		AccountID: event.RelatedObject.ID,
-		DB: request.DB,
-		Config: request.Config,
+		AccountID:    event.RelatedObject.ID,
+		DB:           request.DB,
+		Config:       request.Config,
 		StripeClient: request.StripeClient,
-		Context: request.Context,
+		Context:      request.Context,
 	})
 
 	if err != nil {
@@ -515,11 +513,11 @@ func handleAccountRecipientCapabilityStatusUpdated(request ProcessThinWebhookEve
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
-		AccountID: event.RelatedObject.ID,
-		DB: request.DB,
-		Config: request.Config,
+		AccountID:    event.RelatedObject.ID,
+		DB:           request.DB,
+		Config:       request.Config,
 		StripeClient: request.StripeClient,
-		Context: request.Context,
+		Context:      request.Context,
 	})
 
 	if err != nil {
@@ -536,11 +534,11 @@ func handleAccountRequirementsUpdated(request ProcessThinWebhookEventServiceRequ
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
-		AccountID: event.RelatedObject.ID,
-		DB: request.DB,
-		Config: request.Config,
+		AccountID:    event.RelatedObject.ID,
+		DB:           request.DB,
+		Config:       request.Config,
 		StripeClient: request.StripeClient,
-		Context: request.Context,
+		Context:      request.Context,
 	})
 
 	if err != nil {
@@ -557,11 +555,11 @@ func handleAccountIdentityUpdated(request ProcessThinWebhookEventServiceRequest,
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
-		AccountID: event.RelatedObject.ID,
-		DB: request.DB,
-		Config: request.Config,
+		AccountID:    event.RelatedObject.ID,
+		DB:           request.DB,
+		Config:       request.Config,
 		StripeClient: request.StripeClient,
-		Context: request.Context,
+		Context:      request.Context,
 	})
 
 	if err != nil {
@@ -605,20 +603,20 @@ func CreateCheckoutSession(request CreateCheckoutSessionServiceRequest) (*stripe
 		Mode: stripeGo.String(string(stripeGo.CheckoutSessionModeSubscription)),
 		LineItems: []*stripeGo.CheckoutSessionLineItemParams{
 			{
-				Price: stripeGo.String(config.StripeProPlanPriceId),
+				Price:    stripeGo.String(config.StripeProPlanPriceId),
 				Quantity: stripeGo.Int64(1),
 			},
 		},
 		SuccessURL: stripeGo.String(params.SuccessURL),
-		CancelURL: stripeGo.String(params.CancelURL),
+		CancelURL:  stripeGo.String(params.CancelURL),
 		Metadata: map[string]string{
 			"organization_id": fmt.Sprintf("%d", org.ID),
 		},
 	}
-	
+
 	// Use customer_account instead of customer for Accounts v2
 	sessionParams.AddExtra("customer_account", org.Stripe.AccountID)
-	
+
 	// Create the session (uses the API key configured in stripeClient)
 	sess, err := checkoutSession.New(sessionParams)
 	if err != nil {
@@ -650,12 +648,12 @@ func CreateBillingPortalSession(request CreateBillingPortalSessionServiceRequest
 	sessionParams := &stripeGo.BillingPortalSessionParams{
 		ReturnURL: stripeGo.String(params.ReturnURL),
 	}
-	
+
 	// Add billing portal configuration if provided
 	if config.StripeBillingPortalConfigurationId != "" {
 		sessionParams.Configuration = stripeGo.String(config.StripeBillingPortalConfigurationId)
 	}
-	
+
 	// Use customer_account instead of customer for Accounts v2
 	sessionParams.AddExtra("customer_account", org.Stripe.AccountID)
 

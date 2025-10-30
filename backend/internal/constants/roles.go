@@ -4,9 +4,8 @@ type UserRole string
 
 type OrganizationRole string
 
-
 const (
-	UserRoleAdmin UserRole = "admin"
+	UserRoleAdmin   UserRole = "admin"
 	UserRoleDefault UserRole = "default"
 )
 

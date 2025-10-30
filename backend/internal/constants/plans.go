@@ -4,5 +4,5 @@ type MembershipPlan string
 
 const (
 	MembershipPlanFree MembershipPlan = "free"
-	MembershipPlanPro MembershipPlan = "pro"
+	MembershipPlanPro  MembershipPlan = "pro"
 )

@@ -13,7 +13,6 @@ import (
 	"reece.start/internal/middleware"
 )
 
-
 func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) error {
 	userID, err := middleware.GetUserIDFromJWT(c)
 	if err != nil {
@@ -29,21 +28,21 @@ func CreateOrganizationEndpoint(c echo.Context, req CreateOrganizationRequest) e
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 		organization, err := createOrganization(CreateOrganizationServiceRequest{
 			Params: CreateOrganizationParams{
-				Name:        req.Data.Attributes.Name,
-				Description: req.Data.Attributes.Description,
-				UserID: userID,
-				Logo: req.Data.Attributes.Logo,
-				ContactEmail: req.Data.Attributes.ContactEmail,
-				ContactPhone: req.Data.Attributes.ContactPhone,
+				Name:                req.Data.Attributes.Name,
+				Description:         req.Data.Attributes.Description,
+				UserID:              userID,
+				Logo:                req.Data.Attributes.Logo,
+				ContactEmail:        req.Data.Attributes.ContactEmail,
+				ContactPhone:        req.Data.Attributes.ContactPhone,
 				ContactPhoneCountry: req.Data.Attributes.ContactPhoneCountry,
-				Locale: req.Data.Attributes.Locale,
-				EntityType: req.Data.Attributes.EntityType,
-				Address: req.Data.Attributes.Address,
+				Locale:              req.Data.Attributes.Locale,
+				EntityType:          req.Data.Attributes.EntityType,
+				Address:             req.Data.Attributes.Address,
 			},
-			Tx: tx, // Use the transaction instead of the main db connection
-			MinioClient: minioClient,
-			Context: c.Request().Context(),
-			Config: config,
+			Tx:           tx, // Use the transaction instead of the main db connection
+			MinioClient:  minioClient,
+			Context:      c.Request().Context(),
+			Config:       config,
 			StripeClient: stripeClient,
 		})
 
@@ -75,8 +74,8 @@ func GetOrganizationsEndpoint(c echo.Context) error {
 	minioClient := middleware.GetMinioClient(c)
 
 	organizations, err := getOrganizationsByUserID(GetOrganizationsByUserIDServiceRequest{
-		UserID: userID,
-		Tx:     db,
+		UserID:      userID,
+		Tx:          db,
 		MinioClient: minioClient,
 	})
 
@@ -96,7 +95,7 @@ func GetOrganizationEndpoint(c echo.Context) error {
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: paramOrgID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationRead},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationRead},
 	}); err != nil {
 		return err
 	}
@@ -127,7 +126,7 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: paramOrgID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationUpdate},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationUpdate},
 	}); err != nil {
 		return err
 	}
@@ -145,7 +144,7 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 				Description:    req.Data.Attributes.Description,
 				Logo:           req.Data.Attributes.Logo,
 			},
-			Tx: db,
+			Tx:          db,
 			MinioClient: minioClient,
 		})
 
@@ -175,7 +174,7 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: paramOrgID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationDelete},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationDelete},
 	}); err != nil {
 		return err
 	}
@@ -198,7 +197,7 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 func GetOrganizationMembershipsEndpoint(c echo.Context, query GetOrganizationMembershipsQuery) error {
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: query.OrganizationID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationMembershipsList},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationMembershipsList},
 	}); err != nil {
 		return err
 	}
@@ -240,7 +239,7 @@ func GetOrganizationMembershipEndpoint(c echo.Context) error {
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: membership.Membership.OrganizationID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationMembershipsList},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationMembershipsList},
 	}); err != nil {
 		return err
 	}
@@ -259,7 +258,7 @@ func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganization
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: uint(orgId),
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationMembershipsCreate},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationMembershipsCreate},
 	}); err != nil {
 		return err
 	}
@@ -325,7 +324,7 @@ func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganization
 
 		if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 			OrganizationID: membership.Membership.OrganizationID,
-			Scopes: []constants.UserScope{constants.UserScopeOrganizationMembershipsUpdate},
+			Scopes:         []constants.UserScope{constants.UserScopeOrganizationMembershipsUpdate},
 		}); err != nil {
 			return err
 		}
@@ -377,7 +376,7 @@ func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: membership.Membership.OrganizationID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationMembershipsDelete},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationMembershipsDelete},
 	}); err != nil {
 		return err
 	}
@@ -414,7 +413,7 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 		if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 			OrganizationID: uint(paramOrgID),
-			Scopes: []constants.UserScope{constants.UserScopeOrganizationInvitationsCreate},
+			Scopes:         []constants.UserScope{constants.UserScopeOrganizationInvitationsCreate},
 		}); err != nil {
 			return err
 		}
@@ -455,7 +454,7 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 func GetOrganizationInvitationsEndpoint(c echo.Context, query GetOrganizationInvitationsQuery) error {
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: query.OrganizationID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationInvitationsList},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationInvitationsList},
 	}); err != nil {
 		return err
 	}
@@ -495,7 +494,6 @@ func GetOrganizationInvitationEndpoint(c echo.Context) error {
 		return err
 	}
 
-
 	included := []interface{}{
 		mapOrganizationToIncludedData(invitation.Organization),
 		mapInvitingUserToIncludedData(invitation.InvitingUser),
@@ -530,7 +528,7 @@ func DeleteOrganizationInvitationEndpoint(c echo.Context) error {
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: invitation.Invitation.OrganizationID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationInvitationsDelete},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationInvitationsDelete},
 	}); err != nil {
 		return err
 	}
@@ -663,27 +661,27 @@ func CreateStripeOnboardingLinkEndpoint(c echo.Context) error {
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: paramOrgID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationStripeUpdate},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationStripeUpdate},
 	}); err != nil {
 		return err
 	}
 
-    db := middleware.GetDB(c)
-    stripeClient := middleware.GetStripeClient(c)
+	db := middleware.GetDB(c)
+	stripeClient := middleware.GetStripeClient(c)
 	config := middleware.GetConfig(c)
 
 	link, err := createStripeOnboardingLink(CreateStripeOnboardingLinkServiceRequest{
-        Db:           db,
-        StripeClient: stripeClient,
-        Context:      c.Request().Context(),
-		Config: config,
-        Params: CreateStripeOnboardingLinkParams{
-            OrganizationID: paramOrgID,
-        },
-    })
-    if err != nil {
-        return err
-    }
+		Db:           db,
+		StripeClient: stripeClient,
+		Context:      c.Request().Context(),
+		Config:       config,
+		Params: CreateStripeOnboardingLinkParams{
+			OrganizationID: paramOrgID,
+		},
+	})
+	if err != nil {
+		return err
+	}
 
 	response := CreateStripeOnboardingLinkResponse{
 		Data: StripeAccountLinkData{
@@ -709,25 +707,25 @@ func CreateStripeDashboardLinkEndpoint(c echo.Context) error {
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
 		OrganizationID: paramOrgID,
-		Scopes: []constants.UserScope{constants.UserScopeOrganizationStripeUpdate},
+		Scopes:         []constants.UserScope{constants.UserScopeOrganizationStripeUpdate},
 	}); err != nil {
 		return err
 	}
 
-    db := middleware.GetDB(c)
-    stripeClient := middleware.GetStripeClient(c)
+	db := middleware.GetDB(c)
+	stripeClient := middleware.GetStripeClient(c)
 
 	dashboardURL, err := createStripeDashboardLink(CreateStripeDashboardLinkServiceRequest{
-        Db:           db,
-        StripeClient: stripeClient,
-        Context:      c.Request().Context(),
-        Params: CreateStripeDashboardLinkParams{
-            OrganizationID: paramOrgID,
-        },
-    })
-    if err != nil {
-        return err
-    }
+		Db:           db,
+		StripeClient: stripeClient,
+		Context:      c.Request().Context(),
+		Params: CreateStripeDashboardLinkParams{
+			OrganizationID: paramOrgID,
+		},
+	})
+	if err != nil {
+		return err
+	}
 
 	response := CreateStripeDashboardLinkResponse{
 		Data: StripeDashboardLinkData{
@@ -749,22 +747,22 @@ func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta
 			Type: constants.ApiTypeOrganization,
 			Attributes: OrganizationAttributes{
 				CommonOrganizationAttributes: CommonOrganizationAttributes{
-					Name: params.Organization.Name,
-					Description: params.Organization.Description,
-					Address: api.Address(params.Organization.Address),
-					Locale: params.Organization.Locale,
-					ContactEmail: params.Organization.ContactEmail,
-					ContactPhone: params.Organization.ContactPhone,
+					Name:                params.Organization.Name,
+					Description:         params.Organization.Description,
+					Address:             api.Address(params.Organization.Address),
+					Locale:              params.Organization.Locale,
+					ContactEmail:        params.Organization.ContactEmail,
+					ContactPhone:        params.Organization.ContactPhone,
 					ContactPhoneCountry: params.Organization.ContactPhoneCountry,
 				},
 			},
 		},
 		Meta: OrganizationMeta{
 			LogoDistributionUrl: params.LogoDistributionUrl,
-			OnboardingStatus: params.Organization.OnboardingStatus,
+			OnboardingStatus:    params.Organization.OnboardingStatus,
 			Stripe: StripeMeta{
 				HasPendingRequirements: params.Organization.Stripe.HasPendingRequirements,
-				OnboardingStatus: params.Organization.Stripe.OnboardingStatus,
+				OnboardingStatus:       params.Organization.Stripe.OnboardingStatus,
 			},
 		},
 	}
@@ -872,8 +870,8 @@ func mapInvitationToResponse(invitationDto *OrganizationInvitationDto) Organizat
 		Id:   invitationDto.Invitation.ID.String(),
 		Type: constants.ApiTypeOrganizationInvitation,
 		Attributes: OrganizationInvitationAttributes{
-			Email: invitationDto.Invitation.Email,
-			Role: invitationDto.Invitation.Role,
+			Email:  invitationDto.Invitation.Email,
+			Role:   invitationDto.Invitation.Role,
 			Status: invitationDto.Invitation.Status,
 		},
 		Relationships: OrganizationInvitationRelationships{

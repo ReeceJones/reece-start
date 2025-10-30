@@ -12,7 +12,6 @@ import (
 	"reece.start/internal/middleware"
 )
 
-
 func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 	config := middleware.GetConfig(c)
 	db := middleware.GetDB(c)
@@ -23,7 +22,7 @@ func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 			Email:    req.Data.Attributes.Email,
 			Password: req.Data.Attributes.Password,
 		},
-		Tx: db,
+		Tx:     db,
 		Config: config,
 	})
 
@@ -44,8 +43,8 @@ func LoginEndpoint(c echo.Context, req LoginUserRequest) error {
 			Email:    req.Data.Attributes.Email,
 			Password: req.Data.Attributes.Password,
 		},
-		Tx: db,
-		Config: config,
+		Tx:          db,
+		Config:      config,
 		MinioClient: minioClient,
 	})
 
@@ -66,8 +65,8 @@ func GetAuthenticatedUserEndpoint(c echo.Context) error {
 	minioClient := middleware.GetMinioClient(c)
 
 	user, err := getUserByID(GetUserByIDServiceRequest{
-		UserID: userID,
-		Tx:     db,
+		UserID:      userID,
+		Tx:          db,
 		MinioClient: minioClient,
 	})
 
@@ -108,7 +107,7 @@ func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticate
 		impersonatingUserId = actualUserId
 	}
 
-	if req.Data.Meta.StopImpersonating {		
+	if req.Data.Meta.StopImpersonating {
 		if impersonatingUserId == 0 {
 			// if the impersonating user id is 0, then the user is not impersonating anyone
 			return api.ErrForbiddenImpersonationNotAllowed
@@ -131,11 +130,11 @@ func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticate
 
 	token, err := createAuthenticatedUserToken(CreateAuthenticatedUserTokenServiceRequest{
 		Params: CreateAuthenticatedUserTokenParams{
-			UserId: userId,
-			OrganizationId: &organizationId,
+			UserId:              userId,
+			OrganizationId:      &organizationId,
 			ImpersonatingUserId: &impersonatingUserId,
 		},
-		Tx: tx,
+		Tx:     tx,
 		Config: config,
 	})
 
@@ -172,9 +171,9 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 			Name:     req.Data.Attributes.Name,
 			Email:    req.Data.Attributes.Email,
 			Password: req.Data.Attributes.Password,
-			Logo: req.Data.Attributes.Logo,
+			Logo:     req.Data.Attributes.Logo,
 		},
-		Tx: db,
+		Tx:          db,
 		MinioClient: minioClient,
 	})
 
@@ -238,11 +237,11 @@ func GetUsersEndpoint(c echo.Context, query GetUsersQuery) error {
 	}
 
 	return c.JSON(http.StatusOK, GetUsersResponse{
-		Data:  userData,
+		Data: userData,
 		Links: api.BuildPaginationLinks(api.BuildPaginationLinksParams{
 			PrevCursor: response.PrevCursor,
 			NextCursor: response.NextCursor,
-			Context: c,
+			Context:    c,
 		}),
 	})
 }

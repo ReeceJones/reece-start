@@ -92,27 +92,25 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-		
+
 		if errors.Is(err, api.ErrStripeWebhookSignatureMissing) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
 				Message: err.Error(),
 			})
 		}
-		
+
 		if errors.Is(err, api.ErrStripeWebhookSignatureInvalid) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
 				Message: err.Error(),
 			})
 		}
-		
-		
+
 		if errors.Is(err, api.ErrStripeWebhookEventInvalid) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
 				Message: err.Error(),
 			})
 		}
-		
-		
+
 		if errors.Is(err, api.ErrStripeWebhookEventUnhandled) {
 			return c.JSON(http.StatusBadRequest, api.ApiError{
 				Message: err.Error(),

@@ -11,17 +11,17 @@ import (
 )
 
 type Address struct {
-	Line1 string
-	Line2 string
-	City string
+	Line1           string
+	Line2           string
+	City            string
 	StateOrProvince string
-	Zip string
-	Country string
+	Zip             string
+	Country         string
 }
 
 type IndividualAccount struct {
 	FirstName string
-	LastName string
+	LastName  string
 }
 
 type CompanyAccount struct {
@@ -29,107 +29,107 @@ type CompanyAccount struct {
 }
 
 type CreateStripeAccountParams struct {
-	OrganizationID uint
-    Type stripeGo.AccountBusinessType
-	DisplayName string
-	ContactEmail string
-	ContactPhone string
-    Currency stripeGo.Currency
-	Locale string
+	OrganizationID  uint
+	Type            stripeGo.AccountBusinessType
+	DisplayName     string
+	ContactEmail    string
+	ContactPhone    string
+	Currency        stripeGo.Currency
+	Locale          string
 	ResidingCountry string
-	Address Address
-	Individual IndividualAccount
-	Company CompanyAccount
+	Address         Address
+	Individual      IndividualAccount
+	Company         CompanyAccount
 }
 
 type CreateStripeAccountServiceRequest struct {
-	Context context.Context
-	Config *configuration.Config
+	Context      context.Context
+	Config       *configuration.Config
 	StripeClient *stripeGo.Client
-	Params CreateStripeAccountParams
+	Params       CreateStripeAccountParams
 }
 
 // ProcessSnapshotWebhookEventServiceRequest contains parameters for processing webhook events
 type ProcessSnapshotWebhookEventServiceRequest struct {
-    Event  *stripeGo.Event
-	DB     *gorm.DB
-	Config *configuration.Config
-    StripeClient *stripeGo.Client
-    Context context.Context
+	Event        *stripeGo.Event
+	DB           *gorm.DB
+	Config       *configuration.Config
+	StripeClient *stripeGo.Client
+	Context      context.Context
 }
 
 type ProcessThinWebhookEventServiceRequest struct {
-    Event  stripeGo.EventNotificationContainer
-	DB     *gorm.DB
-	Config *configuration.Config
-    StripeClient *stripeGo.Client
-    Context context.Context
+	Event        stripeGo.EventNotificationContainer
+	DB           *gorm.DB
+	Config       *configuration.Config
+	StripeClient *stripeGo.Client
+	Context      context.Context
 }
 
 type FetchAndUpdateAccountServiceRequest struct {
-    AccountID string
-	DB     *gorm.DB
-	Config *configuration.Config
-    StripeClient *stripeGo.Client
-    Context context.Context
+	AccountID    string
+	DB           *gorm.DB
+	Config       *configuration.Config
+	StripeClient *stripeGo.Client
+	Context      context.Context
 }
 
 // EnqueueSnapshotWebhookProcessingServiceRequest contains parameters for enqueueing webhook processing
 type EnqueueSnapshotWebhookProcessingServiceRequest struct {
-    RiverClient *river.Client[*sql.Tx]
-    Event       *stripeGo.Event
-    Context     context.Context
+	RiverClient *river.Client[*sql.Tx]
+	Event       *stripeGo.Event
+	Context     context.Context
 }
 
 type EnqueueThinWebhookProcessingServiceRequest struct {
-    RiverClient *river.Client[*sql.Tx]
-    Event       stripeGo.EventNotificationContainer
-    Context     context.Context
+	RiverClient *river.Client[*sql.Tx]
+	Event       stripeGo.EventNotificationContainer
+	Context     context.Context
 }
 
 type CreateOnboardingLinkServiceRequest struct {
-	Context context.Context
+	Context      context.Context
 	StripeClient *stripeGo.Client
-    Db *gorm.DB
-	Params CreateOnboardingLinkParams
+	Db           *gorm.DB
+	Params       CreateOnboardingLinkParams
 }
 
 type CreateOnboardingLinkParams struct {
-	AccountID string
+	AccountID  string
 	RefreshURL string
-	ReturnURL string
+	ReturnURL  string
 }
 
 type CreateCheckoutSessionServiceRequest struct {
-	Context context.Context
-	Config *configuration.Config
+	Context      context.Context
+	Config       *configuration.Config
 	StripeClient *stripeGo.Client
-	DB *gorm.DB
-	Params CreateCheckoutSessionParams
+	DB           *gorm.DB
+	Params       CreateCheckoutSessionParams
 }
 
 type CreateCheckoutSessionParams struct {
 	OrganizationID uint
-	SuccessURL string
-	CancelURL string
+	SuccessURL     string
+	CancelURL      string
 }
 
 type CreateBillingPortalSessionServiceRequest struct {
-	Context context.Context
-	Config *configuration.Config
+	Context      context.Context
+	Config       *configuration.Config
 	StripeClient *stripeGo.Client
-	DB *gorm.DB
-	Params CreateBillingPortalSessionParams
+	DB           *gorm.DB
+	Params       CreateBillingPortalSessionParams
 }
 
 type CreateBillingPortalSessionParams struct {
 	OrganizationID uint
-	ReturnURL string
+	ReturnURL      string
 }
 
 type GetSubscriptionServiceRequest struct {
-	Context context.Context
-	DB *gorm.DB
+	Context        context.Context
+	DB             *gorm.DB
 	OrganizationID uint
 }
 
@@ -139,8 +139,8 @@ type CheckoutSessionResponse struct {
 }
 
 type CheckoutSessionData struct {
-	Type       string                      `json:"type"`
-	ID         string                      `json:"id"`
+	Type       string                    `json:"type"`
+	ID         string                    `json:"id"`
 	Attributes CheckoutSessionAttributes `json:"attributes"`
 }
 
@@ -153,8 +153,8 @@ type BillingPortalSessionResponse struct {
 }
 
 type BillingPortalSessionData struct {
-	Type       string                           `json:"type"`
-	ID         string                           `json:"id"`
+	Type       string                         `json:"type"`
+	ID         string                         `json:"id"`
 	Attributes BillingPortalSessionAttributes `json:"attributes"`
 }
 
@@ -167,8 +167,8 @@ type SubscriptionResponse struct {
 }
 
 type SubscriptionData struct {
-	Type       string                   `json:"type"`
-	ID         string                   `json:"id,omitempty"`
+	Type       string                 `json:"type"`
+	ID         string                 `json:"id,omitempty"`
 	Attributes SubscriptionAttributes `json:"attributes"`
 }
 

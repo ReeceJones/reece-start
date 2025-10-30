@@ -6,10 +6,10 @@ import "errors"
 // These errors can be checked using errors.Is() for better error handling
 var (
 	// Authentication/Authorization errors
-	ErrForbiddenNoAccess        = errors.New("Unauthorized")
-	ErrForbiddenNoAdminAccess   = errors.New("You don't have admin access to this organization")
-	ErrForbiddenOwnProfileOnly  = errors.New("You can only update your own profile")
-	ErrUnauthorizedInvalidLogin = errors.New("Invalid email or password")
+	ErrForbiddenNoAccess                = errors.New("Unauthorized")
+	ErrForbiddenNoAdminAccess           = errors.New("You don't have admin access to this organization")
+	ErrForbiddenOwnProfileOnly          = errors.New("You can only update your own profile")
+	ErrUnauthorizedInvalidLogin         = errors.New("Invalid email or password")
 	ErrForbiddenImpersonationNotAllowed = errors.New("Impersonation is not allowed")
 
 	// Resource not found errors
@@ -29,8 +29,8 @@ var (
 
 	// Stripe webhook errors
 	ErrStripeWebhookSecretNotConfigured = errors.New("Stripe webhook secret not configured")
-	ErrStripeWebhookSignatureMissing = errors.New("Stripe webhook signature missing")
-	ErrStripeWebhookSignatureInvalid = errors.New("Stripe webhook signature invalid")
-	ErrStripeWebhookEventInvalid = errors.New("Stripe webhook event invalid")
-	ErrStripeWebhookEventUnhandled = errors.New("Stripe webhook event unhandled")
+	ErrStripeWebhookSignatureMissing    = errors.New("Stripe webhook signature missing")
+	ErrStripeWebhookSignatureInvalid    = errors.New("Stripe webhook signature invalid")
+	ErrStripeWebhookEventInvalid        = errors.New("Stripe webhook event invalid")
+	ErrStripeWebhookEventUnhandled      = errors.New("Stripe webhook event unhandled")
 )

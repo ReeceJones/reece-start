@@ -25,9 +25,6 @@ import (
 	"reece.start/internal/users"
 )
 
-
-
-
 func main() {
 	// Load environment variables
 	config, err := configuration.LoadEnvironmentVariables()
@@ -68,7 +65,7 @@ func main() {
 	log.Printf("Minio client created\n")
 
 	// Create resend client (Email)
-    resendClient := resend.NewClient(config.ResendApiKey)
+	resendClient := resend.NewClient(config.ResendApiKey)
 
 	log.Printf("Resend client created\n")
 
@@ -79,18 +76,18 @@ func main() {
 	// Create river client (Background jobs)
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &organizations.OrganizationInvitationEmailJobWorker{
-		DB:          db,
-		Config:      config,
+		DB:           db,
+		Config:       config,
 		ResendClient: resendClient,
 	})
 	river.AddWorker(workers, &stripe.SnapshotWebhookProcessingJobWorker{
-		DB:     db,
-		Config: config,
+		DB:           db,
+		Config:       config,
 		StripeClient: stripeClient,
 	})
 	river.AddWorker(workers, &stripe.ThinWebhookProcessingJobWorker{
-		DB:     db,
-		Config: config,
+		DB:           db,
+		Config:       config,
 		StripeClient: stripeClient,
 	})
 
@@ -129,14 +126,14 @@ func main() {
 	// Add dependency injection middleware
 	e.Use(appMiddleware.ContentTypeMiddleware)
 	e.Use(appMiddleware.DependencyInjectionMiddleware(appMiddleware.AppDependencies{
-		Config: config,
-		DB: db,
-		MinioClient: minioClient,
-		RiverClient: riverClient,
+		Config:       config,
+		DB:           db,
+		MinioClient:  minioClient,
+		RiverClient:  riverClient,
 		ResendClient: resendClient,
 		StripeClient: stripeClient,
 	}))
-	
+
 	// Add error handling middleware
 	e.Use(appMiddleware.ErrorHandlingMiddleware)
 

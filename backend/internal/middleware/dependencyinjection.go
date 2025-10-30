@@ -13,10 +13,10 @@ import (
 )
 
 type AppDependencies struct {
-	Config *configuration.Config
-	DB *gorm.DB
-	MinioClient *minio.Client
-	RiverClient *river.Client[*sql.Tx]
+	Config       *configuration.Config
+	DB           *gorm.DB
+	MinioClient  *minio.Client
+	RiverClient  *river.Client[*sql.Tx]
 	ResendClient *resend.Client
 	StripeClient *stripeGo.Client
 }

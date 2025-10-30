@@ -33,20 +33,20 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 	// Create the organization
 	organization := &models.Organization{
-		Name: params.Name,
-		Description: params.Description,
-		ContactEmail: params.ContactEmail,
-		ContactPhone: params.ContactPhone,
+		Name:                params.Name,
+		Description:         params.Description,
+		ContactEmail:        params.ContactEmail,
+		ContactPhone:        params.ContactPhone,
 		ContactPhoneCountry: params.ContactPhoneCountry,
-		Currency: string(localCurrency),
-		Locale: params.Locale,
+		Currency:            string(localCurrency),
+		Locale:              params.Locale,
 		Address: models.Address{
-			Line1: params.Address.Line1,
-			Line2: params.Address.Line2,
-			City: params.Address.City,
+			Line1:           params.Address.Line1,
+			Line2:           params.Address.Line2,
+			City:            params.Address.City,
 			StateOrProvince: params.Address.StateOrProvince,
-			Zip: params.Address.Zip,
-			Country: params.Address.Country,
+			Zip:             params.Address.Zip,
+			Country:         params.Address.Country,
 		},
 		OnboardingStatus: string(constants.OnboardingStatusPending),
 		Stripe: models.OrganizationStripeAccount{
@@ -104,30 +104,30 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 	// Create the Stripe connect account
 	account, err := stripe.CreateStripeConnectAccount(stripe.CreateStripeAccountServiceRequest{
-		Context: request.Context,
-		Config: request.Config,
+		Context:      request.Context,
+		Config:       request.Config,
 		StripeClient: request.StripeClient,
 		Params: stripe.CreateStripeAccountParams{
-			OrganizationID: organization.ID,
-			DisplayName: organization.Name,
-			Type: stripeGo.AccountBusinessType(params.EntityType),
-			ContactEmail: params.ContactEmail,
-			ContactPhone: params.ContactPhone,
-			Currency: localCurrency,
-			Locale: params.Locale,
+			OrganizationID:  organization.ID,
+			DisplayName:     organization.Name,
+			Type:            stripeGo.AccountBusinessType(params.EntityType),
+			ContactEmail:    params.ContactEmail,
+			ContactPhone:    params.ContactPhone,
+			Currency:        localCurrency,
+			Locale:          params.Locale,
 			ResidingCountry: params.Address.Country,
 			Address: stripe.Address{
-				Line1: params.Address.Line1,
-				Line2: params.Address.Line2,
-				City: params.Address.City,
+				Line1:           params.Address.Line1,
+				Line2:           params.Address.Line2,
+				City:            params.Address.City,
 				StateOrProvince: params.Address.StateOrProvince,
-				Zip: params.Address.Zip,
-				Country: params.Address.Country,
+				Zip:             params.Address.Zip,
+				Country:         params.Address.Country,
 			},
 		},
 	})
 
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 
@@ -135,7 +135,7 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 	// Update the stripe information on the organization
 	err = updateOrganizationStripeInformation(UpdateOrganizationStripeInformationServiceRequest{
-		Organization: organization,
+		Organization:  organization,
 		StripeAccount: *account,
 	})
 	if err != nil {
@@ -361,7 +361,7 @@ func createOrganizationMembership(request CreateOrganizationMembershipServiceReq
 	var existingMembership models.OrganizationMembership
 	err := tx.Where("user_id = ? AND organization_id = ?", params.UserID, params.OrganizationID).
 		First(&existingMembership).Error
-	
+
 	if err == nil {
 		return nil, api.ErrInvitationAlreadyExists
 	}
@@ -527,7 +527,7 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 	var existingInvitation models.OrganizationInvitation
 	err := tx.Where("email = ? AND organization_id = ? AND status = ?", params.Email, params.OrganizationID, string(constants.OrganizationInvitationStatusPending)).
 		First(&existingInvitation).Error
-	
+
 	if err == nil {
 		return nil, api.ErrInvitationAlreadyExists
 	}
@@ -538,11 +538,11 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 
 	// Create the organization invitation
 	invitation := &models.OrganizationInvitation{
-		Email:           params.Email,
-		OrganizationID:  params.OrganizationID,
-		InvitingUserID:  params.InvitingUserID,
-		Role:            params.Role,
-		Status:          string(constants.OrganizationInvitationStatusPending),
+		Email:          params.Email,
+		OrganizationID: params.OrganizationID,
+		InvitingUserID: params.InvitingUserID,
+		Role:           params.Role,
+		Status:         string(constants.OrganizationInvitationStatusPending),
 	}
 
 	err = tx.Create(&invitation).Error
@@ -698,7 +698,7 @@ func acceptOrganizationInvitation(request AcceptOrganizationInvitationServiceReq
 	var existingMembership models.OrganizationMembership
 	err = tx.Where("user_id = ? AND organization_id = ?", userID, invitation.OrganizationID).
 		First(&existingMembership).Error
-	
+
 	if err == nil {
 		return nil, api.ErrUserAlreadyMember
 	}
@@ -782,7 +782,6 @@ func declineOrganizationInvitation(request DeclineOrganizationInvitationServiceR
 	})
 }
 
-
 func updateOrganizationStripeInformation(request UpdateOrganizationStripeInformationServiceRequest) error {
 	organization := request.Organization
 	stripeAccount := request.StripeAccount
@@ -798,7 +797,7 @@ func updateOrganizationStripeInformation(request UpdateOrganizationStripeInforma
 		organization.Stripe.HasPendingRequirements = len(requirements.Entries) > 0
 	}
 
-    organization.Stripe.OnboardingStatus = string(utils.DetermineStripeOnboardingStatus(organization))
+	organization.Stripe.OnboardingStatus = string(utils.DetermineStripeOnboardingStatus(organization))
 
 	return nil
 }
@@ -814,59 +813,58 @@ func updateOnboardingStatus(organization *models.Organization) error {
 	return nil
 }
 
-
 // moved to utils.DetermineStripeOnboardingStatus
 
 func createStripeOnboardingLink(request CreateStripeOnboardingLinkServiceRequest) (*stripeGo.V2CoreAccountLink, error) {
-    tx := request.Db
-    params := request.Params
-    stripeClient := request.StripeClient
-    context := request.Context
+	tx := request.Db
+	params := request.Params
+	stripeClient := request.StripeClient
+	context := request.Context
 	config := request.Config
 
-    var organization models.Organization
-    if err := tx.First(&organization, params.OrganizationID).Error; err != nil {
-        return nil, err
-    }
+	var organization models.Organization
+	if err := tx.First(&organization, params.OrganizationID).Error; err != nil {
+		return nil, err
+	}
 
-    if organization.Stripe.AccountID == "" {
-        return nil, fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
-    }
+	if organization.Stripe.AccountID == "" {
+		return nil, fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
+	}
 
 	refreshUrl := fmt.Sprintf("%s/app/%d/stripe-onboarding", config.FrontendUrl, params.OrganizationID)
 	returnUrl := fmt.Sprintf("%s/app/%d", config.FrontendUrl, params.OrganizationID)
 
-    link, err := stripe.CreateOnboardingLink(stripe.CreateOnboardingLinkServiceRequest{
-        Context:      context,
-        StripeClient: stripeClient,
-        Params: stripe.CreateOnboardingLinkParams{
-            AccountID:  organization.Stripe.AccountID,
-            RefreshURL: refreshUrl,
-            ReturnURL:  returnUrl,
-        },
-    })
-    if err != nil {
-        return nil, err
-    }
+	link, err := stripe.CreateOnboardingLink(stripe.CreateOnboardingLinkServiceRequest{
+		Context:      context,
+		StripeClient: stripeClient,
+		Params: stripe.CreateOnboardingLinkParams{
+			AccountID:  organization.Stripe.AccountID,
+			RefreshURL: refreshUrl,
+			ReturnURL:  returnUrl,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
 
-    return link, nil
+	return link, nil
 }
 
 func createStripeDashboardLink(request CreateStripeDashboardLinkServiceRequest) (string, error) {
-    tx := request.Db
-    params := request.Params
+	tx := request.Db
+	params := request.Params
 
-    var organization models.Organization
-    if err := tx.First(&organization, params.OrganizationID).Error; err != nil {
-        return "", err
-    }
+	var organization models.Organization
+	if err := tx.First(&organization, params.OrganizationID).Error; err != nil {
+		return "", err
+	}
 
-    if organization.Stripe.AccountID == "" {
-        return "", fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
-    }
+	if organization.Stripe.AccountID == "" {
+		return "", fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
+	}
 
-    // For Standard Connect accounts, construct the dashboard URL directly
-    dashboardURL := fmt.Sprintf("https://dashboard.stripe.com/b/%s", organization.Stripe.AccountID)
-    
-    return dashboardURL, nil
+	// For Standard Connect accounts, construct the dashboard URL directly
+	dashboardURL := fmt.Sprintf("https://dashboard.stripe.com/b/%s", organization.Stripe.AccountID)
+
+	return dashboardURL, nil
 }

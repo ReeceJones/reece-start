@@ -9,16 +9,16 @@ import (
 )
 
 type SendEmailParams struct {
-	From string
-	To []string
+	From    string
+	To      []string
 	Subject string
-	Html string
+	Html    string
 }
 
 type SendEmailRequest struct {
-	Params SendEmailParams
+	Params       SendEmailParams
 	ResendClient *resend.Client
-	Config *configuration.Config
+	Config       *configuration.Config
 }
 
 type SendEmailResponse struct {
@@ -39,10 +39,10 @@ func SendEmail(request SendEmailRequest) (*SendEmailResponse, error) {
 	}
 
 	resp, err := request.ResendClient.Emails.Send(&resend.SendEmailRequest{
-		From: request.Params.From,
-		To: request.Params.To,
+		From:    request.Params.From,
+		To:      request.Params.To,
 		Subject: request.Params.Subject,
-		Html: request.Params.Html,
+		Html:    request.Params.Html,
 	})
 
 	if err != nil {

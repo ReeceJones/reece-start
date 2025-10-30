@@ -8,14 +8,14 @@ import (
 )
 
 type PaginationLinks struct {
-	Prev  string `json:"prev,omitempty"`
-	Next  string `json:"next,omitempty"`
+	Prev string `json:"prev,omitempty"`
+	Next string `json:"next,omitempty"`
 }
 
 type BuildPaginationLinksParams struct {
 	PrevCursor string
 	NextCursor string
-	Context echo.Context
+	Context    echo.Context
 }
 
 func EncodeCursor[T any](cursor T) (string, error) {

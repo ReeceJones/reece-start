@@ -48,7 +48,7 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 		Params: CreateAuthenticatedUserTokenParams{
 			UserId: user.ID,
 		},
-		Tx: tx,
+		Tx:     tx,
 		Config: config,
 	})
 
@@ -57,7 +57,7 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	}
 
 	return &UserDto{
-		User: user,
+		User:  user,
 		Token: token,
 	}, nil
 }
@@ -80,7 +80,7 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 		if err != nil {
 			return "", err
 		}
-		
+
 		organizationScopes := constants.OrganizationRoleToScopes[constants.OrganizationRole(*selectMembershipRole.Role)]
 		scopes = append(scopes, organizationScopes...)
 	}
@@ -100,12 +100,12 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 	}
 
 	jwtOptions := authentication.JwtOptions{
-		UserId: request.Params.UserId,
-		OrganizationId: request.Params.OrganizationId,
-		OrganizationRole: selectMembershipRole.Role,
-		Scopes: &scopes,
-		Role: &userRole,
-		IsImpersonating: &isImpersonating,
+		UserId:              request.Params.UserId,
+		OrganizationId:      request.Params.OrganizationId,
+		OrganizationRole:    selectMembershipRole.Role,
+		Scopes:              &scopes,
+		Role:                &userRole,
+		IsImpersonating:     &isImpersonating,
 		ImpersonatingUserId: impersonatingUserId,
 	}
 
@@ -129,7 +129,7 @@ func loginUser(request LoginUserServiceRequest) (*UserDto, error) {
 	err := tx.Where("email = ?", params.Email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil,api.ErrUnauthorizedInvalidLogin
+			return nil, api.ErrUnauthorizedInvalidLogin
 		}
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func loginUser(request LoginUserServiceRequest) (*UserDto, error) {
 		Params: CreateAuthenticatedUserTokenParams{
 			UserId: user.ID,
 		},
-		Tx: tx,
+		Tx:     tx,
 		Config: config,
 	})
 	if err != nil {
@@ -153,8 +153,8 @@ func loginUser(request LoginUserServiceRequest) (*UserDto, error) {
 
 	// Get the logo distribution URL for the user
 	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
-		UserID: user.ID,
-		Tx:     tx,
+		UserID:      user.ID,
+		Tx:          tx,
 		MinioClient: minioClient,
 	})
 	if err != nil {
@@ -162,8 +162,8 @@ func loginUser(request LoginUserServiceRequest) (*UserDto, error) {
 	}
 
 	return &UserDto{
-		User: &user,
-		Token: token,
+		User:                &user,
+		Token:               token,
 		LogoDistributionUrl: logoDistributionUrl,
 	}, nil
 }
@@ -184,8 +184,8 @@ func getUserByID(request GetUserByIDServiceRequest) (*UserDto, error) {
 
 	// get the logo distribution URL for the user
 	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
-		UserID: user.ID,
-		Tx:     tx,
+		UserID:      user.ID,
+		Tx:          tx,
 		MinioClient: minioClient,
 	})
 	if err != nil {
@@ -193,7 +193,7 @@ func getUserByID(request GetUserByIDServiceRequest) (*UserDto, error) {
 	}
 
 	return &UserDto{
-		User: &user,
+		User:                &user,
 		LogoDistributionUrl: logoDistributionUrl,
 	}, nil
 }
@@ -262,8 +262,8 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 	}
 
 	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
-		UserID: user.ID,
-		Tx:     tx,
+		UserID:      user.ID,
+		Tx:          tx,
 		MinioClient: minioClient,
 	})
 	if err != nil {
@@ -271,7 +271,7 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 	}
 
 	return &UserDto{
-		User: &user,
+		User:                &user,
 		LogoDistributionUrl: logoDistributionUrl,
 	}, nil
 }
@@ -330,15 +330,15 @@ func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) 
 	// Get users with cursor-based pagination and search
 	var users []models.User
 	query := tx
-	
+
 	// Apply search filter if provided
 	if search != "" {
 		// Search by name, email, or ID (case-insensitive)
 		searchPattern := "%" + search + "%"
-		query = query.Where("name ILIKE ? OR email ILIKE ? OR id::text ILIKE ?", 
+		query = query.Where("name ILIKE ? OR email ILIKE ? OR id::text ILIKE ?",
 			searchPattern, searchPattern, searchPattern)
 	}
-	
+
 	if getUsersCursor != (GetUsersCursor{}) && getUsersCursor.Direction == "next" {
 		// Get users after the cursor
 		query = query.Where("id > ?", getUsersCursor.UserID).Order("id ASC")
@@ -347,9 +347,9 @@ func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) 
 	} else {
 		query = query.Order("id ASC")
 	}
-	
+
 	// Get one extra record to determine if there are more pages
-	err := query.Limit(size + 1).Find(&users).Error;
+	err := query.Limit(size + 1).Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
@@ -389,7 +389,7 @@ func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) 
 	var prevCursor string
 	if hasNext && len(userDtos) > 0 {
 		nextCursor, err = api.EncodeCursor(GetUsersCursor{
-			UserID: userDtos[len(userDtos)-1].User.ID,
+			UserID:    userDtos[len(userDtos)-1].User.ID,
 			Direction: "next",
 		})
 		if err != nil {
@@ -399,7 +399,7 @@ func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) 
 
 	if hasPrev && len(userDtos) > 0 {
 		prevCursor, err = api.EncodeCursor(GetUsersCursor{
-			UserID: userDtos[0].User.ID,
+			UserID:    userDtos[0].User.ID,
 			Direction: "prev",
 		})
 		if err != nil {
@@ -468,7 +468,7 @@ func googleOAuthCallback(request GoogleOAuthCallbackServiceRequest) (*UserDto, e
 	// Check if user exists by Google ID
 	var user models.User
 	err = tx.Where("google_id = ?", googleUser.ID).First(&user).Error
-	
+
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -476,7 +476,7 @@ func googleOAuthCallback(request GoogleOAuthCallbackServiceRequest) (*UserDto, e
 	// If user doesn't exist by Google ID, check by email
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = tx.Where("email = ?", googleUser.Email).First(&user).Error
-		
+
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}

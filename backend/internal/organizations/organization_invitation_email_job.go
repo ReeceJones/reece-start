@@ -16,7 +16,6 @@ import (
 	"reece.start/internal/models"
 )
 
-
 type OrganizationInvitationEmailJobArgs struct {
 	InvitationId uuid.UUID `json:"invitationId"`
 }
@@ -27,18 +26,17 @@ func (OrganizationInvitationEmailJobArgs) Kind() string {
 
 type OrganizationInvitationEmailJobWorker struct {
 	river.WorkerDefaults[OrganizationInvitationEmailJobArgs]
-	DB          *gorm.DB
-	Config      *configuration.Config
+	DB           *gorm.DB
+	Config       *configuration.Config
 	ResendClient *resend.Client
 }
 
 type OrganizationInvitationHtmlTemplateParams struct {
 	InvitingUser models.User
 	Organization models.Organization
-	Invitation models.OrganizationInvitation
-	FrontendUrl string
+	Invitation   models.OrganizationInvitation
+	FrontendUrl  string
 }
-
 
 func (w *OrganizationInvitationEmailJobWorker) Work(ctx context.Context, job *river.Job[OrganizationInvitationEmailJobArgs]) error {
 	log.Printf("Sending organization invitation email %s", job.Args.InvitationId)
@@ -52,11 +50,11 @@ func (w *OrganizationInvitationEmailJobWorker) Work(ctx context.Context, job *ri
 
 	subject := fmt.Sprintf("%s invited you to join %s", invitation.InvitingUser.Name, invitation.Organization.Name)
 	html, err := email.OrganizationInvitationEmailTemplateParams{
-		InvitingUser: invitation.InvitingUser,
-		Organization: invitation.Organization,
-		Invitation: invitation,
-		FrontendUrl: w.Config.FrontendUrl,
-		ServiceName: constants.ServiceName,
+		InvitingUser:       invitation.InvitingUser,
+		Organization:       invitation.Organization,
+		Invitation:         invitation,
+		FrontendUrl:        w.Config.FrontendUrl,
+		ServiceName:        constants.ServiceName,
 		ServiceDescription: constants.ServiceDescription,
 	}.ApplyHtmlTemplate()
 
@@ -66,13 +64,13 @@ func (w *OrganizationInvitationEmailJobWorker) Work(ctx context.Context, job *ri
 
 	_, err = email.SendEmail(email.SendEmailRequest{
 		Params: email.SendEmailParams{
-			From: string(constants.EmailSenderDefault),
-			To: []string{invitation.Email},
+			From:    string(constants.EmailSenderDefault),
+			To:      []string{invitation.Email},
 			Subject: subject,
-			Html: html,
+			Html:    html,
 		},
 		ResendClient: w.ResendClient,
-		Config: w.Config,
+		Config:       w.Config,
 	})
 
 	if err != nil {

@@ -4,6 +4,9 @@ backend-dev:
 backend-build:
 	cd backend; go build -o bin/server server.go
 
+backend-format:
+	cd backend; go fmt ./...
+
 frontend-dev:
 	cd frontend; npm run dev 
 

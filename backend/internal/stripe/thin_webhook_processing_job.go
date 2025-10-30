@@ -25,9 +25,9 @@ func (ThinWebhookProcessingJob) Kind() string {
 // SnapshotWebhookProcessingJobWorker handles the background processing of Stripe webhook events
 type ThinWebhookProcessingJobWorker struct {
 	river.WorkerDefaults[ThinWebhookProcessingJob]
-	DB     *gorm.DB
-	Config *configuration.Config
-    StripeClient *stripeGo.Client
+	DB           *gorm.DB
+	Config       *configuration.Config
+	StripeClient *stripeGo.Client
 }
 
 // Work processes the webhook event in the background
@@ -39,10 +39,10 @@ func (w *ThinWebhookProcessingJobWorker) Work(ctx context.Context, job *river.Jo
 
 	// Process the webhook event
 	return processThinWebhookEvent(ProcessThinWebhookEventServiceRequest{
-		Event:  eventContainer,
-		DB:     w.DB,
-		Config: w.Config,
-        StripeClient: w.StripeClient,
-        Context: ctx,
+		Event:        eventContainer,
+		DB:           w.DB,
+		Config:       w.Config,
+		StripeClient: w.StripeClient,
+		Context:      ctx,
 	})
 }

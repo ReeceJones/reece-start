@@ -13,24 +13,24 @@ import (
 
 type JwtClaims struct {
 	jwt.RegisteredClaims
-	UserId               string                           `json:"user_id"`
-	OrganizationId *string                          `json:"organization_id"`
-	OrganizationRole     *constants.OrganizationRole       `json:"organization_role"`
-	Scopes   *[]constants.UserScope  `json:"scopes"`
-	Role *constants.UserRole `json:"role"`
-	IsImpersonating *bool `json:"is_impersonating"`
-	ImpersonatingUserId *string `json:"impersonating_user_id"` // The actual user id of the authenticated user
+	UserId              string                      `json:"user_id"`
+	OrganizationId      *string                     `json:"organization_id"`
+	OrganizationRole    *constants.OrganizationRole `json:"organization_role"`
+	Scopes              *[]constants.UserScope      `json:"scopes"`
+	Role                *constants.UserRole         `json:"role"`
+	IsImpersonating     *bool                       `json:"is_impersonating"`
+	ImpersonatingUserId *string                     `json:"impersonating_user_id"` // The actual user id of the authenticated user
 }
 
 type JwtOptions struct {
-	UserId uint
-	OrganizationId *uint
-	OrganizationRole *constants.OrganizationRole
-	Scopes *[]constants.UserScope
-	Role *constants.UserRole
-	IsImpersonating *bool
+	UserId              uint
+	OrganizationId      *uint
+	OrganizationRole    *constants.OrganizationRole
+	Scopes              *[]constants.UserScope
+	Role                *constants.UserRole
+	IsImpersonating     *bool
 	ImpersonatingUserId *string
-	CustomExpiry *time.Time
+	CustomExpiry        *time.Time
 }
 
 func CreateJWT(config *configuration.Config, options JwtOptions) (string, error) {
@@ -52,12 +52,12 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JwtClaims{
-		UserId:               userIdString,
-		OrganizationId: activeOrganizationId,
-		OrganizationRole:     options.OrganizationRole,
-		Scopes:   options.Scopes,
-		Role:   options.Role,
-		IsImpersonating: options.IsImpersonating,
+		UserId:              userIdString,
+		OrganizationId:      activeOrganizationId,
+		OrganizationRole:    options.OrganizationRole,
+		Scopes:              options.Scopes,
+		Role:                options.Role,
+		IsImpersonating:     options.IsImpersonating,
 		ImpersonatingUserId: options.ImpersonatingUserId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: expiresAt,

@@ -11,7 +11,7 @@ import (
 
 type HasOrganizationAccessParams struct {
 	OrganizationID uint
-	Scopes []constants.UserScope
+	Scopes         []constants.UserScope
 }
 
 func HasOrganizationAccess(c echo.Context, params HasOrganizationAccessParams) error {
@@ -44,17 +44,17 @@ func HasAdminAccess(c echo.Context, scopes []constants.UserScope) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Check if user has admin role
 	if role != constants.UserRoleAdmin {
 		return api.ErrForbiddenNoAdminAccess
 	}
-	
+
 	// Check if user has the required scopes
 	if len(scopes) == 0 {
 		return api.ErrForbiddenNoAdminAccess
 	}
-	
+
 	for _, scope := range scopes {
 		if !slices.Contains(scopes, scope) {
 			return api.ErrForbiddenNoAdminAccess

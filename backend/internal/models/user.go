@@ -18,9 +18,9 @@ type UserTokenRevocation struct {
 
 type User struct {
 	gorm.Model
-	Name           string `gorm:"not null"`
-	Email          string `gorm:"index:idx_email,unique;not null"`
-	HashedPassword []byte
+	Name               string `gorm:"not null"`
+	Email              string `gorm:"index:idx_email,unique;not null"`
+	HashedPassword     []byte
 	LogoFileStorageKey string
 
 	// OAuth fields
@@ -32,7 +32,7 @@ type User struct {
 
 	// Admin fields
 	Role string `gorm:"not null;size:20;default:'default'"`
-	
+
 	// Relationships
 	OrganizationMemberships []OrganizationMembership `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
