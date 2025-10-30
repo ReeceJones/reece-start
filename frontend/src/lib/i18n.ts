@@ -12,6 +12,7 @@ export function initializeLocale(serverLocale: string) {
 }
 
 // Helper function to get nested value from object using dot notation
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNestedValue(obj: any, path: string): string | undefined {
 	const keys = path.split('.');
 	let current = obj;

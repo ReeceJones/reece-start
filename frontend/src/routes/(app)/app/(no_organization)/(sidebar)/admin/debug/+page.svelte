@@ -10,6 +10,7 @@
 	const scopes = $derived(getScopes());
 	let submitting = $state(false);
 	let error = $state('');
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let selectedLocale = $state($locale);
 
 	// Sync selectedLocale with locale store

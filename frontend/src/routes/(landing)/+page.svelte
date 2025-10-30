@@ -28,6 +28,7 @@
 	<div class="min-h-screen max-w-2xl space-y-8 pt-24">
 		<div class="space-y-6">
 			<h1 class="text-lg font-light tracking-normal md:text-2xl">
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html $t('landing.hero.title')}
 			</h1>
 			<div class="flex gap-4">

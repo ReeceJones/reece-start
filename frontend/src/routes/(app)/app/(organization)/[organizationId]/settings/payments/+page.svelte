@@ -3,14 +3,17 @@
 	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
 	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
 	import { post } from '$lib';
-	import { createStripeDashboardLinkResponseSchema } from '$lib/schemas/organization';
+	import {
+		createStripeDashboardLinkResponseSchema,
+		type Organization
+	} from '$lib/schemas/organization';
 	import { ExternalLink } from 'lucide-svelte';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import { z } from 'zod';
 	import { t } from '$lib/i18n';
 
-	const { data }: { data: { organization: any } } = $props();
+	const { data }: { data: { organization: Organization } } = $props();
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);

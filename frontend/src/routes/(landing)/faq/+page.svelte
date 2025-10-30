@@ -198,6 +198,7 @@
 				<div class="collapse-title font-semibold">{$t('faq.questions.howToStart.question')}</div>
 				<div class="collapse-content text-sm">
 					<p class="leading-relaxed">
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						{@html $t('faq.questions.howToStart.answer')}
 					</p>
 				</div>
@@ -237,6 +238,7 @@
 				</div>
 				<div class="collapse-content text-sm">
 					<p class="leading-relaxed">
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						{@html $t('faq.questions.customizeEmails.answer')}
 					</p>
 				</div>
@@ -293,6 +295,7 @@
 				</div>
 				<div class="collapse-content text-sm">
 					<p class="leading-relaxed">
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						{@html $t('faq.questions.envVariables.answer')}
 					</p>
 				</div>
