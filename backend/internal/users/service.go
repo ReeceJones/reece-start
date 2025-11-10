@@ -40,6 +40,10 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	}
 
 	if err := tx.Create(&user).Error; err != nil {
+		// Check if this is a unique constraint violation (duplicate email)
+		if api.IsUniqueConstraintViolation(err) {
+			return nil, api.ErrUserEmailAlreadyExists
+		}
 		return nil, err
 	}
 
@@ -306,20 +310,86 @@ func GetUserLogoDistributionUrl(request GetUserLogoDistributionUrlServiceRequest
 	return "", nil
 }
 
+// normalizePageSize ensures page size is within valid bounds (1-100, default 20)
+func normalizePageSize(size int) int {
+	if size <= 0 {
+		return 20
+	}
+	if size > 100 {
+		return 100
+	}
+	return size
+}
+
+// applySearchFilter applies search filter to a GORM query
+func applySearchFilter(query *gorm.DB, search string) *gorm.DB {
+	if search == "" {
+		return query
+	}
+	searchPattern := "%" + search + "%"
+	return query.Where("name ILIKE ? OR email ILIKE ? OR id::text ILIKE ?",
+		searchPattern, searchPattern, searchPattern)
+}
+
+// applyPaginationFilter applies cursor-based pagination filter to a GORM query
+func applyPaginationFilter(query *gorm.DB, cursor GetUsersCursor) *gorm.DB {
+	if cursor == (GetUsersCursor{}) {
+		return query.Order("id ASC")
+	}
+	if cursor.Direction == "next" {
+		return query.Where("id > ?", cursor.UserID).Order("id ASC")
+	}
+	if cursor.Direction == "prev" {
+		return query.Where("id < ?", cursor.UserID).Order("id DESC")
+	}
+	return query.Order("id ASC")
+}
+
+// calculatePaginationState determines hasNext and hasPrev based on cursor and result count
+func calculatePaginationState(cursor GetUsersCursor, resultCount, pageSize int) (hasNext, hasPrev bool) {
+	hasMoreResults := resultCount > pageSize
+
+	if cursor == (GetUsersCursor{}) {
+		// No cursor - first page
+		return hasMoreResults, false
+	}
+
+	if cursor.Direction == "next" {
+		// Forward pagination
+		return hasMoreResults, true
+	}
+
+	if cursor.Direction == "prev" {
+		// Backward pagination
+		return true, hasMoreResults
+	}
+
+	return false, false
+}
+
+// createUserDtoWithLogo creates a UserDto with logo distribution URL
+func createUserDtoWithLogo(user *models.User, tx *gorm.DB, minioClient *minio.Client) (*UserDto, error) {
+	logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
+		UserID:      user.ID,
+		Tx:          tx,
+		MinioClient: minioClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserDto{
+		User:                user,
+		LogoDistributionUrl: logoDistributionUrl,
+	}, nil
+}
+
 func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) {
 	tx := request.Tx
 	minioClient := request.MinioClient
 	cursor := request.Cursor
-	size := request.Size
+	size := normalizePageSize(request.Size)
 	search := request.Search
-
-	// Set default values if not provided
-	if size <= 0 {
-		size = 20
-	}
-	if size > 100 {
-		size = 100
-	}
 
 	// Parse cursor (user ID) if provided
 	var getUsersCursor GetUsersCursor
@@ -327,64 +397,37 @@ func getUsers(request GetUsersServiceRequest) (*GetUsersServiceResponse, error) 
 		return nil, err
 	}
 
-	// Get users with cursor-based pagination and search
-	var users []models.User
-	query := tx
-
-	// Apply search filter if provided
-	if search != "" {
-		// Search by name, email, or ID (case-insensitive)
-		searchPattern := "%" + search + "%"
-		query = query.Where("name ILIKE ? OR email ILIKE ? OR id::text ILIKE ?",
-			searchPattern, searchPattern, searchPattern)
-	}
-
-	if getUsersCursor != (GetUsersCursor{}) && getUsersCursor.Direction == "next" {
-		// Get users after the cursor
-		query = query.Where("id > ?", getUsersCursor.UserID).Order("id ASC")
-	} else if getUsersCursor != (GetUsersCursor{}) && getUsersCursor.Direction == "prev" {
-		query = query.Where("id < ?", getUsersCursor.UserID).Order("id DESC")
-	} else {
-		query = query.Order("id ASC")
-	}
+	// Build query with search and pagination filters
+	query := tx.Model(&models.User{})
+	query = applySearchFilter(query, search)
+	query = applyPaginationFilter(query, getUsersCursor)
 
 	// Get one extra record to determine if there are more pages
+	var users []models.User
 	err := query.Limit(size + 1).Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if there are more records
-	hasNext := ((getUsersCursor == (GetUsersCursor{}) || getUsersCursor.Direction == "next") && len(users) > size) || (getUsersCursor.Direction == "prev")
-	hasPrev := (getUsersCursor.Direction == "prev" && len(users) > size) || (getUsersCursor.Direction == "next")
+	// Calculate pagination state
+	hasNext, hasPrev := calculatePaginationState(getUsersCursor, len(users), size)
 
-	// hasNext := len(users) > size
+	// Remove the extra record if needed
 	if hasNext || hasPrev {
-		// Remove the extra record
 		users = users[:size]
 	}
-
-	// hasPrev := getUsersCursor != (GetUsersCursor{})
 
 	// Convert to DTOs with logo distribution URLs
 	var userDtos []*UserDto
 	for _, user := range users {
-		logoDistributionUrl, err := GetUserLogoDistributionUrl(GetUserLogoDistributionUrlServiceRequest{
-			UserID:      user.ID,
-			Tx:          tx,
-			MinioClient: minioClient,
-		})
+		dto, err := createUserDtoWithLogo(&user, tx, minioClient)
 		if err != nil {
 			return nil, err
 		}
-
-		userDtos = append(userDtos, &UserDto{
-			User:                &user,
-			LogoDistributionUrl: logoDistributionUrl,
-		})
+		userDtos = append(userDtos, dto)
 	}
 
-	// Generate next cursor if there are more records
+	// Generate cursors if needed
 	var nextCursor string
 	var prevCursor string
 	if hasNext && len(userDtos) > 0 {

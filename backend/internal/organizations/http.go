@@ -251,19 +251,20 @@ func GetOrganizationMembershipEndpoint(c echo.Context) error {
 }
 
 func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganizationMembershipRequest) error {
-	orgId, err := strconv.ParseUint(req.Data.Relationships.Organization.Data.Id, 10, 32)
+	orgId, err := api.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
 	if err != nil {
 		return err
 	}
 
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
-		OrganizationID: uint(orgId),
+		OrganizationID: orgId,
 		Scopes:         []constants.UserScope{constants.UserScopeOrganizationMembershipsCreate},
 	}); err != nil {
 		return err
 	}
 
-	userID, err := middleware.GetUserIDFromJWT(c)
+	// Parse the user ID from the request body (not from JWT)
+	userID, err := api.ParseUserIDFromString(req.Data.Relationships.User.Data.Id)
 	if err != nil {
 		return err
 	}
@@ -275,8 +276,8 @@ func CreateOrganizationMembershipEndpoint(c echo.Context, req CreateOrganization
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 		membership, err := createOrganizationMembership(CreateOrganizationMembershipServiceRequest{
 			Params: CreateOrganizationMembershipParams{
-				UserID:         uint(userID),
-				OrganizationID: uint(orgId),
+				UserID:         userID,
+				OrganizationID: orgId,
 				Role:           req.Data.Attributes.Role,
 			},
 			Tx: tx,

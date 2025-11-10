@@ -56,6 +56,12 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
+		if errors.Is(err, api.ErrUserEmailAlreadyExists) {
+			return c.JSON(http.StatusConflict, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+
 		// Handle HTTP layer errors
 		if errors.Is(err, api.ErrForbiddenNoAccess) {
 			return c.JSON(http.StatusForbidden, api.ApiError{

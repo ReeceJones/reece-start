@@ -24,10 +24,8 @@ func HasOrganizationAccess(c echo.Context, params HasOrganizationAccessParams) e
 		return err
 	}
 
-	for _, scope := range params.Scopes {
-		if !slices.Contains(scopes, scope) {
-			return api.ErrForbiddenNoAccess
-		}
+	if !hasScopes(params.Scopes, scopes) {
+		return api.ErrForbiddenNoAccess
 	}
 
 	return nil
@@ -40,26 +38,37 @@ func HasAdminAccess(c echo.Context, scopes []constants.UserScope) error {
 		return err
 	}
 
-	scopes, err = middleware.GetScopesFromJWT(c)
+	// Check if user has admin role
+	if !hasRole(role, constants.UserRoleAdmin) {
+		return api.ErrForbiddenNoAdminAccess
+	}
+
+	grantedScopes, err := middleware.GetScopesFromJWT(c)
 	if err != nil {
 		return err
 	}
 
-	// Check if user has admin role
-	if role != constants.UserRoleAdmin {
-		return api.ErrForbiddenNoAdminAccess
-	}
-
 	// Check if user has the required scopes
-	if len(scopes) == 0 {
+	if len(grantedScopes) == 0 {
 		return api.ErrForbiddenNoAdminAccess
 	}
 
-	for _, scope := range scopes {
-		if !slices.Contains(scopes, scope) {
-			return api.ErrForbiddenNoAdminAccess
-		}
+	if !hasScopes(scopes, grantedScopes) {
+		return api.ErrForbiddenNoAdminAccess
 	}
 
 	return nil
+}
+
+func hasScopes(scopes []constants.UserScope, grantedScopes []constants.UserScope) bool {
+	for _, scope := range scopes {
+		if !slices.Contains(grantedScopes, scope) {
+			return false
+		}
+	}
+	return true
+}
+
+func hasRole(role constants.UserRole, grantedRole constants.UserRole) bool {
+	return role == grantedRole
 }

@@ -29,6 +29,7 @@ func DependencyInjectionMiddleware(dependencies AppDependencies) echo.Middleware
 			c.Set("db", dependencies.DB)
 			c.Set("minioClient", dependencies.MinioClient)
 			c.Set("riverClient", dependencies.RiverClient)
+			c.Set("resendClient", dependencies.ResendClient)
 			c.Set("stripeClient", dependencies.StripeClient)
 			return next(c)
 		}
@@ -50,6 +51,10 @@ func GetMinioClient(c echo.Context) *minio.Client {
 
 func GetRiverClient(c echo.Context) *river.Client[*sql.Tx] {
 	return c.Get("riverClient").(*river.Client[*sql.Tx])
+}
+
+func GetResendClient(c echo.Context) *resend.Client {
+	return c.Get("resendClient").(*resend.Client)
 }
 
 func GetStripeClient(c echo.Context) *stripeGo.Client {

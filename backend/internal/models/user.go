@@ -24,7 +24,7 @@ type User struct {
 	LogoFileStorageKey string
 
 	// OAuth fields
-	GoogleId           string `gorm:"index:idx_google_id,unique"`
+	GoogleId           string `gorm:"index:idx_google_id"`
 	GoogleProfileImage string
 
 	// Control fields

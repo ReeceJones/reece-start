@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"reece.start/internal/api"
 	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
 
@@ -37,19 +38,8 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 	now := time.Now()
 	userIdString := fmt.Sprintf("%d", options.UserId)
 
-	var activeOrganizationId *string
-	if options.OrganizationId != nil {
-		orgIdString := fmt.Sprintf("%d", *options.OrganizationId)
-		activeOrganizationId = &orgIdString
-	}
-
-	// Calculate expiry time
-	var expiresAt *jwt.NumericDate
-	if options.CustomExpiry != nil {
-		expiresAt = jwt.NewNumericDate(*options.CustomExpiry)
-	} else {
-		expiresAt = jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second))
-	}
+	activeOrganizationId := getActiveOrganizationIdFromOptions(options)
+	expiresAt := getExpiryFromOptions(config, options)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JwtClaims{
 		UserId:              userIdString,
@@ -72,20 +62,38 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 	return token.SignedString([]byte(config.JwtSecret))
 }
 
-func UpdateJWT(config *configuration.Config, claims *JwtClaims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(config.JwtSecret))
-}
-
 func ValidateJWT(config *configuration.Config, tokenString string) (*JwtClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.JwtSecret), nil
 	})
 
-	if claims, ok := token.Claims.(*JwtClaims); ok && token.Valid {
-		return claims, nil
-	} else {
+	if err != nil {
 		log.Printf("Error parsing JWT token: %v", err)
+		log.Printf("Token string: %s", tokenString)
 		return nil, err
 	}
+
+	if claims, ok := token.Claims.(*JwtClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	log.Printf("Invalid JWT token: claims type assertion failed or token is not valid")
+	return nil, api.ErrForbiddenNoAccess
+}
+
+func getActiveOrganizationIdFromOptions(options JwtOptions) *string {
+	if options.OrganizationId != nil {
+		orgIdString := fmt.Sprintf("%d", *options.OrganizationId)
+		return &orgIdString
+	}
+	return nil
+}
+
+func getExpiryFromOptions(config *configuration.Config, options JwtOptions) *jwt.NumericDate {
+	if options.CustomExpiry != nil {
+		return jwt.NewNumericDate(*options.CustomExpiry)
+	}
+
+	now := time.Now()
+	return jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second))
 }

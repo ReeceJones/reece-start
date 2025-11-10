@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"reece.start/internal/api"
 	"reece.start/internal/authentication"
 	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
@@ -25,8 +26,8 @@ func JwtAuthMiddleware(config *configuration.Config) echo.MiddlewareFunc {
 			// Validate the token
 			claims, err := authentication.ValidateJWT(config, tokenString)
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid_token",
+				return c.JSON(http.StatusUnauthorized, api.ApiError{
+					Message: "invalid_token",
 				})
 			}
 
@@ -79,7 +80,7 @@ func GetImpersonatingUserIDFromJWT(c echo.Context) (uint, error) {
 
 func getTokenFromRequest(c echo.Context) (string, error) {
 	tokenString, err := getTokenFromCookie(c)
-	if err == nil {
+	if err == nil && tokenString != "" {
 		return tokenString, nil
 	}
 	return getTokenFromAuthorizationHeader(c)
@@ -88,9 +89,8 @@ func getTokenFromRequest(c echo.Context) (string, error) {
 func getTokenFromCookie(c echo.Context) (string, error) {
 	cookie, err := c.Cookie("app-session-token")
 	if err != nil {
-		return "", c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "missing_token_cookie",
-		})
+		// Return error without writing response - let getTokenFromRequest handle fallback
+		return "", err
 	}
 	return cookie.Value, nil
 }
@@ -98,15 +98,15 @@ func getTokenFromCookie(c echo.Context) (string, error) {
 func getTokenFromAuthorizationHeader(c echo.Context) (string, error) {
 	authHeader := c.Request().Header.Get("Authorization")
 	if authHeader == "" {
-		return "", c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "missing_authorization_header",
+		return "", c.JSON(http.StatusUnauthorized, api.ApiError{
+			Message: "missing_authorization_header",
 		})
 	}
 
 	// Check if the header starts with "Bearer "
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return "", c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "invalid_authorization_format",
+		return "", c.JSON(http.StatusUnauthorized, api.ApiError{
+			Message: "invalid_authorization_format",
 		})
 	}
 

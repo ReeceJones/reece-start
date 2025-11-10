@@ -7,6 +7,15 @@ backend-build:
 backend-format:
 	cd backend; go fmt ./...
 
+backend-test:
+	cd backend; go test ./...
+
+backend-test-verbose:
+	cd backend; go test -v ./...
+
+backend-test-coverage:
+	cd backend; go test -cover ./...
+
 frontend-dev:
 	cd frontend; npm run dev 
 

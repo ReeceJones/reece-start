@@ -19,7 +19,11 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
 - Stripe connect support
 - i18n support
 - Basic CI checks
-  - Tests (TODO)
+  - Tests
+    - Backend
+    - Frontend
+      - Unit (TODO)
+      - Component (TODO)
   - Typing
   - Buildability
   - Linting
@@ -42,10 +46,28 @@ make frontend-dev
 
 ## Commands
 
+### Infrastructure
+
 - `make infra-start` - Start the docker containers required for deployment
 - `make infra-stop` - Stop the docker containers
+
+### Frontend
+
 - `make frontend-dev` - Start the dev frontend server w/ auto-reload
+- `make frontend-build` - Build the frontend for production
+- `make frontend-lint` - Lint frontend code
+- `make frontend-lint-fix` - Lint and fix frontend code
+- `make frontend-format` - Format frontend code
+- `make frontend-typecheck` - Run TypeScript type checking
+
+### Backend
+
 - `make backend-dev` - Start the dev backend server w/ auto-reload
+- `make backend-build` - Build the backend for production
+- `make backend-format` - Format backend code
+- `make backend-test` - Run backend tests (requires Docker for testcontainers)
+- `make backend-test-verbose` - Run backend tests with verbose output
+- `make backend-test-coverage` - Run backend tests with coverage report
 
 ## Project structure
 
