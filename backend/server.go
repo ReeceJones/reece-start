@@ -15,9 +15,9 @@ import (
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
 	"reece.start/internal/database"
+	echoServer "reece.start/internal/echo"
 	"reece.start/internal/jobs"
 	appMiddleware "reece.start/internal/middleware"
-	"reece.start/internal/server"
 )
 
 func main() {
@@ -84,7 +84,7 @@ func main() {
 	log.Printf("River client created and started\n")
 
 	// Create Echo server with all middleware and routes
-	e := server.NewEcho(appMiddleware.AppDependencies{
+	e := echoServer.NewEcho(appMiddleware.AppDependencies{
 		Config:       config,
 		DB:           db,
 		MinioClient:  minioClient,

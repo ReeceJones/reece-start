@@ -17,9 +17,9 @@ import (
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
+	echoServer "reece.start/internal/echo"
 	"reece.start/internal/jobs"
 	appMiddleware "reece.start/internal/middleware"
-	"reece.start/internal/server"
 	testdb "reece.start/test/db"
 	"reece.start/testmocks"
 )
@@ -90,7 +90,7 @@ func SetupEchoTest(t *testing.T) *TestContext {
 	require.NoError(t, err)
 
 	// Create Echo server with all middleware and routes (same as production)
-	e := server.NewEcho(appMiddleware.AppDependencies{
+	e := echoServer.NewEcho(appMiddleware.AppDependencies{
 		Config:       config,
 		DB:           db,
 		MinioClient:  minioClient,
