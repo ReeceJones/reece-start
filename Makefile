@@ -1,3 +1,34 @@
+.DEFAULT_GOAL := help
+
+.PHONY: help
+help: ## Show this help message
+	@echo "Available commands:"
+	@echo ""
+	@echo "Backend:"
+	@echo "  make backend-dev              - Run a dev backend server"
+	@echo "  make backend-build            - Build the backend server"
+	@echo "  make backend-format           - Format backend code"
+	@echo "  make backend-test             - Run backend tests"
+	@echo "  make backend-test-verbose     - Run backend tests with verbose output"
+	@echo "  make backend-test-coverage    - Run backend tests with coverage"
+	@echo ""
+	@echo "Frontend:"
+	@echo "  make frontend-dev             - Run a dev frontend server"
+	@echo "  make frontend-lint            - Lint the frontend code"
+	@echo "  make frontend-lint-fix        - Run the linter and fix fixable issues"
+	@echo "  make frontend-format          - Run prettifier on the frontend code"
+	@echo "  make frontend-typecheck       - Run typecheck on the frontend code"
+	@echo "  make frontend-test            - Run frontend tests"
+	@echo "  make frontend-test-watch      - Run frontend tests in watch mode"
+	@echo "  make frontend-build           - Build the frontend code"
+	@echo ""
+	@echo "Infrastructure:"
+	@echo "  make infra-start              - Start the development docker infrastructure"
+	@echo "  make infra-stop               - Stop the development docker infrastructure"
+	@echo ""
+	@echo "Stripe:"
+	@echo "  make stripe-listen            - Start the stripe webhook event listener"
+
 backend-dev:
 	cd backend; gow run server.go
 

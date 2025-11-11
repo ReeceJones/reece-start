@@ -185,8 +185,8 @@ describe('Navbar', () => {
 				const toggleButton = screen.getByRole('button', { name: /Toggle mobile menu/i });
 
 				// Initially should have Menu icon (with path d="M4 12h16")
-				let svg = toggleButton.querySelector('svg');
-				let menuPath = svg?.querySelector('path[d="M4 12h16"]');
+				const svg = toggleButton.querySelector('svg');
+				const menuPath = svg?.querySelector('path[d="M4 12h16"]');
 				expect(menuPath).toBeTruthy();
 
 				// Click to open

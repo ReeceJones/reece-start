@@ -46,6 +46,8 @@ make frontend-dev
 
 ## Commands
 
+Run `make` or `make help` to see all available commands.
+
 ### Infrastructure
 
 - `make infra-start` - Start the docker containers required for deployment
@@ -59,6 +61,8 @@ make frontend-dev
 - `make frontend-lint-fix` - Lint and fix frontend code
 - `make frontend-format` - Format frontend code
 - `make frontend-typecheck` - Run TypeScript type checking
+- `make frontend-test` - Run frontend tests
+- `make frontend-test-watch` - Run frontend tests in watch mode
 
 ### Backend
 
@@ -68,6 +72,10 @@ make frontend-dev
 - `make backend-test` - Run backend tests (requires Docker for testcontainers)
 - `make backend-test-verbose` - Run backend tests with verbose output
 - `make backend-test-coverage` - Run backend tests with coverage report
+
+### Stripe
+
+- `make stripe-listen` - Start the Stripe webhook event listener
 
 ## Project structure
 
