@@ -31,6 +31,12 @@ frontend-format:
 frontend-typecheck:
 	cd frontend; npm run check
 
+frontend-test:
+	cd frontend; npm test
+
+frontend-test-watch:
+	cd frontend; npm test:watch
+
 frontend-build:
 	cd frontend; npm run build
 
