@@ -30,18 +30,38 @@ Object.defineProperty(globalThis, 'crypto', {
 	}
 });
 
+import type { Cookies, RequestEvent } from '@sveltejs/kit';
+
 describe('oauth', () => {
-	const mockGetRequestEvent = vi.fn();
 	const mockCookies = {
 		get: vi.fn(),
 		set: vi.fn(),
-		delete: vi.fn()
+		delete: vi.fn(),
+		getAll: vi.fn(),
+		serialize: vi.fn()
+	} as Cookies & {
+		get: ReturnType<typeof vi.fn>;
+		set: ReturnType<typeof vi.fn>;
+		delete: ReturnType<typeof vi.fn>;
+		getAll: ReturnType<typeof vi.fn>;
+		serialize: ReturnType<typeof vi.fn>;
 	};
 
 	const mockRequestEvent = {
 		cookies: mockCookies,
-		url: new URL('https://example.com/test')
-	};
+		url: new URL('https://example.com/test'),
+		params: {},
+		fetch: vi.fn(),
+		getClientAddress: vi.fn(),
+		locals: {},
+		platform: undefined,
+		request: new Request('https://example.com/test'),
+		route: { id: null },
+		setHeaders: vi.fn(),
+		isDataRequest: false,
+		isSubRequest: false,
+		isRemoteRequest: false
+	} as RequestEvent;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -49,7 +69,7 @@ describe('oauth', () => {
 			throw new Error('redirect called');
 		});
 
-		vi.mocked(getRequestEvent).mockReturnValue(mockRequestEvent as any);
+		vi.mocked(getRequestEvent).mockReturnValue(mockRequestEvent);
 	});
 
 	afterEach(() => {
@@ -188,4 +208,3 @@ describe('oauth', () => {
 		});
 	});
 });
-

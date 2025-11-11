@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { z } from 'zod';
 import { ApiError, post, put, patch, get, del } from './api';
 
@@ -84,7 +84,7 @@ describe('api', () => {
 
 			await post(
 				'/api/users',
-				{ name: 'John', age: 'invalid' } as any,
+				{ name: 'John', age: 'invalid' } as unknown as z.infer<typeof requestSchema>,
 				{
 					fetch: mockFetch,
 					requestSchema,
@@ -105,19 +105,27 @@ describe('api', () => {
 			});
 
 			await expect(
-				post('/api/users', { name: 'John', age: 30 }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				})
+				post(
+					'/api/users',
+					{ name: 'John', age: 30 },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				)
 			).rejects.toThrow(ApiError);
 
 			try {
-				await post('/api/users', { name: 'John', age: 30 }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				});
+				await post(
+					'/api/users',
+					{ name: 'John', age: 30 },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				);
 			} catch (error) {
 				expect(error).toBeInstanceOf(ApiError);
 				expect((error as ApiError).message).toBe('Bad request');
@@ -133,19 +141,27 @@ describe('api', () => {
 			});
 
 			await expect(
-				post('/api/users', { name: 'John', age: 30 }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				})
+				post(
+					'/api/users',
+					{ name: 'John', age: 30 },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				)
 			).rejects.toThrow(ApiError);
 
 			try {
-				await post('/api/users', { name: 'John', age: 30 }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				});
+				await post(
+					'/api/users',
+					{ name: 'John', age: 30 },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				);
 			} catch (error) {
 				expect(error).toBeInstanceOf(ApiError);
 				expect((error as ApiError).message).toBe('Request failed with invalid status code: 500');
@@ -160,11 +176,15 @@ describe('api', () => {
 			});
 
 			await expect(
-				post('/api/users', { name: 'John', age: 30 }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				})
+				post(
+					'/api/users',
+					{ name: 'John', age: 30 },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				)
 			).rejects.toThrow();
 		});
 	});
@@ -213,19 +233,27 @@ describe('api', () => {
 			});
 
 			await expect(
-				put('/api/users/123', { name: 'John' }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				})
+				put(
+					'/api/users/123',
+					{ name: 'John' },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				)
 			).rejects.toThrow(ApiError);
 
 			try {
-				await put('/api/users/123', { name: 'John' }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				});
+				await put(
+					'/api/users/123',
+					{ name: 'John' },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				);
 			} catch (error) {
 				expect(error).toBeInstanceOf(ApiError);
 				expect((error as ApiError).code).toBe(404);
@@ -277,11 +305,15 @@ describe('api', () => {
 			});
 
 			await expect(
-				patch('/api/users/123', { name: 'Jane' }, {
-					fetch: mockFetch,
-					requestSchema,
-					responseSchema
-				})
+				patch(
+					'/api/users/123',
+					{ name: 'Jane' },
+					{
+						fetch: mockFetch,
+						requestSchema,
+						responseSchema
+					}
+				)
 			).rejects.toThrow(ApiError);
 		});
 	});
@@ -402,7 +434,7 @@ describe('api', () => {
 					fetch: mockFetch,
 					responseSchema,
 					paramsSchema,
-					params: { page: 'invalid' } as any
+					params: { page: 'invalid' } as unknown as z.infer<typeof paramsSchema>
 				})
 			).rejects.toThrow();
 		});
@@ -596,4 +628,3 @@ describe('api', () => {
 		});
 	});
 });
-

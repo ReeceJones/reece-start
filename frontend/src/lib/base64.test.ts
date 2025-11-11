@@ -54,7 +54,9 @@ describe('base64Encode', () => {
 		expect(result).toBeTruthy();
 		expect(result.length).toBeGreaterThan(0);
 		// Verify it can be decoded back
-		const decoded = new TextDecoder().decode(new Uint8Array(Array.from(atob(result), (c) => c.charCodeAt(0))));
+		const decoded = new TextDecoder().decode(
+			new Uint8Array(Array.from(atob(result), (c) => c.charCodeAt(0)))
+		);
 		expect(decoded).toBe(text);
 	});
 
@@ -67,7 +69,7 @@ describe('base64Encode', () => {
 			data[i] = i % 256;
 		}
 		const buffer = data.buffer;
-		
+
 		// Should not throw
 		expect(() => {
 			const result = base64Encode(buffer);
@@ -83,7 +85,7 @@ describe('base64Encode', () => {
 		// Fill with zeros for speed
 		data.fill(0);
 		const buffer = data.buffer;
-		
+
 		// Should not throw
 		expect(() => {
 			const result = base64Encode(buffer);
@@ -124,11 +126,9 @@ describe('base64Encode', () => {
 		const originalText = 'Test data with special chars: !@#$%^&*()';
 		const buffer = new TextEncoder().encode(originalText).buffer;
 		const encoded = base64Encode(buffer);
-		
+
 		// Decode and verify
-		const decodedBytes = new Uint8Array(
-			Array.from(atob(encoded), (c) => c.charCodeAt(0))
-		);
+		const decodedBytes = new Uint8Array(Array.from(atob(encoded), (c) => c.charCodeAt(0)));
 		const decoded = new TextDecoder().decode(decodedBytes);
 		expect(decoded).toBe(originalText);
 	});
@@ -150,4 +150,3 @@ describe('base64Encode', () => {
 		expect(result).toBe(browserResult);
 	});
 });
-

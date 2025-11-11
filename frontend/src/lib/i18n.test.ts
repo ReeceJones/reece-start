@@ -137,10 +137,7 @@ describe('i18n', () => {
 						return typeof current === 'string';
 					}
 
-					const exists = keyExists(
-						localeTranslations as Record<string, unknown>,
-						key
-					);
+					const exists = keyExists(localeTranslations as Record<string, unknown>, key);
 					expect(exists).toBe(true);
 				}
 			}
@@ -190,4 +187,3 @@ describe('i18n', () => {
 		});
 	});
 });
-
