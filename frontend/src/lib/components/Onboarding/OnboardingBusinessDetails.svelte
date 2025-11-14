@@ -2,6 +2,7 @@
 	import { localeToLanguageName } from '$lib/locale';
 	import type { CreateOrganizationFormData } from '$lib/schemas/organization';
 	import OnboardingStepContainer from './OnboardingStepContainer.svelte';
+	import { t } from '$lib/i18n';
 
 	const {
 		hidden,
@@ -15,20 +16,19 @@
 <OnboardingStepContainer {hidden}>
 	<fieldset class="fieldset">
 		<legend class="fieldset-legend"
-			>Is this organization associated with a registered business?</legend
+			>{$t('onboarding.businessDetailsStep.registeredBusiness')}</legend
 		>
 		<select name="entityType" class="select" bind:value={onboardingState.entityType}>
-			<option value="company">Yes</option>
-			<option value="individual">No</option>
+			<option value="company">{$t('onboarding.businessDetailsStep.yes')}</option>
+			<option value="individual">{$t('onboarding.businessDetailsStep.no')}</option>
 		</select>
 		<p class="fieldset-label">
-			Select 'Yes' if you are a registered business (e.g. LLC, corporation, etc.). Otherwise, select
-			'No'.
+			{$t('onboarding.businessDetailsStep.registeredBusinessDescription')}
 		</p>
 	</fieldset>
 
 	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Language</legend>
+		<legend class="fieldset-legend">{$t('onboarding.businessDetailsStep.language')}</legend>
 		<select name="locale" class="select" bind:value={onboardingState.locale}>
 			<!-- TODO: add i8n here -->
 			<option value="en">{localeToLanguageName('en', 'en')}</option>
@@ -37,8 +37,7 @@
 			<option value="de">{localeToLanguageName('en', 'de')}</option>
 		</select>
 		<p class="fieldset-label">
-			Select the language you want to use for your organization. We will use this language for your
-			organization's invoices and any communications we send to you.
+			{$t('onboarding.businessDetailsStep.languageDescription')}
 		</p>
 	</fieldset>
 </OnboardingStepContainer>

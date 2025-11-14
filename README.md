@@ -23,7 +23,7 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
     - Backend
     - Frontend
       - Unit
-      - Component (TODO)
+      - Component
   - Typing
   - Buildability
   - Linting

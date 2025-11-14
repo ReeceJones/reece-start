@@ -157,7 +157,83 @@ export const translations = {
 			contactInformation: 'Contact Information',
 			address: 'Address',
 			businessDetails: 'Business Details',
-			reviewDetails: 'Review Details'
+			reviewDetails: 'Review Details',
+			addressStep: {
+				country: 'Country',
+				selectCountry: 'Select your country',
+				address: 'Address',
+				enterStreetAddress: 'Enter your street address',
+				addressLine2: 'Address Line 2',
+				addressLine2Description:
+					'If you have a second line of address (e.g. apartment or suite number), enter it here',
+				city: 'City',
+				enterCity: 'Enter your city',
+				state: 'State',
+				selectStateOrProvince: 'Select your state or province',
+				zip: 'Zip',
+				enterZip: 'Enter your zip'
+			},
+			basicInformationStep: {
+				name: 'Name',
+				nameDescription:
+					'Enter a name for your organization. This will be shown on invoices and other communications.',
+				description: 'Description',
+				descriptionDescription: 'Enter a description for your organization',
+				logo: 'Logo',
+				logoPreview: 'Organization logo preview',
+				noLogoSelected: 'No logo selected',
+				uploadLogo: "Upload your organization's logo (optional)",
+				updateLogo: 'Update logo',
+				editLogoDescription: 'Edit the logo to your liking and click save.',
+				close: 'close'
+			},
+			businessDetailsStep: {
+				registeredBusiness: 'Is this organization associated with a registered business?',
+				yes: 'Yes',
+				no: 'No',
+				registeredBusinessDescription:
+					"Select 'Yes' if you are a registered business (e.g. LLC, corporation, etc.). Otherwise, select 'No'.",
+				language: 'Language',
+				languageDescription:
+					"Select the language you want to use for your organization. We will use this language for your organization's invoices and any communications we send to you."
+			},
+			contactInformationStep: {
+				contactEmail: 'Contact Email',
+				email: 'Email',
+				emailDescription: 'Enter an email address we can contact your organization at.',
+				contactPhone: 'Contact Phone',
+				selectCountry: 'Select your country',
+				phoneNumber: 'Phone number',
+				phoneDescription: 'Enter a phone number we can contact your organization at.'
+			},
+			reviewDetailsStep: {
+				basicInformation: 'Basic information',
+				contact: 'Contact',
+				address: 'Address',
+				businessDetails: 'Business details',
+				name: 'Name',
+				description: 'Description',
+				email: 'Email',
+				phone: 'Phone',
+				addressLine1: 'Address line 1',
+				addressLine2: 'Address line 2',
+				city: 'City',
+				stateProvince: 'State/Province',
+				zipPostalCode: 'ZIP/Postal code',
+				country: 'Country',
+				organizationType: 'Organization type',
+				language: 'Language',
+				logoPreview: 'Logo preview'
+			},
+			stripeAlert: {
+				missingRequirements:
+					'To accept payments from your customers, Stripe needs more information about your business.',
+				adminPermissionsRequired: 'You need admin permissions to complete Stripe onboarding.',
+				openStripe: 'Open Stripe',
+				settingUp:
+					'We are setting up your Stripe account so that you can accept payments from your customers. Please check back later.',
+				somethingWentWrong: 'Something went wrong. Please try again.'
+			}
 		},
 
 		// Billing

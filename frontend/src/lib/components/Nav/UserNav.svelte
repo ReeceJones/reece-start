@@ -21,12 +21,12 @@
 				{:else}
 					<User class="size-5" />
 				{/if}
-				{user.data.attributes.name ?? $t('profileTitle')}
+				{user.data.attributes.name || $t('profileTitle')}
 			</div>
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
-				class="dropdown-content menu z-1 ml-0 w-52 -translate-y-1.5 rounded-box bg-base-100 p-2 shadow-sm"
+				class="dropdown-content menu z-1 rounded-box bg-base-100 ml-0 w-52 -translate-y-1.5 p-2 shadow-sm"
 			>
 				<li>
 					<a href={profileHref}>
@@ -35,7 +35,7 @@
 					</a>
 				</li>
 				<li>
-					<button class="flex items-center gap-2 text-error" type="submit" form="signout-form">
+					<button class="text-error flex items-center gap-2" type="submit" form="signout-form">
 						<LogOut class="size-4" />
 						{$t('logout')}
 					</button>
@@ -43,7 +43,7 @@
 				{#if isImpersonatingUser}
 					<li>
 						<button
-							class="flex items-center gap-2 text-error"
+							class="text-error flex items-center gap-2"
 							type="submit"
 							form="stop-impersonation-form"
 						>

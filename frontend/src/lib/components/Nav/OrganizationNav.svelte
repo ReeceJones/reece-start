@@ -19,12 +19,12 @@
 				{:else}
 					<Building2 class="size-5" />
 				{/if}
-				{organization.data.attributes.name ?? $t('organization')}
+				{organization.data.attributes.name || $t('organization')}
 			</div>
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
-				class="dropdown-content menu z-1 ml-0 w-52 -translate-y-0.5 rounded-box bg-base-100 p-2 shadow-sm"
+				class="dropdown-content menu z-1 rounded-box bg-base-100 ml-0 w-52 -translate-y-0.5 p-2 shadow-sm"
 			>
 				<li>
 					<a href="/app/{organization.data.id}/settings">

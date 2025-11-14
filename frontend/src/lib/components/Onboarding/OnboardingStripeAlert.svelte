@@ -4,6 +4,8 @@
 	import { enhance } from '$app/forms';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
+	import { t } from '$lib/i18n';
+	import { get } from 'svelte/store';
 
 	const { organization }: { organization: Organization } = $props();
 
@@ -14,14 +16,14 @@
 </script>
 
 {#if organization.data.meta.stripe.onboardingStatus === 'missing_requirements' || organization.data.meta.stripe.onboardingStatus === 'missing_capabilities'}
-	<div class="mb-6 alert alert-warning">
+	<div class="alert alert-warning mb-6">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
-				To accept payments from your customers, Stripe needs more information about your business.
+				{$t('onboarding.stripeAlert.missingRequirements')}
 			</p>
 			{#if !canAccessStripe}
-				<p class="text-sm text-base-content/70">
-					You need admin permissions to complete Stripe onboarding.
+				<p class="text-base-content/70 text-sm">
+					{$t('onboarding.stripeAlert.adminPermissionsRequired')}
 				</p>
 			{/if}
 			<form
@@ -32,12 +34,15 @@
 					error = '';
 					return ({ result, update }) => {
 						update();
+						const translate = get(t);
 						if (result.type === 'failure') {
 							loading = false;
-							error = (result.data?.message as string) ?? 'Something went wrong. Please try again.';
+							error =
+								(result.data?.message as string) ??
+								translate('onboarding.stripeAlert.somethingWentWrong');
 						} else if (result.type === 'error') {
 							loading = false;
-							error = result.error ?? 'Something went wrong. Please try again.';
+							error = result.error ?? translate('onboarding.stripeAlert.somethingWentWrong');
 						}
 					};
 				}}
@@ -48,11 +53,11 @@
 					{:else}
 						<ExternalLink class="size-4" />
 					{/if}
-					<span class="ml-1">Open Stripe</span>
+					<span class="ml-1">{$t('onboarding.stripeAlert.openStripe')}</span>
 				</button>
 			</form>
 			{#if error}
-				<div class="mt-3 alert alert-error">
+				<div class="alert alert-error mt-3">
 					<span>{error}</span>
 				</div>
 			{/if}
@@ -61,11 +66,10 @@
 {/if}
 
 {#if organization.data.meta.stripe.onboardingStatus === 'pending'}
-	<div class="mb-6 alert alert-info">
+	<div class="alert alert-info mb-6">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
-				We are setting up your Stripe account so that you can accept payments from your customers.
-				Please check back later.
+				{$t('onboarding.stripeAlert.settingUp')}
 			</p>
 		</div>
 	</div>

@@ -2,6 +2,7 @@
 	import LogoCrop from '$lib/components/Logo/LogoCrop.svelte';
 	import type { CreateOrganizationFormData } from '$lib/schemas/organization';
 	import OnboardingStepContainer from './OnboardingStepContainer.svelte';
+	import { t } from '$lib/i18n';
 
 	const {
 		hidden,
@@ -36,43 +37,43 @@
 
 <OnboardingStepContainer {hidden}>
 	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Name</legend>
+		<legend class="fieldset-legend">{$t('onboarding.basicInformationStep.name')}</legend>
 		<input
 			type="text"
 			name="name"
 			class="input"
-			placeholder="Name"
+			placeholder={$t('onboarding.basicInformationStep.name')}
 			bind:value={onboardingState.name}
 		/>
 		<p class="fieldset-label">
-			Enter a name for your organization. This will be shown on invoices and other communications.
+			{$t('onboarding.basicInformationStep.nameDescription')}
 		</p>
 	</fieldset>
 
 	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Description</legend>
+		<legend class="fieldset-legend">{$t('onboarding.basicInformationStep.description')}</legend>
 		<textarea
 			name="description"
 			class="textarea"
-			placeholder="Description"
+			placeholder={$t('onboarding.basicInformationStep.description')}
 			bind:value={onboardingState.description}
 		></textarea>
-		<p class="fieldset-label">Enter a description for your organization</p>
+		<p class="fieldset-label">{$t('onboarding.basicInformationStep.descriptionDescription')}</p>
 	</fieldset>
 
 	<fieldset class="fieldset">
-		<legend class="fieldset-legend">Logo</legend>
+		<legend class="fieldset-legend">{$t('onboarding.basicInformationStep.logo')}</legend>
 		{#if logoPreview}
 			<img
 				src={logoPreview}
-				alt="Organization logo preview"
-				class="mb-4 aspect-square w-48 rounded-box"
+				alt={$t('onboarding.basicInformationStep.logoPreview')}
+				class="rounded-box mb-4 aspect-square w-48"
 			/>
 		{:else}
 			<div
-				class="mb-4 flex aspect-square w-48 items-center justify-center rounded-box bg-base-300 text-base-content/50"
+				class="rounded-box bg-base-300 text-base-content/50 mb-4 flex aspect-square w-48 items-center justify-center"
 			>
-				<span>No logo selected</span>
+				<span>{$t('onboarding.basicInformationStep.noLogoSelected')}</span>
 			</div>
 		{/if}
 		<input
@@ -90,14 +91,14 @@
 				}
 			}}
 		/>
-		<p class="fieldset-label">Upload your organization's logo (optional)</p>
+		<p class="fieldset-label">{$t('onboarding.basicInformationStep.uploadLogo')}</p>
 	</fieldset>
 </OnboardingStepContainer>
 
 <dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
 	<div class="modal-box">
-		<h3 class="text-lg font-bold">Update logo</h3>
-		<p class="py-4">Edit the logo to your liking and click save.</p>
+		<h3 class="text-lg font-bold">{$t('onboarding.basicInformationStep.updateLogo')}</h3>
+		<p class="py-4">{$t('onboarding.basicInformationStep.editLogoDescription')}</p>
 		{#if uncroppedLogo && uncroppedLogo.length > 0}
 			<LogoCrop
 				imageFile={uncroppedLogo[0]}
@@ -130,6 +131,6 @@
 		{/if}
 	</div>
 	<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
-		<button>close</button>
+		<button>{$t('onboarding.basicInformationStep.close')}</button>
 	</form>
 </dialog>

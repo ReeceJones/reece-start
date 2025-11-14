@@ -6,6 +6,7 @@
 	import { Check, Copy, Trash } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
 	import { t } from '$lib/i18n';
+	import { copyToClipboard } from '$lib/clipboard';
 
 	const { invitation }: { invitation: OrganizationInvitation } = $props();
 
@@ -33,9 +34,9 @@
 	<td>
 		<button
 			class="btn btn-ghost btn-sm"
-			onclick={() => {
+			onclick={async () => {
 				const origin = window.location.origin;
-				navigator.clipboard.writeText(`${origin}/app/invitations/${invitation.id}`);
+				await copyToClipboard(`${origin}/app/invitations/${invitation.id}`);
 				copied = true;
 				setTimeout(() => {
 					copied = false;
@@ -60,6 +61,7 @@
 					submitting = true;
 					return ({ update }) => {
 						update();
+						console.log('update');
 						submitting = false;
 					};
 				}}
@@ -70,7 +72,7 @@
 					disabled={submitting || !canDeleteInvitation}
 				>
 					{#if submitting}
-						<span class="loading size-4 loading-spinner"></span>
+						<span class="loading loading-spinner size-4"></span>
 					{:else}
 						<Trash class="size-4" />
 					{/if}
