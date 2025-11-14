@@ -430,14 +430,14 @@ func handleAccountUpdated(request ProcessThinWebhookEventServiceRequest, event *
 func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountClosedEventNotification) error {
 	accountID := event.RelatedObject.ID
 
-	slog.Info("Account closed", "accountID", accountID, "reverting stripe information")
+	slog.Info("Account closed, reverting stripe information", "accountID", accountID)
 
 	// clear out all stripe information on the account
 	err := request.DB.WithContext(request.Context).Transaction(func(tx *gorm.DB) error {
 		var org models.Organization
 		if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				slog.Error("Organization not found for stripe_account_id", "accountID", accountID, "during account closure")
+				slog.Error("Organization not found for stripe_account_id", "accountID", accountID)
 				return nil
 			}
 			return err
@@ -460,7 +460,7 @@ func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *s
 		return err
 	}
 
-	slog.Info("Account closed", "accountID", accountID, "stripe information reverted")
+	slog.Info("Account closed, stripe information reverted", "accountID", accountID)
 
 	return nil
 }
