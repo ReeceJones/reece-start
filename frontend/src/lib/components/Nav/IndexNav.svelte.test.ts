@@ -1,5 +1,5 @@
 import { render, screen, cleanup } from '@testing-library/svelte';
-import { expect, describe, it, beforeEach, afterEach } from 'vitest';
+import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest';
 import IndexNav from './IndexNav.svelte';
 import { UserScope } from '$lib/schemas/jwt';
 import { setScopes } from '$lib/auth';
@@ -35,7 +35,7 @@ describe('IndexNav', () => {
 		});
 
 		it('should render House icon in home link', () => {
-			const { container } = render(IndexNav);
+			render(IndexNav);
 			const homeLink = screen.getByRole('link', { name: /home/i });
 			const icon = homeLink.querySelector('svg');
 			expect(icon).toBeTruthy();
@@ -75,7 +75,7 @@ describe('IndexNav', () => {
 
 		it('should render Shield icon in admin section', () => {
 			setScopes([UserScope.Admin]);
-			const { container } = render(IndexNav);
+			render(IndexNav);
 			const adminSection = screen.getByText('Admin');
 			const summary = adminSection.closest('summary');
 			const icon = summary?.querySelector('svg');
@@ -101,7 +101,7 @@ describe('IndexNav', () => {
 
 	describe('active state', () => {
 		it('should apply active class to home link when on /app route', () => {
-			const { container } = render(IndexNav);
+			render(IndexNav);
 			const homeLink = screen.getByRole('link', { name: /home/i });
 			// The default mock in setupTest.ts sets url to 'http://localhost/app'
 			// so pathname should be '/app' and active class should be applied
@@ -109,4 +109,3 @@ describe('IndexNav', () => {
 		});
 	});
 });
-

@@ -23,7 +23,7 @@
 </script>
 
 <OnboardingStepContainer {hidden}>
-	<div class="rounded-box bg-base-200 text-base-content space-y-6 p-6">
+	<div class="space-y-6 rounded-box bg-base-200 p-6 text-base-content">
 		<div class="space-y-4">
 			<h3 class="text-xl font-semibold">{$t('onboarding.reviewDetailsStep.basicInformation')}</h3>
 			<div class="space-y-4">
@@ -31,7 +31,7 @@
 					<img
 						src={logoPreview}
 						alt={$t('onboarding.reviewDetailsStep.logoPreview')}
-						class="rounded-box aspect-square w-20"
+						class="aspect-square w-20 rounded-box"
 					/>
 				{/if}
 				<div class="space-y-2">

@@ -1,5 +1,5 @@
 // setupTest.ts
-/* eslint-disable @typescript-eslint/no-empty-function */
+
 // import matchers from '@testing-library/jest-dom/matchers';
 import { vi } from 'vitest';
 import type { Navigation, Page } from '@sveltejs/kit';

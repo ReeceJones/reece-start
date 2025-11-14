@@ -16,13 +16,13 @@
 </script>
 
 {#if organization.data.meta.stripe.onboardingStatus === 'missing_requirements' || organization.data.meta.stripe.onboardingStatus === 'missing_capabilities'}
-	<div class="alert alert-warning mb-6">
+	<div class="mb-6 alert alert-warning">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
 				{$t('onboarding.stripeAlert.missingRequirements')}
 			</p>
 			{#if !canAccessStripe}
-				<p class="text-base-content/70 text-sm">
+				<p class="text-sm text-base-content/70">
 					{$t('onboarding.stripeAlert.adminPermissionsRequired')}
 				</p>
 			{/if}
@@ -57,7 +57,7 @@
 				</button>
 			</form>
 			{#if error}
-				<div class="alert alert-error mt-3">
+				<div class="mt-3 alert alert-error">
 					<span>{error}</span>
 				</div>
 			{/if}
@@ -66,7 +66,7 @@
 {/if}
 
 {#if organization.data.meta.stripe.onboardingStatus === 'pending'}
-	<div class="alert alert-info mb-6">
+	<div class="mb-6 alert alert-info">
 		<div class="flex flex-col gap-2">
 			<p class="font-semibold">
 				{$t('onboarding.stripeAlert.settingUp')}

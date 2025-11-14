@@ -1,5 +1,5 @@
-import { render, screen, cleanup, waitFor, act } from '@testing-library/svelte';
-import { expect, describe, it, beforeEach, afterEach, beforeAll, vi } from 'vitest';
+import { render, screen, cleanup, waitFor } from '@testing-library/svelte';
+import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import InvitationRow from './InvitationRow.svelte';
 import type { OrganizationInvitation } from '$lib/schemas/organization-invitation';
@@ -7,7 +7,6 @@ import { API_TYPES } from '$lib/schemas/api';
 import { UserScope } from '$lib/schemas/jwt';
 import { setScopes } from '$lib/auth';
 import * as clipboard from '$lib/clipboard';
-import { flushSync } from 'svelte';
 
 // Mock dependencies
 vi.mock('$app/forms', async () => {

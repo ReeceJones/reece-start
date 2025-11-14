@@ -72,7 +72,7 @@
 					disabled={submitting || !canDeleteInvitation}
 				>
 					{#if submitting}
-						<span class="loading loading-spinner size-4"></span>
+						<span class="loading size-4 loading-spinner"></span>
 					{:else}
 						<Trash class="size-4" />
 					{/if}
