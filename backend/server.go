@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -21,6 +23,10 @@ import (
 )
 
 func main() {
+	// Setup logger
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	// Load environment variables
 	config, err := configuration.LoadEnvironmentVariables()
 	if err != nil {
@@ -38,7 +44,7 @@ func main() {
 		log.Fatalf("Error connecting to database, %s", err)
 	}
 
-	log.Printf("Database connected\n")
+	slog.Info("Database connected")
 
 	// Run database migrations
 	err = database.Migrate(db)
@@ -46,7 +52,7 @@ func main() {
 		log.Fatalf("Error migrating database, %s", err)
 	}
 
-	log.Printf("Database migrated\n")
+	slog.Info("Database migrated")
 
 	// Create minio client (Storage)
 	minioClient, err := minio.New(config.StorageEndpoint, &minio.Options{
@@ -57,12 +63,12 @@ func main() {
 		log.Fatalf("Error creating minio client, %s", err)
 	}
 
-	log.Printf("Minio client created\n")
+	slog.Info("Minio client created")
 
 	// Create resend client (Email)
 	resendClient := resend.NewClient(config.ResendApiKey)
 
-	log.Printf("Resend client created\n")
+	slog.Info("Resend client created")
 
 	// Create stripe client and configure the global API key
 	stripeGo.Key = config.StripeSecretKey
@@ -81,7 +87,7 @@ func main() {
 		log.Fatalf("Error creating/starting river client, %s", err)
 	}
 
-	log.Printf("River client created and started\n")
+	slog.Info("River client created and started")
 
 	// Create Echo server with all middleware and routes
 	e := echoServer.NewEcho(appMiddleware.AppDependencies{
@@ -95,7 +101,7 @@ func main() {
 
 	// Optional: Add body dump middleware for debugging (production only)
 	e.Use(middleware.BodyDump(func(c echo.Context, reqBody []byte, resBody []byte) {
-		log.Println(string(reqBody))
+		slog.Info("Body dump", "request", string(reqBody), "response", string(resBody))
 	}))
 
 	// Start http server

@@ -2,11 +2,10 @@ package stripe
 
 import (
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
-
-	"log"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stripe/stripe-go/v83/webhook"
@@ -49,12 +48,12 @@ func StripeSnapshotWebhookEndpoint(c echo.Context) error {
 		},
 	)
 	if err != nil {
-		log.Printf("Webhook signature verification failed: %v", err)
+		slog.Error("Webhook signature verification failed", "error", err)
 		return api.ErrStripeWebhookSignatureInvalid
 	}
 
 	// Log the webhook event for debugging
-	log.Printf("Received Stripe webhook event: %s (ID: %s)", event.Type, event.ID)
+	slog.Info("Received Stripe webhook event", "type", event.Type, "id", event.ID)
 
 	// Enqueue background job for processing
 	err = enqueueSnapshotWebhookProcessing(EnqueueSnapshotWebhookProcessingServiceRequest{
@@ -63,7 +62,7 @@ func StripeSnapshotWebhookEndpoint(c echo.Context) error {
 		Context:     c.Request().Context(),
 	})
 	if err != nil {
-		log.Printf("Failed to enqueue webhook processing: %v", err)
+		slog.Error("Failed to enqueue webhook processing", "error", err)
 		return api.ErrStripeWebhookEventUnhandled
 	}
 
@@ -97,14 +96,14 @@ func StripeThinWebhookEndpoint(c echo.Context) error {
 	// Verify the webhook signature
 	eventContainer, err := stripeClient.ParseEventNotification(body, stripeSignature, config.StripeWebhookSecret)
 	if err != nil {
-		log.Printf("Webhook signature verification failed: %v", err)
+		slog.Error("Webhook signature verification failed", "error", err)
 		return api.ErrStripeWebhookSignatureInvalid
 	}
 
 	event := eventContainer.GetEventNotification()
 
 	// Log the webhook event for debugging
-	log.Printf("Received Stripe webhook event: %s (ID: %s)", event.Type, event.ID)
+	slog.Info("Received Stripe webhook event", "type", event.Type, "id", event.ID)
 
 	// Enqueue background job for processing
 	err = enqueueThinWebhookProcessing(EnqueueThinWebhookProcessingServiceRequest{
@@ -113,7 +112,7 @@ func StripeThinWebhookEndpoint(c echo.Context) error {
 		Context:     c.Request().Context(),
 	})
 	if err != nil {
-		log.Printf("Failed to enqueue webhook processing: %v", err)
+		slog.Error("Failed to enqueue webhook processing", "error", err)
 		return api.ErrStripeWebhookEventUnhandled
 	}
 
@@ -157,7 +156,7 @@ func CreateCheckoutSessionEndpoint(c echo.Context, req CreateCheckoutSessionRequ
 	})
 
 	if err != nil {
-		log.Printf("Failed to create checkout session: %v", err)
+		slog.Error("Failed to create checkout session", "error", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create checkout session")
 	}
 
@@ -207,7 +206,7 @@ func CreateBillingPortalSessionEndpoint(c echo.Context, req CreateBillingPortalS
 	})
 
 	if err != nil {
-		log.Printf("Failed to create billing portal session: %v", err)
+		slog.Error("Failed to create billing portal session", "error", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create billing portal session")
 	}
 
@@ -250,7 +249,7 @@ func GetSubscriptionEndpoint(c echo.Context) error {
 	})
 
 	if err != nil {
-		log.Printf("Failed to get subscription: %v", err)
+		slog.Error("Failed to get subscription", "error", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get subscription")
 	}
 

@@ -3,7 +3,7 @@ package organizations
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,7 +39,7 @@ type OrganizationInvitationHtmlTemplateParams struct {
 }
 
 func (w *OrganizationInvitationEmailJobWorker) Work(ctx context.Context, job *river.Job[OrganizationInvitationEmailJobArgs]) error {
-	log.Printf("Sending organization invitation email %s", job.Args.InvitationId)
+	slog.Info("Sending organization invitation email", "invitationId", job.Args.InvitationId)
 
 	// Get the inviting user
 	var invitation models.OrganizationInvitation

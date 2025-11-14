@@ -2,7 +2,7 @@ package stripe
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"strconv"
 
 	"encoding/json"
@@ -79,12 +79,12 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 		params.ContactEmail = stripeGo.String(request.Params.ContactEmail)
 	}
 
-	log.Printf("Creating stripe connect account with params: %+v", params)
+	slog.Info("Creating stripe connect account with params", "params", params)
 
 	account, err := stripeClient.V2CoreAccounts.Create(context, params)
 
 	if err != nil {
-		log.Printf("failed to create stripe connect account: %v", err)
+		slog.Error("Failed to create stripe connect account", "error", err)
 		return nil, err
 	}
 
@@ -117,7 +117,7 @@ func CreateOnboardingLink(request CreateOnboardingLinkServiceRequest) (*stripeGo
 	})
 
 	if err != nil {
-		log.Printf("failed to create stripe onboarding link: %v", err)
+		slog.Error("Failed to create stripe onboarding link", "error", err)
 		return nil, err
 	}
 
@@ -205,14 +205,14 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 	var sub stripeGo.Subscription
 	err := json.Unmarshal(request.Event.Data.Raw, &sub)
 	if err != nil {
-		log.Printf("Failed to unmarshal subscription: %v", err)
+		slog.Error("Failed to unmarshal subscription", "error", err)
 		return err
 	}
 
 	// Fetch the subscription from Stripe to get the latest data
 	fetchedSub, err := subscription.Get(sub.ID, nil)
 	if err != nil {
-		log.Printf("Failed to fetch subscription from Stripe: %v", err)
+		slog.Error("Failed to fetch subscription from Stripe", "error", err)
 		return err
 	}
 
@@ -222,39 +222,38 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 
 	orgIDStr, ok := fetchedSub.Metadata["organization_id"]
 	if !ok {
-		log.Printf("No organization_id found in subscription metadata for subscription: %s", fetchedSub.ID)
+		slog.Error("No organization_id found in subscription metadata for subscription", "subscriptionID", fetchedSub.ID)
 		return nil
 	}
 
 	orgID, err := strconv.ParseUint(orgIDStr, 10, 32)
 	if err != nil {
-		log.Printf("Failed to parse organization ID from metadata: %v", err)
+		slog.Error("Failed to parse organization ID from metadata", "error", err)
 		return err
 	}
 
 	err = request.DB.WithContext(request.Context).First(&org, uint(orgID)).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("Organization %d not found for subscription: %s", orgID, fetchedSub.ID)
+			slog.Error("Organization not found for subscription", "organizationID", orgID, "subscriptionID", fetchedSub.ID)
 			return nil
 		}
 		return err
 	}
 
-	log.Printf("Found organization %d for subscription %s", org.ID, fetchedSub.ID)
+	slog.Info("Found organization for subscription", "organizationID", org.ID, "subscriptionID", fetchedSub.ID)
 
 	// Only process active or trialing subscriptions
 	if fetchedSub.Status != stripeGo.SubscriptionStatusActive &&
 		fetchedSub.Status != stripeGo.SubscriptionStatusTrialing {
-		log.Printf("Subscription %s is not active or trialing, skipping", fetchedSub.ID)
+		slog.Info("Subscription is not active or trialing, skipping", "subscriptionID", fetchedSub.ID)
 		return nil
 	}
 
 	// Determine the plan based on the product ID
 	var plan constants.MembershipPlan
 	for _, item := range fetchedSub.Items.Data {
-		log.Printf("Item price product ID: %s", item.Price.Product.ID)
-		log.Printf("Stripe pro plan product ID: %s", request.Config.StripeProPlanProductId)
+		slog.Info("Subscription item", "productID", item.Price.Product.ID, "subscriptionID", fetchedSub.ID)
 		if item.Price.Product.ID == request.Config.StripeProPlanProductId {
 			plan = constants.MembershipPlanPro
 			break
@@ -262,7 +261,7 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 	}
 
 	if plan == "" {
-		log.Printf("Unknown product in subscription, defaulting to free plan")
+		slog.Info("Unknown product in subscription, defaulting to free plan")
 		plan = constants.MembershipPlanFree
 	}
 
@@ -291,7 +290,7 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 		if err := request.DB.WithContext(request.Context).Create(&planPeriod).Error; err != nil {
 			return err
 		}
-		log.Printf("Created new plan period for organization %d", org.ID)
+		slog.Info("Created new plan period for organization", "organizationID", org.ID)
 	} else {
 		// Update existing plan period
 		existingPlanPeriod.Plan = planPeriod.Plan
@@ -301,7 +300,7 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 		if err := request.DB.WithContext(request.Context).Save(&existingPlanPeriod).Error; err != nil {
 			return err
 		}
-		log.Printf("Updated plan period for organization %d", org.ID)
+		slog.Info("Updated plan period for organization", "organizationID", org.ID)
 	}
 
 	return nil
@@ -311,7 +310,7 @@ func handleSubscriptionDeleted(request ProcessSnapshotWebhookEventServiceRequest
 	var sub stripeGo.Subscription
 	err := json.Unmarshal(request.Event.Data.Raw, &sub)
 	if err != nil {
-		log.Printf("Failed to unmarshal subscription: %v", err)
+		slog.Error("Failed to unmarshal subscription", "error", err)
 		return err
 	}
 
@@ -321,11 +320,11 @@ func handleSubscriptionDeleted(request ProcessSnapshotWebhookEventServiceRequest
 		Delete(&models.OrganizationPlanPeriod{}).Error
 
 	if err != nil {
-		log.Printf("Failed to delete plan period: %v", err)
+		slog.Error("Failed to delete plan period", "error", err)
 		return err
 	}
 
-	log.Printf("Deleted plan period for subscription %s", sub.ID)
+	slog.Info("Deleted plan period for subscription", "subscriptionID", sub.ID)
 	return nil
 }
 
@@ -350,7 +349,7 @@ func processThinWebhookEvent(request ProcessThinWebhookEventServiceRequest) erro
 	case *stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification:
 		return handleAccountIdentityUpdated(request, evt)
 	default:
-		log.Printf("Unhandled webhook event type (thin): %s\n", evt.GetEventNotification().Type)
+		slog.Info("Unhandled webhook event type (thin)", "type", evt.GetEventNotification().Type)
 		return nil
 	}
 }
@@ -423,7 +422,7 @@ func handleAccountUpdated(request ProcessThinWebhookEventServiceRequest, event *
 		return err
 	}
 
-	log.Printf("Account updated: %s", event.RelatedObject.ID)
+	slog.Info("Account updated", "accountID", event.RelatedObject.ID)
 
 	return nil
 }
@@ -431,14 +430,14 @@ func handleAccountUpdated(request ProcessThinWebhookEventServiceRequest, event *
 func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountClosedEventNotification) error {
 	accountID := event.RelatedObject.ID
 
-	log.Printf("Account closed: %s. Reverting stripe information.", accountID)
+	slog.Info("Account closed", "accountID", accountID, "reverting stripe information")
 
 	// clear out all stripe information on the account
 	err := request.DB.WithContext(request.Context).Transaction(func(tx *gorm.DB) error {
 		var org models.Organization
 		if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Printf("Organization not found for stripe_account_id: %s during account closure", accountID)
+				slog.Error("Organization not found for stripe_account_id", "accountID", accountID, "during account closure")
 				return nil
 			}
 			return err
@@ -461,13 +460,13 @@ func handleAccountClosed(request ProcessThinWebhookEventServiceRequest, event *s
 		return err
 	}
 
-	log.Printf("Account closed: %s. Stripe information reverted.", accountID)
+	slog.Info("Account closed", "accountID", accountID, "stripe information reverted")
 
 	return nil
 }
 
 func handleAccountCustomerCapabilityStatusUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingConfigurationCustomerCapabilityStatusUpdatedEventNotification) error {
-	log.Printf("Account customer capability status updated: %s", event.RelatedObject.ID)
+	slog.Info("Account customer capability status updated", "accountID", event.RelatedObject.ID)
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
@@ -482,13 +481,13 @@ func handleAccountCustomerCapabilityStatusUpdated(request ProcessThinWebhookEven
 		return err
 	}
 
-	log.Printf("Account customer capability status updated: %s", event.RelatedObject.ID)
+	slog.Info("Account customer capability status updated", "accountID", event.RelatedObject.ID)
 
 	return nil
 }
 
 func handleAccountMerchantCapabilityStatusUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingConfigurationMerchantCapabilityStatusUpdatedEventNotification) error {
-	log.Printf("Account merchant capability status updated: %s", event.RelatedObject.ID)
+	slog.Info("Account merchant capability status updated", "accountID", event.RelatedObject.ID)
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
@@ -503,13 +502,13 @@ func handleAccountMerchantCapabilityStatusUpdated(request ProcessThinWebhookEven
 		return err
 	}
 
-	log.Printf("Account merchant capability status updated: %s", event.RelatedObject.ID)
+	slog.Info("Account merchant capability status updated", "accountID", event.RelatedObject.ID)
 
 	return nil
 }
 
 func handleAccountRecipientCapabilityStatusUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingConfigurationRecipientCapabilityStatusUpdatedEventNotification) error {
-	log.Printf("Account recipient capability status updated: %s", event.RelatedObject.ID)
+	slog.Info("Account recipient capability status updated", "accountID", event.RelatedObject.ID)
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
@@ -524,13 +523,13 @@ func handleAccountRecipientCapabilityStatusUpdated(request ProcessThinWebhookEve
 		return err
 	}
 
-	log.Printf("Account recipient capability status updated: %s", event.RelatedObject.ID)
+	slog.Info("Account recipient capability status updated", "accountID", event.RelatedObject.ID)
 
 	return nil
 }
 
 func handleAccountRequirementsUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingRequirementsUpdatedEventNotification) error {
-	log.Printf("Account requirements updated: %s", event.RelatedObject.ID)
+	slog.Info("Account requirements updated", "accountID", event.RelatedObject.ID)
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
@@ -545,13 +544,13 @@ func handleAccountRequirementsUpdated(request ProcessThinWebhookEventServiceRequ
 		return err
 	}
 
-	log.Printf("Account requirements updated: %s", event.RelatedObject.ID)
+	slog.Info("Account requirements updated", "accountID", event.RelatedObject.ID)
 
 	return nil
 }
 
 func handleAccountIdentityUpdated(request ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreAccountIncludingIdentityUpdatedEventNotification) error {
-	log.Printf("Account identity updated: %s", event.RelatedObject.ID)
+	slog.Info("Account identity updated", "accountID", event.RelatedObject.ID)
 
 	// RelatedObject is v2.core.account
 	err := fetchAndUpdateAccount(FetchAndUpdateAccountServiceRequest{
@@ -566,7 +565,7 @@ func handleAccountIdentityUpdated(request ProcessThinWebhookEventServiceRequest,
 		return err
 	}
 
-	log.Printf("Account identity updated: %s", event.RelatedObject.ID)
+	slog.Info("Account identity updated", "accountID", event.RelatedObject.ID)
 
 	return nil
 }
@@ -620,7 +619,7 @@ func CreateCheckoutSession(request CreateCheckoutSessionServiceRequest) (*stripe
 	// Create the session (uses the API key configured in stripeClient)
 	sess, err := checkoutSession.New(sessionParams)
 	if err != nil {
-		log.Printf("Failed to create checkout session: %v", err)
+		slog.Error("Failed to create checkout session", "error", err)
 		return nil, err
 	}
 
@@ -660,7 +659,7 @@ func CreateBillingPortalSession(request CreateBillingPortalSessionServiceRequest
 	// Create the session (uses the API key configured in stripeClient)
 	sess, err := session.New(sessionParams)
 	if err != nil {
-		log.Printf("Failed to create billing portal session: %v", err)
+		slog.Error("Failed to create billing portal session", "error", err)
 		return nil, err
 	}
 
@@ -696,7 +695,7 @@ func fetchAndUpdateAccount(request FetchAndUpdateAccountServiceRequest) error {
 	accountID := request.AccountID
 	context := request.Context
 
-	log.Printf("Updating account capability status for account %s", accountID)
+	slog.Info("Updating account capability status for account", "accountID", accountID)
 
 	params := &stripeGo.V2CoreAccountRetrieveParams{}
 	params.AddExtra("include", "configuration.customer")
@@ -706,24 +705,24 @@ func fetchAndUpdateAccount(request FetchAndUpdateAccountServiceRequest) error {
 
 	account, err := stripeClient.V2CoreAccounts.Retrieve(context, accountID, params)
 	if err != nil {
-		log.Printf("failed to fetch account: %v", err)
+		slog.Error("Failed to fetch account", "error", err)
 		return err
 	}
 
 	accountJson, _ := json.Marshal(account)
-	log.Printf("Account fetched: %s", string(accountJson))
+	slog.Info("Account fetched", "accountID", accountID, "account", string(accountJson))
 	configurationJson, _ := json.Marshal(account.Configuration)
-	log.Printf("Account configuration: %s", string(configurationJson))
+	slog.Info("Account configuration", "accountID", accountID, "configuration", string(configurationJson))
 	requirementsJson, _ := json.Marshal(account.Requirements)
-	log.Printf("Account requirements: %s", string(requirementsJson))
+	slog.Info("Account requirements", "accountID", accountID, "requirements", string(requirementsJson))
 	identityJson, _ := json.Marshal(account.Identity)
-	log.Printf("Account identity: %s", string(identityJson))
+	slog.Info("Account identity", "accountID", accountID, "identity", string(identityJson))
 
 	err = request.DB.WithContext(context).Transaction(func(tx *gorm.DB) error {
 		var org models.Organization
 		if err := tx.Where("stripe_account_id = ?", accountID).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Printf("Organization not found for stripe_account_id: %s", accountID)
+				slog.Error("Organization not found for stripe_account_id", "accountID", accountID)
 				return nil
 			}
 			return err
@@ -733,11 +732,11 @@ func fetchAndUpdateAccount(request FetchAndUpdateAccountServiceRequest) error {
 	})
 
 	if err != nil {
-		log.Printf("failed to update account: %v", err)
+		slog.Error("Failed to update account", "error", err)
 		return err
 	}
 
-	log.Printf("Account updated: %s", accountID)
+	slog.Info("Account updated", "accountID", accountID)
 
 	return nil
 }

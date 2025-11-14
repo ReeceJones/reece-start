@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"slices"
 
@@ -22,7 +22,7 @@ func ContentTypeMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		contentType := c.Request().Header.Get("Content-Type")
 		if !slices.Contains(allowedContentTypes, contentType) {
-			log.Printf("Invalid content type: %s", c.Request().Header.Get("Content-Type"))
+			slog.Error("Invalid content type", "contentType", contentType)
 			return c.JSON(http.StatusUnsupportedMediaType, api.ApiError{
 				Message: "invalid_content_type",
 			})

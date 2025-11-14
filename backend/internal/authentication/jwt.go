@@ -2,7 +2,7 @@ package authentication
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"reece.start/internal/api"
@@ -68,8 +68,7 @@ func ValidateJWT(config *configuration.Config, tokenString string) (*JwtClaims, 
 	})
 
 	if err != nil {
-		log.Printf("Error parsing JWT token: %v", err)
-		log.Printf("Token string: %s", tokenString)
+		slog.Error("Error parsing JWT token", "error", err, "token", tokenString)
 		return nil, err
 	}
 
@@ -77,7 +76,7 @@ func ValidateJWT(config *configuration.Config, tokenString string) (*JwtClaims, 
 		return claims, nil
 	}
 
-	log.Printf("Invalid JWT token: claims type assertion failed or token is not valid")
+	slog.Error("Invalid JWT token: claims type assertion failed or token is not valid", "error", api.ErrForbiddenNoAccess)
 	return nil, api.ErrForbiddenNoAccess
 }
 

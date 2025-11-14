@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -27,7 +27,7 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 	tx := request.Tx
 	params := request.Params
 
-	log.Printf("Creating organization: %+v", params)
+	slog.Info("Creating organization", "params", params)
 
 	localCurrency := utils.GetCurrencyForCountry(params.Address.Country)
 
@@ -79,12 +79,12 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 			return nil, err
 		}
 
-		log.Printf("Uploading logo for organization %d of length %d\n", organization.ID, len(decodedImage))
+		slog.Info("Uploading logo for organization", "organizationID", organization.ID, "length", len(decodedImage))
 
 		// Get the mime type from the image
 		mimeType := http.DetectContentType(decodedImage)
 
-		log.Printf("Detected logo mime type: %s\n", mimeType)
+		slog.Info("Detected logo mime type", "mimeType", mimeType)
 
 		objectName := fmt.Sprintf("%d", organization.ID)
 
@@ -97,7 +97,7 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 			return nil, err
 		}
 
-		log.Printf("Uploaded logo for organization %d\n", organization.ID)
+		slog.Info("Uploaded logo for organization", "organizationID", organization.ID)
 
 		organization.LogoFileStorageKey = objectName
 	}
@@ -131,7 +131,7 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 		return nil, err
 	}
 
-	log.Printf("Created Stripe connect account %s for organization %d\n", account.ID, organization.ID)
+	slog.Info("Created Stripe connect account", "accountID", account.ID, "organizationID", organization.ID)
 
 	// Update the stripe information on the organization
 	err = updateOrganizationStripeInformation(UpdateOrganizationStripeInformationServiceRequest{
@@ -264,12 +264,12 @@ func updateOrganization(request UpdateOrganizationServiceRequest) (*Organization
 			return nil, err
 		}
 
-		log.Printf("Uploading logo for organization %d of length %d\n", organization.ID, len(decodedImage))
+		slog.Info("Uploading logo for organization", "organizationID", organization.ID, "length", len(decodedImage))
 
 		// Get the mime type from the image
 		mimeType := http.DetectContentType(decodedImage)
 
-		log.Printf("Detected logo mime type: %s\n", mimeType)
+		slog.Info("Detected logo mime type", "mimeType", mimeType)
 
 		objectName := fmt.Sprintf("%d", organization.ID)
 
@@ -282,7 +282,7 @@ func updateOrganization(request UpdateOrganizationServiceRequest) (*Organization
 			return nil, err
 		}
 
-		log.Printf("Updated logo for organization %d\n", organization.ID)
+		slog.Info("Updated logo for organization", "organizationID", organization.ID)
 
 		organization.LogoFileStorageKey = objectName
 	}
@@ -559,7 +559,7 @@ func createOrganizationInvitation(request CreateOrganizationInvitationServiceReq
 		return nil, fmt.Errorf("failed to enqueue invitation email job: %w", err)
 	}
 
-	log.Printf("Created organization invitation %d and enqueued email job", invitation.ID)
+	slog.Info("Created organization invitation and enqueued email job", "invitationID", invitation.ID)
 
 	return &OrganizationInvitationDto{
 		Invitation:   invitation,

@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -237,12 +237,12 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 			return nil, err
 		}
 
-		log.Printf("Uploading logo for user %d of length %d\n", user.ID, len(decodedImage))
+		slog.Info("Uploading logo for user", "userID", user.ID, "length", len(decodedImage))
 
 		// Get the mime type from the image
 		mimeType := http.DetectContentType(decodedImage)
 
-		log.Printf("Detected logo mime type: %s\n", mimeType)
+		slog.Info("Detected logo mime type", "mimeType", mimeType)
 
 		objectName := fmt.Sprintf("%d", user.ID)
 
@@ -255,7 +255,7 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 			return nil, err
 		}
 
-		log.Printf("Updated logo for user %d\n", user.ID)
+		slog.Info("Updated logo for user", "userID", user.ID)
 
 		user.LogoFileStorageKey = objectName
 	}

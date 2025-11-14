@@ -1,11 +1,11 @@
 package users
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"reece.start/internal/access"
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
@@ -178,7 +178,7 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 	})
 
 	if err != nil {
-		log.Error(err)
+		slog.Error("Error updating user", "error", err, "userID", userID)
 		return err // Middleware will handle the error response
 	}
 

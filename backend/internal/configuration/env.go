@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/caarlos0/env/v11"
@@ -43,7 +44,7 @@ type Config struct {
 
 func LoadEnvironmentVariables() (*Config, error) {
 	if _, err := os.Stat(".env"); err == nil {
-		log.Println("Detected .env file, loading environment variables")
+		slog.Info("Detected .env file, loading environment variables")
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatalf("Error loading .env file, %s", err)

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -151,7 +151,7 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
-		log.Printf("Unhandled error: %v", err)
+		slog.Error("Unhandled error", "error", err)
 
 		// Default to internal server error for unknown errors
 		return c.JSON(http.StatusInternalServerError, api.ApiError{
