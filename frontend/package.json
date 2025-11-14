@@ -18,7 +18,7 @@
 		"test:watch": "vitest"
 	},
 	"engines": {
-		"node": "^22.20.0"
+		"node": ">=22.0.0 <23"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
