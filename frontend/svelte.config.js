@@ -8,6 +8,7 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		adapter: adapter(),
+		// fix reverse proxy issues with csrf (TODO: investigate if this is still needed)
 		csrf: {
 			checkOrigin: false
 		}
