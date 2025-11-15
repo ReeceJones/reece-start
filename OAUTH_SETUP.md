@@ -1,6 +1,6 @@
 # Google OAuth Setup
 
-This document describes how to set up Google OAuth authentication for the Easy Apparel application.
+This document describes how to set up Google OAuth authentication.
 
 ## Backend Configuration
 

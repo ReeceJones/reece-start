@@ -29,7 +29,7 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
   - Linting
   - Formatting
 - Structured logging
-- Railway deployment template (TODO)
+- Railway deployment template
 - Posthog integration (TODO)
 - Sentry integration (TODO)
 
