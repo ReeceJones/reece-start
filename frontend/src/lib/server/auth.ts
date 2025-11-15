@@ -174,7 +174,7 @@ export async function refreshUserToken(
 			}
 		}
 
-		throw error;
+		throw apiError;
 	}
 
 	// Set the token in the cookies

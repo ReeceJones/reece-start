@@ -28,14 +28,20 @@ export async function post<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 		'Content-Type': 'application/json'
 	};
 
+	const startTime = Date.now();
+	console.log(`[API Request] POST ${path}`);
+
 	const response = await options.fetch(path, {
 		method: 'POST',
 		body: JSON.stringify(data),
 		headers
 	});
 
+	const duration = Date.now() - startTime;
+	console.log(`[API Response] POST ${path} ${response.status} (${duration}ms)`);
+
 	if (!response.ok) {
-		const json = await response.json();
+		const json = await response.json().catch(() => ({}));
 		throw new ApiError(
 			json.message ?? `Request failed with invalid status code: ${response.status}`,
 			response.status
@@ -66,15 +72,22 @@ export async function put<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 		'Content-Type': 'application/json'
 	};
 
+	const startTime = Date.now();
+	console.log(`[API Request] PUT ${path}`);
+
 	const response = await options.fetch(path, {
 		method: 'PUT',
 		body: JSON.stringify(data),
 		headers
 	});
 
+	const duration = Date.now() - startTime;
+	console.log(`[API Response] PUT ${path} ${response.status} (${duration}ms)`);
+
 	if (!response.ok) {
+		const json = await response.json().catch(() => ({}));
 		throw new ApiError(
-			`Request failed with invalid status code: ${response.status}`,
+			json.message ?? `Request failed with invalid status code: ${response.status}`,
 			response.status
 		);
 	}
@@ -103,15 +116,22 @@ export async function patch<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 		'Content-Type': 'application/json'
 	};
 
+	const startTime = Date.now();
+	console.log(`[API Request] PATCH ${path}`);
+
 	const response = await options.fetch(path, {
 		method: 'PATCH',
 		body: JSON.stringify(data),
 		headers
 	});
 
+	const duration = Date.now() - startTime;
+	console.log(`[API Response] PATCH ${path} ${response.status} (${duration}ms)`);
+
 	if (!response.ok) {
+		const json = await response.json().catch(() => ({}));
 		throw new ApiError(
-			`Request failed with invalid status code: ${response.status}`,
+			json.message ?? `Request failed with invalid status code: ${response.status}`,
 			response.status
 		);
 	}
@@ -146,22 +166,26 @@ export async function get<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 			: `?${convertParamsToQueryString(options.params)}`;
 	}
 
-	const response = await options.fetch(`${url}${paramsString}`, {
+	const fullPath = `${url}${paramsString}`;
+	const startTime = Date.now();
+	console.log(`[API Request] GET ${fullPath}`);
+
+	const response = await options.fetch(fullPath, {
 		headers
 	});
 
+	const duration = Date.now() - startTime;
+	console.log(`[API Response] GET ${fullPath} ${response.status} (${duration}ms)`);
+
 	if (!response.ok) {
-		console.error('Request failed with invalid status code:', response.status, response.statusText);
-		console.error('Response:', await response.json());
+		const json = await response.json().catch(() => ({}));
 		throw new ApiError(
-			`Request failed with invalid status code: ${response.status}`,
+			json.message ?? `Request failed with invalid status code: ${response.status}`,
 			response.status
 		);
 	}
 
 	const parsedData = await response.json();
-
-	console.log('Parsed data:', parsedData);
 
 	return options.responseSchema.parse(parsedData);
 }
@@ -176,14 +200,21 @@ export async function del(
 		'Content-Type': 'application/json'
 	};
 
+	const startTime = Date.now();
+	console.log(`[API Request] DELETE ${path}`);
+
 	const response = await options.fetch(path, {
 		method: 'DELETE',
 		headers
 	});
 
+	const duration = Date.now() - startTime;
+	console.log(`[API Response] DELETE ${path} ${response.status} (${duration}ms)`);
+
 	if (!response.ok) {
+		const json = await response.json().catch(() => ({}));
 		throw new ApiError(
-			`Request failed with invalid status code: ${response.status}`,
+			json.message ?? `Request failed with invalid status code: ${response.status}`,
 			response.status
 		);
 	}
