@@ -12,6 +12,8 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/resend/resend-go/v2"
+	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
+	"github.com/riverqueue/river/rivermigrate"
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -74,8 +76,27 @@ func main() {
 	stripeGo.Key = config.StripeSecretKey
 	stripeClient := stripeGo.NewClient(config.StripeSecretKey)
 
+	// Run River migrations to create River tables
+	// Use rivermigrate package to run migrations programmatically
+	// See: https://riverqueue.com/docs/migrations#go-migration-api
+	ctx := context.Background()
+	riverDriver := riverdatabasesql.New(conn)
+	migrator, err := rivermigrate.New(riverDriver, nil)
+	if err != nil {
+		log.Fatalf("Error creating River migrator, %s", err)
+	}
+
+	// Migrate up to the latest version
+	// Empty MigrateOpts migrates all the way up to the latest version
+	_, err = migrator.Migrate(ctx, rivermigrate.DirectionUp, nil)
+	if err != nil {
+		log.Fatalf("Error running River migrations, %s", err)
+	}
+
+	slog.Info("River migrations completed")
+
 	// Create and start river client (Background jobs)
-	riverClient, err := jobs.NewRiverClient(context.Background(), jobs.RiverClientConfig{
+	riverClient, err := jobs.NewRiverClient(ctx, jobs.RiverClientConfig{
 		SQLConn:      conn,
 		DB:           db,
 		Config:       config,
