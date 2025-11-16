@@ -101,6 +101,8 @@ describe('api', () => {
 			const mockFetch = vi.fn().mockResolvedValue({
 				ok: false,
 				status: 400,
+				headers: new Headers({ 'content-type': 'application/json' }),
+				bodyUsed: false,
 				json: async () => ({ message: 'Bad request' })
 			});
 
@@ -229,6 +231,8 @@ describe('api', () => {
 			const mockFetch = vi.fn().mockResolvedValue({
 				ok: false,
 				status: 404,
+				headers: new Headers({ 'content-type': 'application/json' }),
+				bodyUsed: false,
 				json: async () => ({})
 			});
 
@@ -301,6 +305,8 @@ describe('api', () => {
 			const mockFetch = vi.fn().mockResolvedValue({
 				ok: false,
 				status: 400,
+				headers: new Headers({ 'content-type': 'application/json' }),
+				bodyUsed: false,
 				json: async () => ({})
 			});
 
@@ -440,11 +446,12 @@ describe('api', () => {
 		});
 
 		it('should throw ApiError on non-ok response', async () => {
-			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 			const mockFetch = vi.fn().mockResolvedValue({
 				ok: false,
 				status: 404,
-				json: async () => ({ error: 'Not found' })
+				headers: new Headers({ 'content-type': 'application/json' }),
+				bodyUsed: false,
+				json: async () => ({ message: 'Not found' })
 			});
 
 			await expect(
@@ -454,11 +461,18 @@ describe('api', () => {
 				})
 			).rejects.toThrow(ApiError);
 
-			expect(consoleErrorSpy).toHaveBeenCalled();
-			consoleErrorSpy.mockRestore();
+			try {
+				await get('/api/users/123', {
+					fetch: mockFetch,
+					responseSchema
+				});
+			} catch (error) {
+				expect(error).toBeInstanceOf(ApiError);
+				expect((error as ApiError).code).toBe(404);
+			}
 		});
 
-		it('should log parsed data on success', async () => {
+		it('should log API request and response on success', async () => {
 			const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 			const mockFetch = vi.fn().mockResolvedValue({
 				ok: true,
@@ -470,7 +484,10 @@ describe('api', () => {
 				responseSchema
 			});
 
-			expect(consoleLogSpy).toHaveBeenCalledWith('Parsed data:', { id: '123', name: 'John' });
+			expect(consoleLogSpy).toHaveBeenCalledWith('[API Request] GET /api/users/123');
+			expect(consoleLogSpy).toHaveBeenCalledWith(
+				expect.stringContaining('[API Response] GET /api/users/123')
+			);
 			consoleLogSpy.mockRestore();
 		});
 
@@ -519,7 +536,10 @@ describe('api', () => {
 		it('should throw ApiError on non-ok response', async () => {
 			const mockFetch = vi.fn().mockResolvedValue({
 				ok: false,
-				status: 404
+				status: 404,
+				headers: new Headers(),
+				bodyUsed: false,
+				json: async () => ({})
 			});
 
 			await expect(

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { apiErrorSchema, type ApiErrorResponse } from './schemas/api';
 
 export class ApiError extends Error {
 	constructor(
@@ -6,6 +7,33 @@ export class ApiError extends Error {
 		public code: number
 	) {
 		super(message);
+	}
+}
+
+async function getErrorJson(response: Response): Promise<ApiErrorResponse | undefined> {
+	try {
+		// Check if response body has already been consumed
+		if (response.bodyUsed) {
+			return undefined;
+		}
+
+		// Check if json() method exists and is a function
+		if (typeof response.json !== 'function') {
+			return undefined;
+		}
+
+		// Check content-type to see if it's JSON
+		const contentType = response.headers.get('content-type');
+		if (contentType && !contentType.includes('application/json')) {
+			return undefined;
+		}
+
+		// Try to parse as JSON and validate against schema
+		const json = await response.json();
+		return apiErrorSchema.parse(json);
+	} catch {
+		// If json() fails, parsing fails, or schema validation fails, return null
+		return undefined;
 	}
 }
 
@@ -41,11 +69,10 @@ export async function post<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 	console.log(`[API Response] POST ${path} ${response.status} (${duration}ms)`);
 
 	if (!response.ok) {
-		const json = await response.json().catch(() => ({}));
-		throw new ApiError(
-			json.message ?? `Request failed with invalid status code: ${response.status}`,
-			response.status
-		);
+		const errorJson = await getErrorJson(response);
+		const message =
+			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
+		throw new ApiError(message, response.status);
 	}
 
 	const parsedData = await response.json();
@@ -85,11 +112,10 @@ export async function put<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 	console.log(`[API Response] PUT ${path} ${response.status} (${duration}ms)`);
 
 	if (!response.ok) {
-		const json = await response.json().catch(() => ({}));
-		throw new ApiError(
-			json.message ?? `Request failed with invalid status code: ${response.status}`,
-			response.status
-		);
+		const errorJson = await getErrorJson(response);
+		const message =
+			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
+		throw new ApiError(message, response.status);
 	}
 
 	const parsedData = await response.json();
@@ -129,11 +155,10 @@ export async function patch<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 	console.log(`[API Response] PATCH ${path} ${response.status} (${duration}ms)`);
 
 	if (!response.ok) {
-		const json = await response.json().catch(() => ({}));
-		throw new ApiError(
-			json.message ?? `Request failed with invalid status code: ${response.status}`,
-			response.status
-		);
+		const errorJson = await getErrorJson(response);
+		const message =
+			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
+		throw new ApiError(message, response.status);
 	}
 
 	const parsedData = await response.json();
@@ -178,11 +203,10 @@ export async function get<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 	console.log(`[API Response] GET ${fullPath} ${response.status} (${duration}ms)`);
 
 	if (!response.ok) {
-		const json = await response.json().catch(() => ({}));
-		throw new ApiError(
-			json.message ?? `Request failed with invalid status code: ${response.status}`,
-			response.status
-		);
+		const errorJson = await getErrorJson(response);
+		const message =
+			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
+		throw new ApiError(message, response.status);
 	}
 
 	const parsedData = await response.json();
@@ -212,11 +236,10 @@ export async function del(
 	console.log(`[API Response] DELETE ${path} ${response.status} (${duration}ms)`);
 
 	if (!response.ok) {
-		const json = await response.json().catch(() => ({}));
-		throw new ApiError(
-			json.message ?? `Request failed with invalid status code: ${response.status}`,
-			response.status
-		);
+		const errorJson = await getErrorJson(response);
+		const message =
+			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
+		throw new ApiError(message, response.status);
 	}
 }
 

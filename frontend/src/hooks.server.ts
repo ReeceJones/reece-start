@@ -7,8 +7,7 @@ function isSvelteKitError(error: unknown): error is Redirect | HttpError {
 	if (error && typeof error === 'object') {
 		const err = error as any;
 		return (
-			err instanceof Error &&
-			('location' in err || (err.status && typeof err.status === 'number'))
+			err instanceof Error && ('location' in err || (err.status && typeof err.status === 'number'))
 		);
 	}
 	return false;
@@ -56,4 +55,3 @@ export const handleError: HandleServerError = ({ error, event }) => {
 		status: (error as any)?.status ?? 500
 	};
 };
-

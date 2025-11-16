@@ -12,7 +12,7 @@ export const handleError: HandleClientError = ({ error, event }) => {
 
 	return {
 		message: error instanceof Error ? error.message : 'An unexpected error occurred',
-		status: error instanceof Error ? (error as any).status ?? 500 : 500
+		status: error instanceof Error ? ((error as any).status ?? 500) : 500
 	};
 };
 
@@ -38,4 +38,3 @@ if (typeof window !== 'undefined') {
 		});
 	});
 }
-

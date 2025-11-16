@@ -41,9 +41,9 @@
 				<AlertCircle class="size-8 text-error" />
 			</div>
 			<CardTitle class="text-2xl">{errorTitle}</CardTitle>
-			<p class="mb-6 mt-2 text-base-content/70">{errorDescription}</p>
+			<p class="mt-2 mb-6 text-base-content/70">{errorDescription}</p>
 			{#if errorMessage && errorMessage !== errorDescription}
-				<div class="alert alert-error mb-6 justify-start text-left">
+				<div class="mb-6 alert justify-start alert-error text-left">
 					<AlertCircle class="size-5 shrink-0" />
 					<span class="text-sm">{errorMessage}</span>
 				</div>
@@ -66,4 +66,3 @@
 		</CardBody>
 	</Card>
 </div>
-

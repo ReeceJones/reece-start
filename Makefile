@@ -1,28 +1,5 @@
 .DEFAULT_GOAL := help
 
-# List of known targets to filter out from arguments
-KNOWN_TARGETS := help backend-dev backend-build backend-format backend-test backend-test-verbose backend-test-coverage \
-                 frontend-dev frontend-lint frontend-lint-fix frontend-format frontend-typecheck frontend-test frontend-test-watch frontend-build \
-                 infra-start infra-stop stripe-listen
-
-# Variable to capture additional arguments
-# Usage: make backend-test ARGS=./internal/organizations
-# Or: make backend-test ./internal/organizations
-# If ARGS is not explicitly set, capture positional arguments
-ifndef ARGS
-  ARGS := $(filter-out $(KNOWN_TARGETS),$(MAKECMDGOALS))
-endif
-
-# Normalize paths: ensure relative paths start with ./
-# This handles cases where Make might strip the ./ prefix
-normalize-path = $(if $(filter /% http://% https://%,$(1)),$(1),$(if $(filter ./%,$(1)),$(1),./$(1)))
-
-# Normalize ARGS if it's set
-NORMALIZED_ARGS := $(if $(ARGS),$(call normalize-path,$(ARGS)),)
-
-# Default ARGS for test commands if not provided
-TEST_ARGS := $(if $(NORMALIZED_ARGS),$(NORMALIZED_ARGS),./...)
-
 .PHONY: help
 help: ## Show this help message
 	@echo "Available commands:"
@@ -31,9 +8,9 @@ help: ## Show this help message
 	@echo "  make backend-dev              - Run a dev backend server"
 	@echo "  make backend-build            - Build the backend server"
 	@echo "  make backend-format           - Format backend code"
-	@echo "  make backend-test [ARGS=...]  - Run backend tests (e.g., make backend-test ./internal/organizations)"
-	@echo "  make backend-test-verbose [ARGS=...]  - Run backend tests with verbose output"
-	@echo "  make backend-test-coverage [ARGS=...]  - Run backend tests with coverage"
+	@echo "  make backend-test             - Run backend tests"
+	@echo "  make backend-test-verbose     - Run backend tests with verbose output"
+	@echo "  make backend-test-coverage    - Run backend tests with coverage"
 	@echo ""
 	@echo "Frontend:"
 	@echo "  make frontend-dev             - Run a dev frontend server"
@@ -63,16 +40,16 @@ backend-build:
 	cd backend; go build -o bin/server server.go
 
 backend-format:
-	cd backend; go fmt $(if $(NORMALIZED_ARGS),$(NORMALIZED_ARGS),./...)
+	cd backend; go fmt ./...
 
 backend-test:
-	cd backend; TEST_MODE=true go test $(TEST_ARGS)
+	cd backend; TEST_MODE=true go test ./...
 
 backend-test-verbose:
-	cd backend; TEST_MODE=true go test -v $(TEST_ARGS)
+	cd backend; TEST_MODE=true go test -v ./...
 
 backend-test-coverage:
-	cd backend; TEST_MODE=true go test -cover $(TEST_ARGS)
+	cd backend; TEST_MODE=true go test -cover ./...
 
 frontend-dev:
 	cd frontend; npm run dev 
