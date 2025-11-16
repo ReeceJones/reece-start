@@ -12,12 +12,14 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/resend/resend-go/v2"
+	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	"github.com/riverqueue/river/rivermigrate"
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
+	"reece.start/internal/constants"
 	"reece.start/internal/database"
 	echoServer "reece.start/internal/echo"
 	"reece.start/internal/jobs"
@@ -25,17 +27,44 @@ import (
 )
 
 func main() {
-	// Setup logger
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
+	setupLogger()
 
-	// Load environment variables
 	config, err := configuration.LoadEnvironmentVariables()
 	if err != nil {
 		log.Fatalf("Error loading environment variables, %s", err)
 	}
 
-	// Create database connection
+	conn, db := createDatabaseConnection(config)
+	runDatabaseMigrations(db)
+
+	minioClient := createMinioClient(config)
+	initializeStorageBuckets(minioClient)
+
+	resendClient := createResendClient(config)
+	stripeClient := createStripeClient(config)
+
+	ctx := context.Background()
+	runRiverMigrations(ctx, conn)
+
+	riverClient := createRiverClient(ctx, config, conn, db, resendClient, stripeClient)
+
+	e := createEchoServer(config, db, minioClient, riverClient, resendClient, stripeClient)
+
+	// Optional: Add body dump middleware for debugging (production only)
+	e.Use(middleware.BodyDump(func(c echo.Context, reqBody []byte, resBody []byte) {
+		slog.Info("Body dump", "request", string(reqBody), "response", string(resBody))
+	}))
+
+	// Start http server
+	e.Logger.Fatal(e.Start(":8080"))
+}
+
+func setupLogger() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+}
+
+func createDatabaseConnection(config *configuration.Config) (*sql.DB, *gorm.DB) {
 	conn, err := sql.Open("pgx", config.DatabaseUri)
 	if err != nil {
 		log.Fatalf("Error opening database, %s", err)
@@ -47,16 +76,19 @@ func main() {
 	}
 
 	slog.Info("Database connected")
+	return conn, db
+}
 
-	// Run database migrations
-	err = database.Migrate(db)
+func runDatabaseMigrations(db *gorm.DB) {
+	err := database.Migrate(db)
 	if err != nil {
 		log.Fatalf("Error migrating database, %s", err)
 	}
 
 	slog.Info("Database migrated")
+}
 
-	// Create minio client (Storage)
+func createMinioClient(config *configuration.Config) *minio.Client {
 	minioClient, err := minio.New(config.StorageEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.StorageAccessKeyId, config.StorageSecretAccessKey, ""),
 		Secure: config.StorageUseSSL,
@@ -66,20 +98,51 @@ func main() {
 	}
 
 	slog.Info("Minio client created")
+	return minioClient
+}
 
-	// Create resend client (Email)
+func initializeStorageBuckets(client *minio.Client) {
+	ctx := context.Background()
+	buckets := []constants.StorageBucket{
+		constants.StorageBucketUserLogos,
+		constants.StorageBucketOrganizationLogos,
+	}
+
+	for _, bucket := range buckets {
+		bucketName := string(bucket)
+		exists, err := client.BucketExists(ctx, bucketName)
+		if err != nil {
+			log.Fatalf("Error checking if bucket %s exists, %s", bucketName, err)
+		}
+
+		if !exists {
+			err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+			if err != nil {
+				log.Fatalf("Error creating bucket %s, %s", bucketName, err)
+			}
+			slog.Info("Created storage bucket", "bucket", bucketName)
+		} else {
+			slog.Info("Storage bucket already exists", "bucket", bucketName)
+		}
+	}
+
+	slog.Info("Storage buckets initialized")
+}
+
+func createResendClient(config *configuration.Config) *resend.Client {
 	resendClient := resend.NewClient(config.ResendApiKey)
-
 	slog.Info("Resend client created")
+	return resendClient
+}
 
-	// Create stripe client and configure the global API key
+func createStripeClient(config *configuration.Config) *stripeGo.Client {
 	stripeGo.Key = config.StripeSecretKey
 	stripeClient := stripeGo.NewClient(config.StripeSecretKey)
+	slog.Info("Stripe client created")
+	return stripeClient
+}
 
-	// Run River migrations to create River tables
-	// Use rivermigrate package to run migrations programmatically
-	// See: https://riverqueue.com/docs/migrations#go-migration-api
-	ctx := context.Background()
+func runRiverMigrations(ctx context.Context, conn *sql.DB) {
 	riverDriver := riverdatabasesql.New(conn)
 	migrator, err := rivermigrate.New(riverDriver, nil)
 	if err != nil {
@@ -94,8 +157,16 @@ func main() {
 	}
 
 	slog.Info("River migrations completed")
+}
 
-	// Create and start river client (Background jobs)
+func createRiverClient(
+	ctx context.Context,
+	config *configuration.Config,
+	conn *sql.DB,
+	db *gorm.DB,
+	resendClient *resend.Client,
+	stripeClient *stripeGo.Client,
+) *river.Client[*sql.Tx] {
 	riverClient, err := jobs.NewRiverClient(ctx, jobs.RiverClientConfig{
 		SQLConn:      conn,
 		DB:           db,
@@ -109,8 +180,17 @@ func main() {
 	}
 
 	slog.Info("River client created and started")
+	return riverClient
+}
 
-	// Create Echo server with all middleware and routes
+func createEchoServer(
+	config *configuration.Config,
+	db *gorm.DB,
+	minioClient *minio.Client,
+	riverClient *river.Client[*sql.Tx],
+	resendClient *resend.Client,
+	stripeClient *stripeGo.Client,
+) *echo.Echo {
 	e := echoServer.NewEcho(appMiddleware.AppDependencies{
 		Config:       config,
 		DB:           db,
@@ -120,11 +200,5 @@ func main() {
 		StripeClient: stripeClient,
 	})
 
-	// Optional: Add body dump middleware for debugging (production only)
-	e.Use(middleware.BodyDump(func(c echo.Context, reqBody []byte, resBody []byte) {
-		slog.Info("Body dump", "request", string(reqBody), "response", string(resBody))
-	}))
-
-	// Start http server
-	e.Logger.Fatal(e.Start(":8080"))
+	return e
 }
