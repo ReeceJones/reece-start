@@ -1,24 +1,30 @@
 # Railway Deployment Setup
 
-This document describes how to setup Railway deployment for the application.
+This document describes how to set up Railway deployment for the application.
+
+---
 
 ## Overview
 
 ![Railway project](/assets/railway-overview.png)
 
-The railway deployment works by exposing the backend and frontend through a reverse proxy, using templates for infrastructure deployments.
+The Railway deployment exposes the backend and frontend through a Caddy
+reverse proxy, using Railway templates for infrastructure services.
 
 ### Favicon links
 
-- [Frontend](https://svelte.dev/favicon.png)
-- [Backend](https://echo.labstack.com/img/favicon.ico)
-- [Caddy](https://caddyserver.com/resources/images/favicon.png)
+- **Frontend**: <https://svelte.dev/favicon.png>
+- **Backend**: <https://echo.labstack.com/img/favicon.ico>
+- **Caddy**: <https://caddyserver.com/resources/images/favicon.png>
 
-## Project Configuration
+---
 
-1. Click "Settings" on the top right corner
-2. Navigate to "Shared Variables"
-3. For your environment enter the environment variables from the table below
+## Project configuration (shared variables)
+
+1. Open your Railway project.
+2. Click **Settings** in the top-right corner.
+3. Navigate to **Shared Variables**.
+4. Add the variables from the table below (these are shared across services):
 
 | Variable Name                            | Value                     |
 | ---------------------------------------- | ------------------------- |
@@ -33,30 +39,36 @@ The railway deployment works by exposing the backend and frontend through a reve
 | `STRIPE_SECRET_KEY`                      | `your_secret_key`         |
 | `STRIPE_WEBHOOK_SECRET`                  | `your_webhook_secret`     |
 
-## Postgres Configuration
+---
 
-1. Click "Create" in the top right corner of the project dashboard
-2. Select "Database"
-3. Select "Postgres"
+## Postgres configuration
 
-## MinIO Configuration
+1. In the Railway project dashboard, click **Create** (top-right).
+2. Select **Database**.
+3. Choose **Postgres** and provision the database.
 
-1. Click "Create" in the top right corner of the project dashboard
-2. Select "Template"
-3. Search for "MinIO"
-4. Select "MinIO" by "Brody's Projects"
+---
 
-## Caddy Configuration
+## MinIO configuration
 
-1. Click "Create" in the top right corner of the project dashboard
-2. Select "GitHub Repo"
-3. Select your repo
-4. Click on the newly added service
-5. Click on the "Settings" tab
-6. Navigate to "Source" and select "Add route directory"
-7. Enter "/caddy"
-8. Click on the "Variables" tab and enter the environment variables from the env file below.
-9. Press "Deploy" at the top of the screen
+1. In the Railway project dashboard, click **Create**.
+2. Select **Template**.
+3. Search for **"MinIO"**.
+4. Select **"MinIO" by "Brody's Projects"** and provision it.
+
+---
+
+## Caddy service configuration
+
+This service acts as the reverse proxy in front of the backend and frontend.
+
+1. Click **Create** and select **GitHub Repo**.
+2. Select this repository.
+3. Click the newly added **Caddy** service.
+4. Go to the **Settings** tab.
+5. Under **Source**, click **Add route directory** and enter `/caddy`.
+6. Go to the **Variables** tab and add the variables from the env block below.
+7. Click **Deploy**.
 
 ```env
 API_HOST="your.domain.com"
@@ -65,17 +77,17 @@ FRONTEND_HOST="your.domain.com"
 FRONTEND_URL="${{frontend.RAILWAY_PRIVATE_DOMAIN}}:8080"
 ```
 
-## Frontend Configuration
+---
 
-1. Click "Create" in the top right corner of the project dashboard
-2. Select "GitHub Repo"
-3. Select your repo
-4. Click on the newly added service
-5. Click on the "Settings" tab
-6. Navigate to "Source" and select "Add route directory"
-7. Enter "/frontend"
-8. Click on the "Variables" tab and enter the environment variables from the env file below.
-9. Press "Deploy" at the top of the screen
+## Frontend service configuration
+
+1. Click **Create** and select **GitHub Repo**.
+2. Select this repository.
+3. Click the newly added **Frontend** service.
+4. Go to the **Settings** tab.
+5. Under **Source**, click **Add route directory** and enter `/frontend`.
+6. Go to the **Variables** tab and add the variables from the env block below.
+7. Click **Deploy**.
 
 ```env
 BODY_SIZE_LIMIT="64M"
@@ -84,17 +96,17 @@ RAILPACK_NO_SPA="1"
 RAILPACK_NODE_VERSION="22.20"
 ```
 
-## Backend Configuration
+---
 
-1. Click "Create" in the top right corner of the project dashboard
-2. Select "GitHub Repo"
-3. Select your repo
-4. Click on the newly added service
-5. Click on the "Settings" tab
-6. Navigate to "Source" and select "Add route directory"
-7. Enter "/backend"
-8. Click on the "Variables" tab and enter the environment variables from the env file below.
-9. Press "Deploy" at the top of the screen
+## Backend service configuration
+
+1. Click **Create** and select **GitHub Repo**.
+2. Select this repository.
+3. Click the newly added **Backend** service.
+4. Go to the **Settings** tab.
+5. Under **Source**, click **Add route directory** and enter `/backend`.
+6. Go to the **Variables** tab and add the variables from the env block below.
+7. Click **Deploy**.
 
 ```env
 DATABASE_URI="${{Postgres.DATABASE_URL}}"
@@ -113,9 +125,41 @@ STRIPE_SECRET_KEY="${{shared.STRIPE_SECRET_KEY}}"
 STRIPE_WEBHOOK_SECRET="${{shared.STRIPE_WEBHOOK_SECRET}}"
 ```
 
-## Networking Configuration
+---
 
-1. Click on the caddy service from the "Architecture" view
-2. Navigate to the "Settings" tab
-3. Navigate to "Networking" and click "Custom Domain"
-4. Enter your domain and follow the instructions to update your DNS configuration
+## Networking configuration (custom domain)
+
+1. Open the **Caddy** service from the **Architecture** view.
+2. Go to the **Settings** tab.
+3. Open the **Networking** section and click **Custom Domain**.
+4. Enter your domain and follow Railway’s instructions to update your DNS.
+
+---
+
+## Stripe configuration
+
+1. In the Stripe Dashboard, create or select the account you want to use for this project.
+2. Go to **Developers → API keys** and create a restricted key (or use the secret key)
+   with permissions for billing, subscriptions, and Connect as required.
+3. Copy the secret key and set it as the `STRIPE_SECRET_KEY` **shared variable** in Railway
+   (see the **Project configuration** table above).
+4. Go to **Developers → Webhooks** and click **Add an endpoint**.
+5. Set the webhook URL to your deployed backend URL for snapshot events, for example:
+   `https://your.domain.com/api/webhooks/stripe/snapshot`.
+6. Under **Select events**, choose **Receive all events** so that Stripe sends every event
+   to this endpoint (you can filter in code if needed).
+7. Save the webhook endpoint, then copy the **Signing secret** and set it as
+   the `STRIPE_WEBHOOK_SECRET` **shared variable** in Railway.
+8. Create a second webhook endpoint for **thin** events with URL
+   `https://your.domain.com/api/webhooks/stripe/thin` and also choose
+   **Receive all events** so all Connect-related events are delivered.
+9. Go to **Billing → Prices / Products** and create a subscription product and price
+   for your Pro plan.
+10. Copy the Pro plan **Product ID** and **Price ID** and set them as
+    `STRIPE_PRO_PLAN_PRODUCT_ID` and `STRIPE_PRO_PLAN_PRICE_ID` **shared variables**
+    in Railway.
+11. Go to **Billing → Customer portal** and configure the billing portal as desired.
+    Copy the **Configuration ID** and set it as `STRIPE_BILLING_PORTAL_CONFIGURATION_ID`
+    in Railway.
+12. Verify that all Stripe-related shared variables from the **Project configuration**
+    table are set, then redeploy the backend service so the new configuration is picked up.

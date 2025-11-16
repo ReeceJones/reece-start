@@ -21,7 +21,7 @@ type Config struct {
 	JwtSecret         string `env:"JWT_SECRET" envDefault:"secret"`
 	JwtIssuer         string `env:"JWT_ISSUER" envDefault:"reece-start"`
 	JwtAudience       string `env:"JWT_AUDIENCE" envDefault:"https://reece.start"`
-	JwtExpirationTime int    `env:"JWT_EXPIRATION_TIME" envDefault:"86400"`
+	JwtExpirationTime int    `env:"JWT_EXPIRATION_TIME" envDefault:"2592000"` // 30 days in seconds
 
 	StorageEndpoint        string `env:"STORAGE_ENDPOINT" envDefault:"localhost:9000"`
 	StorageAccessKeyId     string `env:"STORAGE_ACCESS_KEY_ID" envDefault:"minioadmin"`
