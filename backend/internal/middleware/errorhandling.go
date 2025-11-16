@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 )
@@ -127,6 +128,25 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if he, ok := err.(*api.ApiError); ok {
 			return c.JSON(http.StatusInternalServerError, api.ApiError{
 				Message: he.Message,
+			})
+		}
+
+		// Handle Stripe errors
+		var stripeErr *stripeGo.Error
+		if errors.As(err, &stripeErr) {
+			// Use the user-facing message from Stripe error
+			message := stripeErr.Msg
+			if message == "" {
+				// Fallback to Error() if Msg is empty
+				message = err.Error()
+			}
+			// Determine appropriate HTTP status code based on Stripe error type
+			statusCode := http.StatusBadRequest
+			if stripeErr.HTTPStatusCode > 0 {
+				statusCode = stripeErr.HTTPStatusCode
+			}
+			return c.JSON(statusCode, api.ApiError{
+				Message: message,
 			})
 		}
 

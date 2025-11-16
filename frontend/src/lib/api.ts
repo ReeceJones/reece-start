@@ -70,6 +70,7 @@ export async function post<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 
 	if (!response.ok) {
 		const errorJson = await getErrorJson(response);
+		console.log('[API Error] POST', errorJson);
 		const message =
 			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
 		throw new ApiError(message, response.status);
@@ -113,6 +114,7 @@ export async function put<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 
 	if (!response.ok) {
 		const errorJson = await getErrorJson(response);
+		console.log('[API Error] PUT', errorJson);
 		const message =
 			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
 		throw new ApiError(message, response.status);
@@ -156,6 +158,7 @@ export async function patch<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 
 	if (!response.ok) {
 		const errorJson = await getErrorJson(response);
+		console.log('[API Error] PATCH', errorJson);
 		const message =
 			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
 		throw new ApiError(message, response.status);
@@ -204,6 +207,7 @@ export async function get<T extends z.ZodTypeAny, K extends z.ZodTypeAny>(
 
 	if (!response.ok) {
 		const errorJson = await getErrorJson(response);
+		console.log('[API Error] GET', errorJson);
 		const message =
 			errorJson?.message ?? `Request failed with invalid status code: ${response.status}`;
 		throw new ApiError(message, response.status);

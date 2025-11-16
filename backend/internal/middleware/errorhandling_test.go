@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 )
@@ -550,5 +551,82 @@ func TestErrorHandlingMiddleware(t *testing.T) {
 		// The error message will be the combined message from errors.Join()
 		assert.Contains(t, apiErr.Message, api.ErrForbiddenNoAdminAccess.Error())
 		assert.Contains(t, apiErr.Message, "additional context")
+	})
+
+	t.Run("StripeError", func(t *testing.T) {
+		e := echo.New()
+
+		handler := func(c echo.Context) error {
+			return &stripeGo.Error{
+				Msg:            "Your card was declined.",
+				HTTPStatusCode: http.StatusPaymentRequired,
+			}
+		}
+
+		middleware := ErrorHandlingMiddleware
+		e.GET("/test", handler, middleware)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusPaymentRequired, rec.Code)
+		var apiErr api.ApiError
+		err := json.Unmarshal(rec.Body.Bytes(), &apiErr)
+		require.NoError(t, err)
+		assert.Equal(t, "Your card was declined.", apiErr.Message)
+	})
+
+	t.Run("StripeErrorWithEmptyMsg", func(t *testing.T) {
+		e := echo.New()
+
+		handler := func(c echo.Context) error {
+			return &stripeGo.Error{
+				Msg:            "",
+				HTTPStatusCode: http.StatusBadRequest,
+			}
+		}
+
+		middleware := ErrorHandlingMiddleware
+		e.GET("/test", handler, middleware)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		var apiErr api.ApiError
+		err := json.Unmarshal(rec.Body.Bytes(), &apiErr)
+		require.NoError(t, err)
+		// Should fallback to Error() method when Msg is empty
+		assert.NotEmpty(t, apiErr.Message)
+	})
+
+	t.Run("StripeErrorWithoutStatusCode", func(t *testing.T) {
+		e := echo.New()
+
+		handler := func(c echo.Context) error {
+			return &stripeGo.Error{
+				Msg:            "Invalid API key provided.",
+				HTTPStatusCode: 0, // No status code set
+			}
+		}
+
+		middleware := ErrorHandlingMiddleware
+		e.GET("/test", handler, middleware)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+
+		e.ServeHTTP(rec, req)
+
+		// Should default to BadRequest when HTTPStatusCode is 0
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		var apiErr api.ApiError
+		err := json.Unmarshal(rec.Body.Bytes(), &apiErr)
+		require.NoError(t, err)
+		assert.Equal(t, "Invalid API key provided.", apiErr.Message)
 	})
 }
