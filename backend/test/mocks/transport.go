@@ -1,4 +1,4 @@
-package testmocks
+package mocks
 
 import (
 	"bytes"

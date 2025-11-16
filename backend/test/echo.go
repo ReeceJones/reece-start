@@ -21,7 +21,7 @@ import (
 	"reece.start/internal/jobs"
 	appMiddleware "reece.start/internal/middleware"
 	testdb "reece.start/test/db"
-	"reece.start/testmocks"
+	"reece.start/test/mocks"
 )
 
 // TestContext holds all the testing infrastructure
@@ -65,7 +65,7 @@ func SetupEchoTest(t *testing.T) *TestContext {
 	// Replace the default HTTP transport FIRST to intercept all external API calls
 	// This prevents Stripe, Resend, and any other external services from making real HTTP requests
 	// Uses the shared testmocks package to avoid import cycles
-	testmocks.ReplaceDefaultTransportWithCleanup(t)
+	mocks.ReplaceDefaultTransportWithCleanup(t)
 
 	// Create mock clients (for non-critical services)
 	var minioClient *minio.Client // nil for now - tests can mock as needed

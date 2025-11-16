@@ -16,12 +16,12 @@ import (
 	"reece.start/internal/models"
 	testconfig "reece.start/test/config"
 	testdb "reece.start/test/db"
-	"reece.start/testmocks"
+	"reece.start/test/mocks"
 )
 
 func TestCreateOrganization(t *testing.T) {
 	// Set up mock HTTP transport to intercept Stripe API calls
-	testmocks.ReplaceDefaultTransportWithCleanup(t)
+	mocks.ReplaceDefaultTransportWithCleanup(t)
 
 	db := testdb.SetupDB(t)
 	config := testconfig.CreateTestConfig()

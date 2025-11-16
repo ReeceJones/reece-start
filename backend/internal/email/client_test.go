@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"reece.start/internal/configuration"
-	"reece.start/testmocks"
+	"reece.start/test/mocks"
 )
 
 func TestSendEmail(t *testing.T) {
@@ -60,7 +60,7 @@ func TestSendEmail(t *testing.T) {
 	t.Run("EmailEnabled_Success", func(t *testing.T) {
 		// Setup: Replace default transport to intercept Resend API calls
 		// This uses the common fixture from testmocks/transport.go
-		testmocks.ReplaceDefaultTransportWithCleanup(t)
+		mocks.ReplaceDefaultTransportWithCleanup(t)
 
 		config := &configuration.Config{
 			EnableEmail:  true,
@@ -92,7 +92,7 @@ func TestSendEmail(t *testing.T) {
 	t.Run("EmailEnabled_MultipleRecipients", func(t *testing.T) {
 		// Setup: Replace default transport to intercept Resend API calls
 		// This uses the common fixture from testmocks/transport.go
-		testmocks.ReplaceDefaultTransportWithCleanup(t)
+		mocks.ReplaceDefaultTransportWithCleanup(t)
 
 		config := &configuration.Config{
 			EnableEmail:  true,

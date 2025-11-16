@@ -1,42 +1,9 @@
 package test
 
 import (
-	"testing"
-
 	"github.com/google/uuid"
 	stripeGo "github.com/stripe/stripe-go/v83"
-	"reece.start/testmocks"
 )
-
-// Mock clients for external services
-//
-// These mocks prevent actual API calls to external services during tests:
-// - Stripe: Intercepts HTTP calls at the transport level to prevent network requests
-// - Resend: Intercepts HTTP calls at the transport level to prevent network requests
-//   (Email sending is also disabled in tests via EnableEmail: false as a double safeguard)
-//
-// The HTTP transport mocking is implemented in testmocks/transport.go to avoid import cycles.
-// This package provides Stripe-specific helper functions.
-
-// ReplaceDefaultTransport replaces http.DefaultTransport with a mock transport
-// This intercepts all HTTP calls including those from Stripe SDK and Resend SDK
-// This is a wrapper around testmocks.ReplaceDefaultTransport() for convenience
-func ReplaceDefaultTransport() {
-	testmocks.ReplaceDefaultTransport()
-}
-
-// ReplaceDefaultTransportWithCleanup replaces http.DefaultTransport with a mock transport
-// and registers a cleanup function with the test to automatically restore it when the test finishes.
-// This is a wrapper around testmocks.ReplaceDefaultTransportWithCleanup() for convenience.
-func ReplaceDefaultTransportWithCleanup(t *testing.T) {
-	testmocks.ReplaceDefaultTransportWithCleanup(t)
-}
-
-// RestoreDefaultTransport restores the original http.DefaultTransport
-// This is a wrapper around testmocks.RestoreDefaultTransport() for convenience
-func RestoreDefaultTransport() {
-	testmocks.RestoreDefaultTransport()
-}
 
 // NewMockStripeClient creates a new Stripe client that won't make actual API calls
 // Note: ReplaceDefaultTransport() must be called before creating clients for this to work
