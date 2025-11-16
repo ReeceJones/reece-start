@@ -349,6 +349,8 @@ func getOrganizationLogoDistributionUrl(request GetOrganizationLogoDistributionU
 		return "", err
 	}
 
+	slog.Info("Presigned URL for organization logo", "organizationID", organizationID, "objectName", objectName, "url", presignedUrl.String())
+
 	return presignedUrl.String(), nil
 }
 
