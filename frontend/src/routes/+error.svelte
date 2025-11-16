@@ -3,13 +3,13 @@
 	import CardBody from '$lib/components/Card/CardBody.svelte';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 	import CardActions from '$lib/components/Card/CardActions.svelte';
-	import { AlertCircle, Home, RefreshCw } from 'lucide-svelte';
+	import { AlertCircle, AlertTriangle, Home, House, RefreshCw, TriangleAlert } from 'lucide-svelte';
 	import { page } from '$app/state';
 
 	const status = $derived(page.status);
 	const error = $derived(page.error);
 
-	const errorMessage = $derived(() => {
+	const errorMessage = $derived.by(() => {
 		if (error instanceof Error) return error.message;
 		if (typeof error === 'string') return error;
 		if (error && typeof error === 'object' && 'message' in error) {
@@ -18,7 +18,7 @@
 		return 'An unexpected error occurred';
 	});
 
-	const errorTitle = $derived(() => {
+	const errorTitle = $derived.by(() => {
 		if (status === 404) return 'Page Not Found';
 		if (status === 401) return 'Unauthorized';
 		if (status === 403) return 'Forbidden';
@@ -27,7 +27,7 @@
 		return 'Error';
 	});
 
-	const errorDescription = $derived(() => {
+	const errorDescription = $derived.by(() => {
 		if (status === 404) return 'The page you are looking for could not be found.';
 		if (status === 401) return 'You need to be authenticated to access this resource.';
 		if (status === 403) return "You don't have permission to access this resource.";
@@ -36,23 +36,23 @@
 	});
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-base-100 p-4">
+<div class="bg-base-100 flex min-h-screen items-center justify-center p-4">
 	<Card class="w-full max-w-md">
-		<CardBody class="text-center">
-			<div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-error/10">
-				<AlertCircle class="size-8 text-error" />
+		<CardBody>
+			<div class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full">
+				<TriangleAlert class="text-error size-8" />
 			</div>
 			<CardTitle class="text-2xl">{errorTitle}</CardTitle>
-			<p class="mt-2 mb-6 text-base-content/70">{errorDescription}</p>
+			<p class="text-base-content/70 mb-6 mt-2">{errorDescription}</p>
 			{#if errorMessage && errorMessage !== errorDescription}
-				<div class="mb-6 alert justify-start alert-error text-left">
-					<AlertCircle class="size-5 shrink-0" />
+				<div class="alert alert-error mb-6 justify-start text-left">
+					<TriangleAlert class="size-5 shrink-0" />
 					<span class="text-sm">{errorMessage}</span>
 				</div>
 			{/if}
 			<CardActions class="justify-center gap-3">
 				<a href="/" class="btn btn-primary">
-					<Home class="size-4" />
+					<House class="size-4" />
 					Go Home
 				</a>
 				<button
