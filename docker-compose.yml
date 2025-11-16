@@ -35,6 +35,8 @@ services:
       API_HOST: localhost:4040
       FRONTEND_URL: host.docker.internal:5173
       FRONTEND_HOST: localhost:4040
+      MINIO_URL: host.docker.internal:9000
+      MINIO_HOST: localhost:4040
 
 volumes:
   minio_data:

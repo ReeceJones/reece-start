@@ -4,14 +4,25 @@
 }
 
 :4040 {
-    # Frontend routing
-    route /* {
+    # MinIO storage routing
+    handle_path /storage {
         request_body {
             max_size 64MB
         }
         
-        reverse_proxy {env.FRONTEND_URL} {
-            header_up Host {env.FRONTEND_HOST}
+        reverse_proxy {env.MINIO_URL} {
+            header_up Host {env.MINIO_HOST}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+
+    handle_path /storage/* {
+        request_body {
+            max_size 64MB
+        }
+
+        reverse_proxy {env.MINIO_URL} {
+            header_up Host {env.MINIO_HOST}
             header_up X-Real-IP {remote_host}
         }
     }
@@ -35,6 +46,18 @@
 
         reverse_proxy {env.API_URL} {
             header_up Host {env.API_HOST}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+
+    # Frontend routing
+    route /* {
+        request_body {
+            max_size 64MB
+        }
+        
+        reverse_proxy {env.FRONTEND_URL} {
+            header_up Host {env.FRONTEND_HOST}
             header_up X-Real-IP {remote_host}
         }
     }
