@@ -4,13 +4,15 @@
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 	import CardActions from '$lib/components/Card/CardActions.svelte';
 	import { AlertCircle, Home, RefreshCw } from 'lucide-svelte';
+	import { page } from '$app/state';
 
-	const { error, status }: { error: unknown; status?: number } = $props();
+	const status = $derived(page.status);
+	const error = $derived(page.error);
 
 	const errorMessage = $derived(() => {
 		if (error instanceof Error) return error.message;
 		if (typeof error === 'string') return error;
-		if (typeof error === 'object' && error !== null && 'message' in error) {
+		if (error && typeof error === 'object' && 'message' in error) {
 			return String(error.message);
 		}
 		return 'An unexpected error occurred';

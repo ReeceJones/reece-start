@@ -1,14 +1,35 @@
 import { performAuthenticationCheck } from '$lib/server/auth';
 import { type Handle, type HandleServerError, type Redirect, type HttpError } from '@sveltejs/kit';
 
+interface ErrorWithLocation extends Error {
+	location: string;
+}
+
+interface ErrorWithRequiredStatus extends Error {
+	status: number;
+}
+
+function hasLocation(error: Error): error is ErrorWithLocation {
+	if ('location' in error) {
+		const location = (error as ErrorWithLocation).location;
+		return typeof location === 'string';
+	}
+	return false;
+}
+
+function hasRequiredStatus(error: Error): error is ErrorWithRequiredStatus {
+	if ('status' in error) {
+		const status = (error as ErrorWithRequiredStatus).status;
+		return typeof status === 'number';
+	}
+	return false;
+}
+
 function isSvelteKitError(error: unknown): error is Redirect | HttpError {
 	// Check if it's a SvelteKit error by checking for known properties
 	// Redirect errors have a 'location' property, HttpError has 'status'
-	if (error && typeof error === 'object') {
-		const err = error as any;
-		return (
-			err instanceof Error && ('location' in err || (err.status && typeof err.status === 'number'))
-		);
+	if (error instanceof Error) {
+		return hasLocation(error) || hasRequiredStatus(error);
 	}
 	return false;
 }
@@ -41,6 +62,21 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 };
 
+interface ErrorWithOptionalStatus extends Error {
+	status?: number;
+}
+
+function hasOptionalStatus(error: Error): error is ErrorWithOptionalStatus {
+	return 'status' in error;
+}
+
+function getErrorStatus(error: unknown): number {
+	if (error instanceof Error && hasOptionalStatus(error)) {
+		return typeof error.status === 'number' ? error.status : 500;
+	}
+	return 500;
+}
+
 export const handleError: HandleServerError = ({ error, event }) => {
 	console.error('[Server Unhandled Error]', {
 		error,
@@ -52,6 +88,6 @@ export const handleError: HandleServerError = ({ error, event }) => {
 
 	return {
 		message: error instanceof Error ? error.message : 'An unexpected error occurred',
-		status: (error as any)?.status ?? 500
+		status: getErrorStatus(error)
 	};
 };

@@ -61,7 +61,7 @@ describe('oauth', () => {
 		isDataRequest: false,
 		isSubRequest: false,
 		isRemoteRequest: false
-	} as RequestEvent;
+	} as unknown as RequestEvent;
 
 	beforeEach(() => {
 		vi.clearAllMocks();

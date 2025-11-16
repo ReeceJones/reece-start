@@ -1,18 +1,32 @@
 import type { HandleClientError } from '@sveltejs/kit';
 
+interface ErrorWithStatus extends Error {
+	status?: number;
+}
+
+function hasStatus(error: unknown): error is ErrorWithStatus {
+	return error instanceof Error && 'status' in error;
+}
+
+function getErrorStatus(error: unknown): number {
+	if (hasStatus(error)) {
+		return error.status ?? 500;
+	}
+	return 500;
+}
+
 export const handleError: HandleClientError = ({ error, event }) => {
 	console.error('[Unhandled Error]', {
 		error,
 		url: event.url.toString(),
-		method: event.request.method,
-		status: error instanceof Error ? (error as any).status : 500,
+		status: getErrorStatus(error),
 		message: error instanceof Error ? error.message : String(error),
 		stack: error instanceof Error ? error.stack : undefined
 	});
 
 	return {
 		message: error instanceof Error ? error.message : 'An unexpected error occurred',
-		status: error instanceof Error ? ((error as any).status ?? 500) : 500
+		status: getErrorStatus(error)
 	};
 };
 

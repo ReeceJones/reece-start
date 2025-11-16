@@ -10,6 +10,7 @@ const config = {
 		adapter: adapter(),
 		// fix reverse proxy issues with csrf (TODO: investigate if this is still needed)
 		csrf: {
+			// This is deprecated. Use trustedOrigins instead.
 			checkOrigin: false
 		}
 	}
