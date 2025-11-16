@@ -339,7 +339,7 @@ func TestStripeSnapshotWebhookEndpoint(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Set webhook secret
-		tc.Config.StripeWebhookSecret = "whsec_test_secret"
+		tc.Config.StripeAccountWebhookSecret = "whsec_test_secret"
 
 		// Create a valid Stripe webhook event
 		event := stripeGo.Event{
@@ -359,7 +359,7 @@ func TestStripeSnapshotWebhookEndpoint(t *testing.T) {
 		signature := "t=1234567890,v1=test_signature"
 
 		// Make request
-		req := httptest.NewRequest(http.MethodPost, "/webhooks/stripe/snapshot", bytes.NewBuffer(eventBody))
+		req := httptest.NewRequest(http.MethodPost, "/webhooks/stripe/account/snapshot", bytes.NewBuffer(eventBody))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Stripe-Signature", signature)
 		rec := httptest.NewRecorder()
@@ -375,10 +375,10 @@ func TestStripeSnapshotWebhookEndpoint(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Ensure webhook secret is not set
-		tc.Config.StripeWebhookSecret = ""
+		tc.Config.StripeAccountWebhookSecret = ""
 
 		// Make request
-		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/snapshot", nil, nil)
+		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/account/snapshot", nil, nil)
 
 		// Assert error response
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -388,10 +388,10 @@ func TestStripeSnapshotWebhookEndpoint(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Set webhook secret
-		tc.Config.StripeWebhookSecret = "whsec_test_secret"
+		tc.Config.StripeAccountWebhookSecret = "whsec_test_secret"
 
 		// Make request without signature
-		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/snapshot", nil, nil)
+		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/account/snapshot", nil, nil)
 
 		// Assert error response
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -403,7 +403,7 @@ func TestStripeThinWebhookEndpoint(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Set webhook secret
-		tc.Config.StripeWebhookSecret = "whsec_test_secret"
+		tc.Config.StripeConnectWebhookSecret = "whsec_test_secret"
 
 		// Create a valid Stripe webhook event
 		eventBody := []byte(`{"id": "evt_test_123", "type": "v2.core.account.updated"}`)
@@ -412,7 +412,7 @@ func TestStripeThinWebhookEndpoint(t *testing.T) {
 		signature := "t=1234567890,v1=test_signature"
 
 		// Make request
-		req := httptest.NewRequest(http.MethodPost, "/webhooks/stripe/thin", bytes.NewBuffer(eventBody))
+		req := httptest.NewRequest(http.MethodPost, "/webhooks/stripe/connect/thin", bytes.NewBuffer(eventBody))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Stripe-Signature", signature)
 		rec := httptest.NewRecorder()
@@ -428,10 +428,10 @@ func TestStripeThinWebhookEndpoint(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Ensure webhook secret is not set
-		tc.Config.StripeWebhookSecret = ""
+		tc.Config.StripeConnectWebhookSecret = ""
 
 		// Make request
-		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/thin", nil, nil)
+		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/connect/thin", nil, nil)
 
 		// Assert error response
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -441,10 +441,10 @@ func TestStripeThinWebhookEndpoint(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Set webhook secret
-		tc.Config.StripeWebhookSecret = "whsec_test_secret"
+		tc.Config.StripeConnectWebhookSecret = "whsec_test_secret"
 
 		// Make request without signature
-		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/thin", nil, nil)
+		rec := tc.MakeRequest(http.MethodPost, "/webhooks/stripe/connect/thin", nil, nil)
 
 		// Assert error response
 		assert.Equal(t, http.StatusBadRequest, rec.Code)

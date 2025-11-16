@@ -25,7 +25,7 @@ func TestSnapshotWebhookProcessingJob(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Set webhook secret
-		tc.Config.StripeWebhookSecret = "whsec_test_secret"
+		tc.Config.StripeAccountWebhookSecret = "whsec_test_secret"
 
 		// Create a valid Stripe webhook event
 		eventID := "evt_test_" + uuid.New().String()[:24]
@@ -46,7 +46,7 @@ func TestSnapshotWebhookProcessingJob(t *testing.T) {
 		signature := "t=1234567890,v1=test_signature"
 
 		// Make request
-		req := httptest.NewRequest(http.MethodPost, "/webhooks/stripe/snapshot", bytes.NewBuffer(eventBody))
+		req := httptest.NewRequest(http.MethodPost, "/webhooks/stripe/account/snapshot", bytes.NewBuffer(eventBody))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Stripe-Signature", signature)
 		rec := httptest.NewRecorder()
@@ -71,7 +71,7 @@ func TestSnapshotWebhookProcessingJob(t *testing.T) {
 		tc := test.SetupEchoTest(t)
 
 		// Set webhook secret
-		tc.Config.StripeWebhookSecret = "whsec_test_secret"
+		tc.Config.StripeAccountWebhookSecret = "whsec_test_secret"
 		tc.Config.StripeProPlanProductId = "prod_test_" + uuid.New().String()[:24]
 
 		// Create organization

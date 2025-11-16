@@ -34,7 +34,12 @@ type Config struct {
 	GoogleOAuthClientId     string `env:"GOOGLE_OAUTH_CLIENT_ID" envDefault:""`
 	GoogleOAuthClientSecret string `env:"GOOGLE_OAUTH_CLIENT_SECRET" envDefault:""`
 
-	StripeWebhookSecret                string `env:"STRIPE_WEBHOOK_SECRET" envDefault:""`
+	// Stripe webhook secrets:
+	// - StripeAccountWebhookSecret is used for the account/snapshot webhook endpoint.
+	// - StripeConnectWebhookSecret is used for the connect/thin webhook endpoint.
+	StripeAccountWebhookSecret string `env:"STRIPE_ACCOUNT_WEBHOOK_SECRET" envDefault:""`
+	StripeConnectWebhookSecret string `env:"STRIPE_CONNECT_WEBHOOK_SECRET" envDefault:""`
+
 	StripeSecretKey                    string `env:"STRIPE_SECRET_KEY" envDefault:""`
 	StripeProPlanPriceId               string `env:"STRIPE_PRO_PLAN_PRICE_ID" envDefault:""`
 	StripeProPlanProductId             string `env:"STRIPE_PRO_PLAN_PRODUCT_ID" envDefault:""`

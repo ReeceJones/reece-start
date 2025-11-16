@@ -22,7 +22,8 @@ func StripeSnapshotWebhookEndpoint(c echo.Context) error {
 	riverClient := middleware.GetRiverClient(c)
 
 	// Check if webhook secret is configured
-	if config.StripeWebhookSecret == "" {
+	webhookSecret := config.StripeAccountWebhookSecret
+	if webhookSecret == "" {
 		return api.ErrStripeWebhookSecretNotConfigured
 	}
 
@@ -42,7 +43,7 @@ func StripeSnapshotWebhookEndpoint(c echo.Context) error {
 	event, err := webhook.ConstructEventWithOptions(
 		body,
 		stripeSignature,
-		config.StripeWebhookSecret,
+		webhookSecret,
 		webhook.ConstructEventOptions{
 			IgnoreAPIVersionMismatch: true,
 		},
@@ -77,7 +78,8 @@ func StripeThinWebhookEndpoint(c echo.Context) error {
 	stripeClient := middleware.GetStripeClient(c)
 
 	// Check if webhook secret is configured
-	if config.StripeWebhookSecret == "" {
+	webhookSecret := config.StripeConnectWebhookSecret
+	if webhookSecret == "" {
 		return api.ErrStripeWebhookSecretNotConfigured
 	}
 
@@ -94,7 +96,7 @@ func StripeThinWebhookEndpoint(c echo.Context) error {
 	}
 
 	// Verify the webhook signature
-	eventContainer, err := stripeClient.ParseEventNotification(body, stripeSignature, config.StripeWebhookSecret)
+	eventContainer, err := stripeClient.ParseEventNotification(body, stripeSignature, webhookSecret)
 	if err != nil {
 		slog.Error("Webhook signature verification failed", "error", err)
 		return api.ErrStripeWebhookSignatureInvalid

@@ -27,8 +27,8 @@ func Register(e *echo.Echo, config *configuration.Config) {
 	e.POST("/oauth/google/callback", api.Validated(users.GoogleOAuthCallbackEndpoint))
 
 	// Webhook routes
-	e.POST("/webhooks/stripe/snapshot", stripe.StripeSnapshotWebhookEndpoint)
-	e.POST("/webhooks/stripe/thin", stripe.StripeThinWebhookEndpoint)
+	e.POST("/webhooks/stripe/account/snapshot", stripe.StripeSnapshotWebhookEndpoint)
+	e.POST("/webhooks/stripe/connect/thin", stripe.StripeThinWebhookEndpoint)
 
 	// Protected routes (authentication required)
 	protected := e.Group("")

@@ -33,11 +33,12 @@ reverse proxy, using Railway templates for infrastructure services.
 | `GOOGLE_OAUTH_CLIENT_SECRET`             | `your_client_secret`      |
 | `JWT_AUDIENCE`                           | `https://your.domain.com` |
 | `RESEND_API_KEY`                         | `your_api_key`            |
-| `STRIPE_BILLING_PORTAL_CONFIGURATION_ID` | `your_configuration_id`   |
-| `STRIPE_PRO_PLAN_PRICE_ID`               | `your_price_id`           |
-| `STRIPE_PRO_PLAN_PRODUCT_ID`             | `your_product_id`         |
-| `STRIPE_SECRET_KEY`                      | `your_secret_key`         |
-| `STRIPE_WEBHOOK_SECRET`                  | `your_webhook_secret`     |
+| `STRIPE_ACCOUNT_WEBHOOK_SECRET`          | `your_account_webhook_secret` |
+| `STRIPE_BILLING_PORTAL_CONFIGURATION_ID` | `your_configuration_id`       |
+| `STRIPE_CONNECT_WEBHOOK_SECRET`          | `your_connect_webhook_secret` |
+| `STRIPE_PRO_PLAN_PRICE_ID`               | `your_price_id`               |
+| `STRIPE_PRO_PLAN_PRODUCT_ID`             | `your_product_id`             |
+| `STRIPE_SECRET_KEY`                      | `your_secret_key`             |
 
 ---
 
@@ -118,11 +119,12 @@ RESEND_API_KEY="${{shared.RESEND_API_KEY}}"
 STORAGE_ACCESS_KEY_ID="${{Bucket.MINIO_ROOT_USER}}"
 STORAGE_ENDPOINT="${{Bucket.MINIO_PRIVATE_HOST}}:${{Bucket.MINIO_PRIVATE_PORT}}"
 STORAGE_SECRET_ACCESS_KEY="${{Bucket.MINIO_ROOT_PASSWORD}}"
+STRIPE_ACCOUNT_WEBHOOK_SECRET="${{shared.STRIPE_ACCOUNT_WEBHOOK_SECRET}}"
 STRIPE_BILLING_PORTAL_CONFIGURATION_ID="${{shared.STRIPE_BILLING_PORTAL_CONFIGURATION_ID}}"
+STRIPE_CONNECT_WEBHOOK_SECRET="${{shared.STRIPE_CONNECT_WEBHOOK_SECRET}}"
 STRIPE_PRO_PLAN_PRICE_ID="${{shared.STRIPE_PRO_PLAN_PRICE_ID}}"
 STRIPE_PRO_PLAN_PRODUCT_ID="${{shared.STRIPE_PRO_PLAN_PRODUCT_ID}}"
 STRIPE_SECRET_KEY="${{shared.STRIPE_SECRET_KEY}}"
-STRIPE_WEBHOOK_SECRET="${{shared.STRIPE_WEBHOOK_SECRET}}"
 ```
 
 ---
@@ -144,22 +146,39 @@ STRIPE_WEBHOOK_SECRET="${{shared.STRIPE_WEBHOOK_SECRET}}"
 3. Copy the secret key and set it as the `STRIPE_SECRET_KEY` **shared variable** in Railway
    (see the **Project configuration** table above).
 4. Go to **Developers → Webhooks** and click **Add an endpoint**.
-5. Set the webhook URL to your deployed backend URL for snapshot events, for example:
-   `https://your.domain.com/api/webhooks/stripe/snapshot`.
-6. Under **Select events**, choose **Receive all events** so that Stripe sends every event
-   to this endpoint (you can filter in code if needed).
+5. Set the webhook URL to your deployed backend URL for account/snapshot events, for example:
+   `https://your.domain.com/api/webhooks/stripe/account/snapshot`.
+6. Under **Select events**, subscribe to **only** the following events:
+   - `invoice.paid`
+   - `invoice.payment_failed`
+   - `invoice.payment_action_required`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
 7. Save the webhook endpoint, then copy the **Signing secret** and set it as
-   the `STRIPE_WEBHOOK_SECRET` **shared variable** in Railway.
-8. Create a second webhook endpoint for **thin** events with URL
-   `https://your.domain.com/api/webhooks/stripe/thin` and also choose
-   **Receive all events** so all Connect-related events are delivered.
-9. Go to **Billing → Prices / Products** and create a subscription product and price
-   for your Pro plan.
-10. Copy the Pro plan **Product ID** and **Price ID** and set them as
+   the `STRIPE_ACCOUNT_WEBHOOK_SECRET` **shared variable** in Railway.
+8. Create a second webhook endpoint for **connect/thin** events with URL
+   `https://your.domain.com/api/webhooks/stripe/connect/thin` and subscribe to **only**
+   the following Connect Account v2 events:
+   - `v2.core.account.created`
+   - `v2.core.account.updated`
+   - `v2.core.account.closed`
+   - `v2.core.account_person.updated`
+   - `v2.core.account[identity].updated`
+   - `v2.core.account[configuration.customer].capability_status_updated`
+   - `v2.core.account[configuration.merchant].capability_status_updated`
+   - `v2.core.account[configuration.recipient].capability_status_updated`
+   - `v2.core.account[requirements].updated`
+   - `v2.core.account.updated`
+9. Save the webhook endpoint, then copy the **Signing secret** and set it as
+   the `STRIPE_CONNECT_WEBHOOK_SECRET` **shared variable** in Railway.
+10. Go to **Billing → Prices / Products** and create a subscription product and price
+    for your Pro plan.
+11. Copy the Pro plan **Product ID** and **Price ID** and set them as
     `STRIPE_PRO_PLAN_PRODUCT_ID` and `STRIPE_PRO_PLAN_PRICE_ID` **shared variables**
     in Railway.
-11. Go to **Billing → Customer portal** and configure the billing portal as desired.
+12. Go to **Billing → Customer portal** and configure the billing portal as desired.
     Copy the **Configuration ID** and set it as `STRIPE_BILLING_PORTAL_CONFIGURATION_ID`
     in Railway.
-12. Verify that all Stripe-related shared variables from the **Project configuration**
+13. Verify that all Stripe-related shared variables from the **Project configuration**
     table are set, then redeploy the backend service so the new configuration is picked up.
