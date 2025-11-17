@@ -4,29 +4,6 @@
 }
 
 :4040 {
-    # MinIO storage routing
-    handle_path /storage {
-        request_body {
-            max_size 64MB
-        }
-        
-        reverse_proxy {env.MINIO_URL} {
-            header_up Host {env.MINIO_HOST}
-            header_up X-Real-IP {remote_host}
-        }
-    }
-
-    handle_path /storage/* {
-        request_body {
-            max_size 64MB
-        }
-
-        reverse_proxy {env.MINIO_URL} {
-            header_up Host {env.MINIO_HOST}
-            header_up X-Real-IP {remote_host}
-        }
-    }
-
     # API routing with path rewrite
     handle_path /api {
         request_body {
