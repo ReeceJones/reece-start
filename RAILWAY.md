@@ -26,13 +26,13 @@ reverse proxy, using Railway templates for infrastructure services.
 3. Navigate to **Shared Variables**.
 4. Add the variables from the table below (these are shared across services):
 
-| Variable Name                            | Value                     |
-| ---------------------------------------- | ------------------------- |
-| `ENABLE_EMAIL`                           | `true` or `false`         |
-| `GOOGLE_OAUTH_CLIENT_ID`                 | `your_client_._id`        |
-| `GOOGLE_OAUTH_CLIENT_SECRET`             | `your_client_secret`      |
-| `JWT_AUDIENCE`                           | `https://your.domain.com` |
-| `RESEND_API_KEY`                         | `your_api_key`            |
+| Variable Name                            | Value                         |
+| ---------------------------------------- | ----------------------------- |
+| `ENABLE_EMAIL`                           | `true` or `false`             |
+| `GOOGLE_OAUTH_CLIENT_ID`                 | `your_client_._id`            |
+| `GOOGLE_OAUTH_CLIENT_SECRET`             | `your_client_secret`          |
+| `JWT_AUDIENCE`                           | `https://your.domain.com`     |
+| `RESEND_API_KEY`                         | `your_api_key`                |
 | `STRIPE_ACCOUNT_WEBHOOK_SECRET`          | `your_account_webhook_secret` |
 | `STRIPE_BILLING_PORTAL_CONFIGURATION_ID` | `your_configuration_id`       |
 | `STRIPE_CONNECT_WEBHOOK_SECRET`          | `your_connect_webhook_secret` |
@@ -117,7 +117,8 @@ GOOGLE_OAUTH_CLIENT_SECRET="${{shared.GOOGLE_OAUTH_CLIENT_SECRET}}"
 JWT_AUDIENCE="${{shared.JWT_AUDIENCE}}"
 RESEND_API_KEY="${{shared.RESEND_API_KEY}}"
 STORAGE_ACCESS_KEY_ID="${{Bucket.MINIO_ROOT_USER}}"
-STORAGE_ENDPOINT="${{Bucket.MINIO_PRIVATE_HOST}}:${{Bucket.MINIO_PRIVATE_PORT}}"
+STORAGE_ENDPOINT="${{Bucket.MINIO_PUBLIC_HOST}}:${{Bucket.MINIO_PUBLIC_PORT}}"
+STORAGE_USE_SSL="true"
 STORAGE_SECRET_ACCESS_KEY="${{Bucket.MINIO_ROOT_PASSWORD}}"
 STRIPE_ACCOUNT_WEBHOOK_SECRET="${{shared.STRIPE_ACCOUNT_WEBHOOK_SECRET}}"
 STRIPE_BILLING_PORTAL_CONFIGURATION_ID="${{shared.STRIPE_BILLING_PORTAL_CONFIGURATION_ID}}"
@@ -126,6 +127,9 @@ STRIPE_PRO_PLAN_PRICE_ID="${{shared.STRIPE_PRO_PLAN_PRICE_ID}}"
 STRIPE_PRO_PLAN_PRODUCT_ID="${{shared.STRIPE_PRO_PLAN_PRODUCT_ID}}"
 STRIPE_SECRET_KEY="${{shared.STRIPE_SECRET_KEY}}"
 ```
+
+> [!NOTE]
+> MinIO generates distribution urls using the hostname in the connection string. MinIO also does not support being exposed behind a reverse proxy using a http path. Because of this, you must either use the default railway generated public domain name or use a custom domain for the MinIO bucket service.
 
 ---
 
