@@ -457,7 +457,7 @@ func TestErrorHandlingMiddleware(t *testing.T) {
 		var apiErr api.ApiError
 		err := json.Unmarshal(rec.Body.Bytes(), &apiErr)
 		require.NoError(t, err)
-		assert.Equal(t, "Resource not found", apiErr.Message)
+		assert.Equal(t, "resource not found", apiErr.Message)
 	})
 
 	t.Run("EchoHTTPError", func(t *testing.T) {

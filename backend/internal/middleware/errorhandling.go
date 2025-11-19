@@ -22,131 +22,89 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Handle specific business logic errors first
 		if errors.Is(err, api.ErrForbiddenNoAdminAccess) {
-			return c.JSON(http.StatusForbidden, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusForbidden, err)
 		}
 
 		if errors.Is(err, api.ErrForbiddenOwnProfileOnly) {
-			return c.JSON(http.StatusForbidden, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusForbidden, err)
 		}
 
 		if errors.Is(err, api.ErrUnauthorizedInvalidLogin) {
-			return c.JSON(http.StatusUnauthorized, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusUnauthorized, err)
 		}
 
 		if errors.Is(err, api.ErrMissingAuthorizationHeader) {
-			return c.JSON(http.StatusUnauthorized, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusUnauthorized, err)
 		}
 
 		if errors.Is(err, api.ErrInvalidAuthorizationFormat) {
-			return c.JSON(http.StatusUnauthorized, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusUnauthorized, err)
 		}
 
 		if errors.Is(err, api.ErrInvalidToken) {
-			return c.JSON(http.StatusUnauthorized, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusUnauthorized, err)
 		}
 
 		if errors.Is(err, api.ErrMembershipNotFound) {
-			return c.JSON(http.StatusNotFound, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusNotFound, err)
 		}
 
 		if errors.Is(err, api.ErrInvitationNotFound) {
-			return c.JSON(http.StatusNotFound, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusNotFound, err)
 		}
 
 		if errors.Is(err, api.ErrInvitationAlreadyExists) {
-			return c.JSON(http.StatusConflict, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusConflict, err)
 		}
 
 		if errors.Is(err, api.ErrUserEmailAlreadyExists) {
-			return c.JSON(http.StatusConflict, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusConflict, err)
 		}
 
 		// Handle HTTP layer errors
 		if errors.Is(err, api.ErrForbiddenNoAccess) {
-			return c.JSON(http.StatusForbidden, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusForbidden, err)
 		}
 
 		if errors.Is(err, api.ErrInvalidOrganizationID) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrInvalidUserID) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrInvalidMembershipID) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrInvalidInvitationID) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrStripeWebhookSecretNotConfigured) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrStripeWebhookSignatureMissing) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrStripeWebhookSignatureInvalid) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrStripeWebhookEventInvalid) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		if errors.Is(err, api.ErrStripeWebhookEventUnhandled) {
-			return c.JSON(http.StatusBadRequest, api.ApiError{
-				Message: err.Error(),
-			})
+			return respondWithError(c, http.StatusBadRequest, err)
 		}
 
 		// Handle any other ApiError
 		if he, ok := err.(*api.ApiError); ok {
-			return c.JSON(http.StatusInternalServerError, api.ApiError{
-				Message: he.Message,
-			})
+			return respondWithError(c, http.StatusInternalServerError, he)
 		}
 
 		// Handle Stripe errors
@@ -163,37 +121,43 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			if stripeErr.HTTPStatusCode > 0 {
 				statusCode = stripeErr.HTTPStatusCode
 			}
-			return c.JSON(statusCode, api.ApiError{
+			c.JSON(statusCode, api.ApiError{
 				Message: message,
 			})
+			return nil
 		}
 
 		// Handle GORM errors
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, api.ApiError{
-				Message: "Resource not found",
-			})
+			return respondWithError(c, http.StatusNotFound, errors.New("resource not found"))
 		}
 
 		// Handle Echo HTTP errors (if they bubble up)
 		if he, ok := err.(*echo.HTTPError); ok {
 			// Sometimes api.ApiError shows up in http error message
 			if ae, ok := he.Message.(api.ApiError); ok {
-				return c.JSON(he.Code, api.ApiError{
+				c.JSON(he.Code, api.ApiError{
 					Message: ae.Message,
 				})
+				return nil
 			}
 
-			return c.JSON(he.Code, api.ApiError{
+			c.JSON(he.Code, api.ApiError{
 				Message: he.Message.(string),
 			})
+			return nil
 		}
 
 		slog.Error("Unhandled error", "error", err)
 
 		// Default to internal server error for unknown errors
-		return c.JSON(http.StatusInternalServerError, api.ApiError{
-			Message: err.Error(),
-		})
+		return respondWithError(c, http.StatusInternalServerError, err)
 	}
+}
+
+func respondWithError(c echo.Context, statusCode int, err error) error {
+	c.JSON(statusCode, api.ApiError{
+		Message: err.Error(),
+	})
+	return nil
 }

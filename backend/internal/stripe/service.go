@@ -334,6 +334,8 @@ func processThinWebhookEvent(request ProcessThinWebhookEventServiceRequest) erro
 	eventContainer := request.Event
 
 	switch evt := eventContainer.(type) {
+	case *stripeGo.V2CoreEventDestinationPingEventNotification:
+		return handleEventDestinationPing(request, evt)
 	case *stripeGo.V2CoreAccountClosedEventNotification:
 		return handleAccountClosed(request, evt)
 	case *stripeGo.V2CoreAccountUpdatedEventNotification:
@@ -424,6 +426,11 @@ func handleAccountUpdated(request ProcessThinWebhookEventServiceRequest, event *
 
 	slog.Info("Account updated", "accountID", event.RelatedObject.ID)
 
+	return nil
+}
+
+func handleEventDestinationPing(_ ProcessThinWebhookEventServiceRequest, event *stripeGo.V2CoreEventDestinationPingEventNotification) error {
+	slog.Info("Event destination ping", "eventID", event.ID)
 	return nil
 }
 
