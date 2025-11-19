@@ -4,6 +4,7 @@ import {
 	getUserAndValidateToken,
 	getUserScopes
 } from '$lib/server/auth.js';
+import { withPosthog } from '$lib/server/posthog';
 
 export const load = async () => {
 	authenticate();
@@ -11,6 +12,17 @@ export const load = async () => {
 	const { user } = await getUserAndValidateToken();
 	const userScopes = getUserScopes();
 	const isImpersonatingUser = getIsImpersonatingUser();
+
+	// Identify the authenticated user in Posthog
+	await withPosthog(async (client) => {
+		client.identify({
+			distinctId: user.data.id,
+			properties: {
+				...user.data.attributes,
+				scopes: userScopes
+			}
+		});
+	});
 
 	return {
 		user,

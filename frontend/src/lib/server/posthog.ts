@@ -3,7 +3,16 @@ import { PUBLIC_POSTHOG_KEY, PUBLIC_POSTHOG_HOST } from '$env/static/public';
 
 let _client: PostHog | null = null;
 
-export function getPostHogClient() {
+export async function withPosthog(fn: (client: PostHog) => Promise<void>) {
+	const client = getPostHogClient();
+	try {
+		await fn(client);
+	} finally {
+		await client.shutdown();
+	}
+}
+
+function getPostHogClient() {
 	if (!_client) {
 		_client = new posthog.PostHog(PUBLIC_POSTHOG_KEY, {
 			host: PUBLIC_POSTHOG_HOST
