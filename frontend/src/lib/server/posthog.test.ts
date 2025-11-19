@@ -2,12 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { withPosthog } from './posthog';
 
 // Create a shared mock client that persists across tests using vi.hoisted
-const { mockClient } = vi.hoisted(() => {
+const { mockClient, mockEnv } = vi.hoisted(() => {
 	const mockClient = {
 		identify: vi.fn(),
 		shutdown: vi.fn().mockResolvedValue(undefined)
 	};
-	return { mockClient };
+	const mockEnv = {
+		PUBLIC_POSTHOG_KEY: undefined as string | undefined,
+		PUBLIC_POSTHOG_HOST: undefined as string | undefined
+	};
+	return { mockClient, mockEnv };
 });
 
 // Mock the posthog-node module
@@ -25,6 +29,11 @@ vi.mock('posthog-node', () => {
 	};
 });
 
+// Mock $env/dynamic/public
+vi.mock('$env/dynamic/public', () => ({
+	env: mockEnv
+}));
+
 describe('posthog', () => {
 	beforeEach(() => {
 		// Reset call counts but preserve the methods
@@ -34,6 +43,12 @@ describe('posthog', () => {
 	});
 
 	describe('withPosthog', () => {
+		beforeEach(() => {
+			// Reset env values before each test
+			mockEnv.PUBLIC_POSTHOG_KEY = undefined;
+			mockEnv.PUBLIC_POSTHOG_HOST = undefined;
+		});
+
 		it('should not log posthog events in local or dev environment', async () => {
 			process.env.NODE_ENV = 'development';
 			const fn = vi.fn();
@@ -45,7 +60,7 @@ describe('posthog', () => {
 
 		it('should log posthog events in production environment', async () => {
 			process.env.NODE_ENV = 'production';
-			process.env.PUBLIC_POSTHOG_KEY = 'phc_123';
+			mockEnv.PUBLIC_POSTHOG_KEY = 'phc_123';
 			const fn = vi.fn();
 
 			await withPosthog(async (client) => {
