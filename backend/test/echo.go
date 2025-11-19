@@ -20,6 +20,7 @@ import (
 	echoServer "reece.start/internal/echo"
 	"reece.start/internal/jobs"
 	appMiddleware "reece.start/internal/middleware"
+	testconfig "reece.start/test/config"
 	testdb "reece.start/test/db"
 	"reece.start/test/mocks"
 )
@@ -45,22 +46,8 @@ func SetupEchoTest(t *testing.T) *TestContext {
 	sqlConn, db, connStr := testdb.SetupPostgresContainer(t)
 
 	// Create test config
-	config := &configuration.Config{
-		Host:                   "localhost",
-		Port:                   "8080",
-		FrontendUrl:            "http://localhost:3000",
-		DatabaseUri:            connStr,
-		JwtSecret:              "test-secret",
-		JwtIssuer:              "test-issuer",
-		JwtAudience:            "test-audience",
-		JwtExpirationTime:      86400,
-		StorageEndpoint:        "localhost:9000",
-		StorageAccessKeyId:     "minioadmin",
-		StorageSecretAccessKey: "minioadmin",
-		StorageUseSSL:          false,
-		EnableEmail:            false,
-		ResendApiKey:           "test-key",
-	}
+	config := testconfig.CreateTestConfig()
+	config.DatabaseUri = connStr
 
 	// Replace the default HTTP transport FIRST to intercept all external API calls
 	// This prevents Stripe, Resend, and any other external services from making real HTTP requests

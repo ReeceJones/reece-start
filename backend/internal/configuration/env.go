@@ -10,6 +10,8 @@ import (
 )
 
 type Config struct {
+	Test bool `env:"TEST" envDefault:"false"`
+
 	Host string `env:"HOST" envDefault:"localhost"`
 	Port string `env:"PORT" envDefault:"8080"`
 

@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -26,9 +25,7 @@ func JwtAuthMiddleware(config *configuration.Config) echo.MiddlewareFunc {
 			// Validate the token
 			claims, err := authentication.ValidateJWT(config, tokenString)
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, api.ApiError{
-					Message: "invalid_token",
-				})
+				return api.ErrInvalidToken
 			}
 
 			// Store claims in context
@@ -98,16 +95,12 @@ func getTokenFromCookie(c echo.Context) (string, error) {
 func getTokenFromAuthorizationHeader(c echo.Context) (string, error) {
 	authHeader := c.Request().Header.Get("Authorization")
 	if authHeader == "" {
-		return "", c.JSON(http.StatusUnauthorized, api.ApiError{
-			Message: "missing_authorization_header",
-		})
+		return "", api.ErrMissingAuthorizationHeader
 	}
 
 	// Check if the header starts with "Bearer "
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return "", c.JSON(http.StatusUnauthorized, api.ApiError{
-			Message: "invalid_authorization_format",
-		})
+		return "", api.ErrInvalidAuthorizationFormat
 	}
 
 	// Extract the token

@@ -16,6 +16,9 @@ var (
 	ErrForbiddenOwnProfileOnly          = errors.New("you can only update your own profile")
 	ErrUnauthorizedInvalidLogin         = errors.New("invalid email or password")
 	ErrForbiddenImpersonationNotAllowed = errors.New("impersonation is not allowed")
+	ErrMissingAuthorizationHeader       = errors.New("missing authorization header")
+	ErrInvalidAuthorizationFormat       = errors.New("invalid authorization format")
+	ErrInvalidToken                     = errors.New("invalid token")
 
 	// Resource not found errors
 	ErrMembershipNotFound      = errors.New("membership not found")

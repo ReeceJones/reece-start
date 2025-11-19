@@ -39,6 +39,24 @@ func ErrorHandlingMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
+		if errors.Is(err, api.ErrMissingAuthorizationHeader) {
+			return c.JSON(http.StatusUnauthorized, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+
+		if errors.Is(err, api.ErrInvalidAuthorizationFormat) {
+			return c.JSON(http.StatusUnauthorized, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+
+		if errors.Is(err, api.ErrInvalidToken) {
+			return c.JSON(http.StatusUnauthorized, api.ApiError{
+				Message: err.Error(),
+			})
+		}
+
 		if errors.Is(err, api.ErrMembershipNotFound) {
 			return c.JSON(http.StatusNotFound, api.ApiError{
 				Message: err.Error(),

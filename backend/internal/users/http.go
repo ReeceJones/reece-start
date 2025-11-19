@@ -164,6 +164,7 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 
 	db := middleware.GetDB(c)
 	minioClient := middleware.GetMinioClient(c)
+	config := middleware.GetConfig(c)
 
 	user, err := updateUser(UpdateUserServiceRequest{
 		Params: UpdateUserParams{
@@ -175,6 +176,7 @@ func UpdateUserEndpoint(c echo.Context, req UpdateUserRequest) error {
 		},
 		Tx:          db,
 		MinioClient: minioClient,
+		Config:      config,
 	})
 
 	if err != nil {

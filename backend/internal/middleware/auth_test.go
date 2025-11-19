@@ -145,6 +145,9 @@ func TestJwtAuthMiddleware(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
+		// Add error handling middleware
+		e.Use(ErrorHandlingMiddleware)
+
 		handler := func(c echo.Context) error {
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"success": true,
@@ -165,12 +168,15 @@ func TestJwtAuthMiddleware(t *testing.T) {
 		var apiErr api.ApiError
 		err := json.Unmarshal(rec.Body.Bytes(), &apiErr)
 		require.NoError(t, err)
-		assert.Equal(t, "invalid_token", apiErr.Message)
+		assert.Equal(t, "invalid token", apiErr.Message)
 	})
 
 	t.Run("MissingToken", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
+
+		// Add error handling middleware
+		e.Use(ErrorHandlingMiddleware)
 
 		handler := func(c echo.Context) error {
 			return c.JSON(http.StatusOK, map[string]interface{}{
@@ -189,26 +195,22 @@ func TestJwtAuthMiddleware(t *testing.T) {
 		// Assert unauthorized
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
-		// Parse response body - c.JSON() writes the response, so we should be able to unmarshal it
+		// Parse response body
 		body := rec.Body.Bytes()
 		require.NotEmpty(t, body, "Response body should not be empty")
 
-		// Try to unmarshal - there might be multiple JSON objects if error was written twice
-		// So we'll just check that the message is in the response
 		var apiErr api.ApiError
 		err := json.Unmarshal(body, &apiErr)
-		if err != nil {
-			// If unmarshaling fails, the response might have multiple JSON objects
-			// Check if the expected message is in the body as a string
-			assert.Contains(t, string(body), "missing_authorization_header")
-		} else {
-			assert.Equal(t, "missing_authorization_header", apiErr.Message)
-		}
+		require.NoError(t, err, "Should be able to unmarshal response")
+		assert.Equal(t, "missing authorization header", apiErr.Message)
 	})
 
 	t.Run("InvalidAuthorizationFormat", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
+
+		// Add error handling middleware
+		e.Use(ErrorHandlingMiddleware)
 
 		handler := func(c echo.Context) error {
 			return c.JSON(http.StatusOK, map[string]interface{}{
@@ -228,21 +230,14 @@ func TestJwtAuthMiddleware(t *testing.T) {
 		// Assert unauthorized
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
-		// Parse response body - c.JSON() writes the response, so we should be able to unmarshal it
+		// Parse response body
 		body := rec.Body.Bytes()
 		require.NotEmpty(t, body, "Response body should not be empty")
 
-		// Try to unmarshal - there might be multiple JSON objects if error was written twice
-		// So we'll just check that the message is in the response
 		var apiErr api.ApiError
 		err := json.Unmarshal(body, &apiErr)
-		if err != nil {
-			// If unmarshaling fails, the response might have multiple JSON objects
-			// Check if the expected message is in the body as a string
-			assert.Contains(t, string(body), "invalid_authorization_format")
-		} else {
-			assert.Equal(t, "invalid_authorization_format", apiErr.Message)
-		}
+		require.NoError(t, err, "Should be able to unmarshal response")
+		assert.Equal(t, "invalid authorization format", apiErr.Message)
 	})
 }
 

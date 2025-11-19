@@ -93,7 +93,7 @@ jobs:
         working-directory: backend
         run: go test ./...
         env:
-          TEST_MODE: true
+          TEST: true
 
   frontend-typecheck:
     name: Frontend Type Check

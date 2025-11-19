@@ -231,6 +231,7 @@ func TestGetUserByID(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	db := testdb.SetupDB(t)
 	var minioClient *minio.Client // nil for tests
+	config := testconfig.CreateTestConfig()
 
 	t.Run("updates user name", func(t *testing.T) {
 		tx := db.Begin()
@@ -252,6 +253,7 @@ func TestUpdateUser(t *testing.T) {
 			Params:      params,
 			Tx:          tx,
 			MinioClient: minioClient,
+			Config:      config,
 		})
 
 		require.NoError(t, err)
@@ -280,6 +282,7 @@ func TestUpdateUser(t *testing.T) {
 			Params:      params,
 			Tx:          tx,
 			MinioClient: minioClient,
+			Config:      config,
 		})
 
 		require.NoError(t, err)
@@ -307,6 +310,7 @@ func TestUpdateUser(t *testing.T) {
 			Params:      params,
 			Tx:          tx,
 			MinioClient: minioClient,
+			Config:      config,
 		})
 
 		require.NoError(t, err)

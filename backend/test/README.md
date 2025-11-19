@@ -37,7 +37,6 @@ Sets up the Echo HTTP server with:
 Provides helper functions for creating test data:
 
 - `CreateTestUser`: Create a basic user
-- `CreateTestAdminUser`: Create an admin user
 - `CreateTestOrganization`: Create an organization
 - `CreateTestOrganizationMembership`: Create a membership
 - `CreateTestJWT`: Create a JWT token

@@ -33,7 +33,6 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
-	"reece.start/internal/authentication"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
 )
@@ -115,42 +114,6 @@ func CreateTestUserWithOptions(t *testing.T, tc *TestContext, opts TestUserOptio
 	require.NoError(t, err)
 
 	return &user, opts.Password, token
-}
-
-// CreateTestAdminUser creates a test admin user via direct database access (no API for this)
-// This is needed for platform admin operations that can't be done through regular signup
-// Returns the user model and password
-func CreateTestAdminUser(t *testing.T, db *gorm.DB) (*models.User, string) {
-	return CreateTestAdminUserWithOptions(t, db, TestUserOptions{})
-}
-
-// CreateTestAdminUserWithOptions creates a test admin user with custom options
-// Returns the user model and password
-func CreateTestAdminUserWithOptions(t *testing.T, db *gorm.DB, opts TestUserOptions) (*models.User, string) {
-	if opts.Name == "" {
-		opts.Name = generateTestName()
-	}
-	if opts.Email == "" {
-		opts.Email = generateTestEmail()
-	}
-	if opts.Password == "" {
-		opts.Password = generateTestPassword()
-	}
-
-	hashedPassword, err := authentication.HashPassword(opts.Password)
-	require.NoError(t, err)
-
-	user := &models.User{
-		Name:           opts.Name,
-		Email:          opts.Email,
-		HashedPassword: hashedPassword,
-		Role:           string(constants.UserRoleAdmin),
-	}
-
-	err = db.Create(user).Error
-	require.NoError(t, err)
-
-	return user, opts.Password
 }
 
 // LoginTestUser logs in a user via the API and returns the JWT token

@@ -205,6 +205,7 @@ type UpdateUserServiceRequest struct {
 	Params      UpdateUserParams
 	Tx          *gorm.DB
 	MinioClient *minio.Client
+	Config      *configuration.Config
 }
 
 type GetUserLogoDistributionUrlServiceRequest struct {

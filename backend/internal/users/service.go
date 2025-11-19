@@ -28,7 +28,7 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	params := request.Params
 	config := request.Config
 
-	hashedPassword, err := authentication.HashPassword(params.Password)
+	hashedPassword, err := authentication.HashPassword(params.Password, config)
 	if err != nil {
 		return nil, err
 	}
@@ -206,6 +206,7 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 	tx := request.Tx
 	params := request.Params
 	minioClient := request.MinioClient
+	config := request.Config
 
 	// Get the existing user
 	var user models.User
@@ -223,7 +224,7 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 	}
 
 	if params.Password != "" {
-		hashedPassword, err := authentication.HashPassword(params.Password)
+		hashedPassword, err := authentication.HashPassword(params.Password, config)
 		if err != nil {
 			return nil, err
 		}
