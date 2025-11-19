@@ -3,7 +3,7 @@
 	import CardBody from '$lib/components/Card/CardBody.svelte';
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 	import CardActions from '$lib/components/Card/CardActions.svelte';
-	import { AlertCircle, AlertTriangle, Home, House, RefreshCw, TriangleAlert } from 'lucide-svelte';
+	import { House, RefreshCw, TriangleAlert } from 'lucide-svelte';
 	import { page } from '$app/state';
 
 	const status = $derived(page.status);
@@ -36,16 +36,16 @@
 	});
 </script>
 
-<div class="bg-base-100 flex min-h-screen items-center justify-center p-4">
+<div class="flex min-h-screen items-center justify-center bg-base-100 p-4">
 	<Card class="w-full max-w-md">
 		<CardBody>
-			<div class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full">
-				<TriangleAlert class="text-error size-8" />
+			<div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-error/10">
+				<TriangleAlert class="size-8 text-error" />
 			</div>
 			<CardTitle class="text-2xl">{errorTitle}</CardTitle>
-			<p class="text-base-content/70 mb-6 mt-2">{errorDescription}</p>
+			<p class="mt-2 mb-6 text-base-content/70">{errorDescription}</p>
 			{#if errorMessage && errorMessage !== errorDescription}
-				<div class="alert alert-error mb-6 justify-start text-left">
+				<div class="mb-6 alert justify-start alert-error text-left">
 					<TriangleAlert class="size-5 shrink-0" />
 					<span class="text-sm">{errorMessage}</span>
 				</div>

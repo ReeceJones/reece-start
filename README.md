@@ -30,7 +30,8 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
   - Formatting
 - Structured logging
 - Railway deployment template
-- Posthog integration (TODO)
+  - Reach out to stripe support to figure out why events are being sent to event destinations (TODO)
+- Posthog integration
 - Sentry integration (TODO)
 
 ## Getting started
