@@ -10,6 +10,7 @@ import (
 	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
+	"reece.start/internal/posthog"
 )
 
 // API Types
@@ -170,9 +171,10 @@ type GoogleOAuthUserParams struct {
 }
 
 type CreateUserServiceRequest struct {
-	Params CreateUserParams
-	Tx     *gorm.DB
-	Config *configuration.Config
+	Params        CreateUserParams
+	Tx            *gorm.DB
+	Config        *configuration.Config
+	PostHogClient *posthog.Client
 }
 
 type LoginUserParams struct {
@@ -250,10 +252,11 @@ type CreateAuthenticatedUserTokenParams struct {
 }
 
 type GoogleOAuthCallbackServiceRequest struct {
-	Params      GoogleOAuthCallbackParams
-	Tx          *gorm.DB
-	Config      *configuration.Config
-	MinioClient *minio.Client
+	Params        GoogleOAuthCallbackParams
+	Tx            *gorm.DB
+	Config        *configuration.Config
+	MinioClient   *minio.Client
+	PostHogClient *posthog.Client
 }
 
 type GoogleOAuthCallbackParams struct {

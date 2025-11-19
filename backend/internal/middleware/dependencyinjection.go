@@ -3,6 +3,7 @@ package middleware
 import (
 	"database/sql"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/minio/minio-go/v7"
 	"github.com/resend/resend-go/v2"
@@ -10,15 +11,17 @@ import (
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
+	"reece.start/internal/posthog"
 )
 
 type AppDependencies struct {
-	Config       *configuration.Config
-	DB           *gorm.DB
-	MinioClient  *minio.Client
-	RiverClient  *river.Client[*sql.Tx]
-	ResendClient *resend.Client
-	StripeClient *stripeGo.Client
+	Config        *configuration.Config
+	DB            *gorm.DB
+	MinioClient   *minio.Client
+	RiverClient   *river.Client[pgx.Tx]
+	ResendClient  *resend.Client
+	StripeClient  *stripeGo.Client
+	PostHogClient *posthog.Client
 }
 
 // Middleware to inject config and database into context
@@ -31,6 +34,7 @@ func DependencyInjectionMiddleware(dependencies AppDependencies) echo.Middleware
 			c.Set("riverClient", dependencies.RiverClient)
 			c.Set("resendClient", dependencies.ResendClient)
 			c.Set("stripeClient", dependencies.StripeClient)
+			c.Set("posthogClient", dependencies.PostHogClient)
 			return next(c)
 		}
 	}
@@ -59,4 +63,8 @@ func GetResendClient(c echo.Context) *resend.Client {
 
 func GetStripeClient(c echo.Context) *stripeGo.Client {
 	return c.Get("stripeClient").(*stripeGo.Client)
+}
+
+func GetPostHogClient(c echo.Context) *posthog.Client {
+	return c.Get("posthogClient").(*posthog.Client)
 }

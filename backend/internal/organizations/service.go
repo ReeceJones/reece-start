@@ -26,6 +26,7 @@ import (
 func createOrganization(request CreateOrganizationServiceRequest) (*OrganizationDto, error) {
 	tx := request.Tx
 	params := request.Params
+	posthogClient := request.PostHogClient
 
 	slog.Info("Creating organization", "params", params)
 
@@ -162,6 +163,20 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 	if err != nil {
 		return nil, err
 	}
+
+	// Log organization created event to PostHog
+	posthogClient.Capture(
+		fmt.Sprintf("%d", params.UserID),
+		"organization created",
+		map[string]any{
+			"organization_id": organization.ID,
+			"name":            organization.Name,
+			"user_id":         params.UserID,
+			"entity_type":     params.EntityType,
+			"country":         params.Address.Country,
+			"currency":        organization.Currency,
+		},
+	)
 
 	return &OrganizationDto{
 		Organization:        organization,

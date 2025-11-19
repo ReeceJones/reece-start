@@ -27,6 +27,7 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 	tx := request.Tx
 	params := request.Params
 	config := request.Config
+	posthogClient := request.PostHogClient
 
 	hashedPassword, err := authentication.HashPassword(params.Password, config)
 	if err != nil {
@@ -46,6 +47,18 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 		}
 		return nil, err
 	}
+
+	// Log user created event to PostHog
+	posthogClient.Capture(
+		fmt.Sprintf("%d", user.ID),
+		"user created",
+		map[string]any{
+			"user_id":       user.ID,
+			"email":         user.Email,
+			"name":          user.Name,
+			"signup_method": "email",
+		},
+	)
 
 	// Generate JWT token for the new user
 	token, err := createAuthenticatedUserToken(CreateAuthenticatedUserTokenServiceRequest{
@@ -471,6 +484,7 @@ func googleOAuthCallback(request GoogleOAuthCallbackServiceRequest) (*UserDto, e
 	tx := request.Tx
 	config := request.Config
 	minioClient := request.MinioClient
+	posthogClient := request.PostHogClient
 	params := request.Params
 
 	// Configure OAuth
@@ -547,6 +561,18 @@ func googleOAuthCallback(request GoogleOAuthCallbackServiceRequest) (*UserDto, e
 			if err := tx.Create(&user).Error; err != nil {
 				return nil, err
 			}
+
+			// Log user created event to PostHog (OAuth signup)
+			posthogClient.Capture(
+				fmt.Sprintf("%d", user.ID),
+				"user created",
+				map[string]any{
+					"user_id":       user.ID,
+					"email":         user.Email,
+					"name":          user.Name,
+					"signup_method": "oauth_google",
+				},
+			)
 		}
 	}
 

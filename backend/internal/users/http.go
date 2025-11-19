@@ -15,6 +15,7 @@ import (
 func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 	config := middleware.GetConfig(c)
 	db := middleware.GetDB(c)
+	posthogClient := middleware.GetPostHogClient(c)
 
 	user, err := createUser(CreateUserServiceRequest{
 		Params: CreateUserParams{
@@ -22,8 +23,9 @@ func CreateUserEndpoint(c echo.Context, req CreateUserRequest) error {
 			Email:    req.Data.Attributes.Email,
 			Password: req.Data.Attributes.Password,
 		},
-		Tx:     db,
-		Config: config,
+		Tx:            db,
+		Config:        config,
+		PostHogClient: posthogClient,
 	})
 
 	if err != nil {
@@ -252,6 +254,7 @@ func GoogleOAuthCallbackEndpoint(c echo.Context, req GoogleOAuthCallbackRequest)
 	db := middleware.GetDB(c)
 	config := middleware.GetConfig(c)
 	minioClient := middleware.GetMinioClient(c)
+	posthogClient := middleware.GetPostHogClient(c)
 
 	user, err := googleOAuthCallback(GoogleOAuthCallbackServiceRequest{
 		Params: GoogleOAuthCallbackParams{
@@ -259,9 +262,10 @@ func GoogleOAuthCallbackEndpoint(c echo.Context, req GoogleOAuthCallbackRequest)
 			State:       req.Data.Attributes.State,
 			RedirectUri: req.Data.Attributes.RedirectUri,
 		},
-		Tx:          db,
-		Config:      config,
-		MinioClient: minioClient,
+		Tx:            db,
+		Config:        config,
+		MinioClient:   minioClient,
+		PostHogClient: posthogClient,
 	})
 
 	if err != nil {

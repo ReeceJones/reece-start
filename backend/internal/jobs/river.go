@@ -2,10 +2,11 @@ package jobs
 
 import (
 	"context"
-	"database/sql"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
-	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
+	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
@@ -16,7 +17,7 @@ import (
 )
 
 type RiverClientConfig struct {
-	SQLConn      *sql.DB
+	SQLConn      *pgxpool.Pool
 	DB           *gorm.DB
 	Config       *configuration.Config
 	ResendClient *resend.Client
@@ -25,14 +26,14 @@ type RiverClientConfig struct {
 }
 
 // NewRiverClient creates and optionally starts a River client with all workers registered
-func NewRiverClient(ctx context.Context, cfg RiverClientConfig) (*river.Client[*sql.Tx], error) {
+func NewRiverClient(ctx context.Context, cfg RiverClientConfig) (*river.Client[pgx.Tx], error) {
 	// Register all workers
 	workers := river.NewWorkers()
 
 	addWorkers(workers, cfg)
 
 	// Create River client
-	riverClient, err := river.NewClient(riverdatabasesql.New(cfg.SQLConn), &river.Config{
+	riverClient, err := river.NewClient(riverpgxv5.New(cfg.SQLConn), &river.Config{
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
 		},

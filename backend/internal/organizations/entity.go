@@ -14,6 +14,7 @@ import (
 	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
 	"reece.start/internal/models"
+	"reece.start/internal/posthog"
 )
 
 // API Types
@@ -315,12 +316,13 @@ type CreateOrganizationParams struct {
 }
 
 type CreateOrganizationServiceRequest struct {
-	Params       CreateOrganizationParams
-	Tx           *gorm.DB
-	MinioClient  *minio.Client
-	Config       *configuration.Config
-	StripeClient *stripeGo.Client
-	Context      context.Context
+	Params        CreateOrganizationParams
+	Tx            *gorm.DB
+	MinioClient   *minio.Client
+	Config        *configuration.Config
+	StripeClient  *stripeGo.Client
+	PostHogClient *posthog.Client
+	Context       context.Context
 }
 
 type GetOrganizationsByUserIDServiceRequest struct {
