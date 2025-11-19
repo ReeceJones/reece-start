@@ -381,6 +381,8 @@ func enqueueThinWebhookProcessing(request EnqueueThinWebhookProcessingServiceReq
 	switch request.Event.(type) {
 	case *stripeGo.UnknownEventNotification:
 		eventData, err = json.Marshal(request.Event.(*stripeGo.UnknownEventNotification))
+	case *stripeGo.V2CoreEventDestinationPingEventNotification:
+		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreEventDestinationPingEventNotification))
 	case *stripeGo.V2CoreAccountUpdatedEventNotification:
 		eventData, err = json.Marshal(request.Event.(*stripeGo.V2CoreAccountUpdatedEventNotification))
 	case *stripeGo.V2CoreAccountClosedEventNotification:
