@@ -22,7 +22,7 @@ export async function withPosthog(fn: (client: PostHog) => Promise<void>) {
 }
 
 export function getPostHogClient() {
-	return new PostHog(env.PUBLIC_POSTHOG_KEY, {
+	return new PostHog(env.PUBLIC_POSTHOG_KEY ?? '', {
 		host: env.PUBLIC_POSTHOG_HOST
 	});
 }
