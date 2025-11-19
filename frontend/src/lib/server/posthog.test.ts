@@ -1,20 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { withPosthog } from './posthog';
-import type { PostHog } from 'posthog-node';
+
+// Create a shared mock client that persists across tests using vi.hoisted
+const { mockClient } = vi.hoisted(() => {
+	const mockClient = {
+		identify: vi.fn(),
+		shutdown: vi.fn().mockResolvedValue(undefined)
+	};
+	return { mockClient };
+});
 
 // Mock the posthog-node module
 vi.mock('posthog-node', () => {
+	// Create a proper constructor function
+	function PostHogConstructor() {
+		return mockClient;
+	}
+
 	return {
 		default: {
-			PostHog: vi.fn()
+			PostHog: PostHogConstructor
 		},
-		PostHog: vi.fn()
+		PostHog: PostHogConstructor
 	};
 });
 
 describe('posthog', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		// Reset call counts but preserve the methods
+		vi.mocked(mockClient.identify).mockClear();
+		vi.mocked(mockClient.shutdown).mockClear();
+		vi.mocked(mockClient.shutdown).mockResolvedValue(undefined);
 	});
 
 	describe('withPosthog', () => {
@@ -29,18 +45,8 @@ describe('posthog', () => {
 
 		it('should log posthog events in production environment', async () => {
 			process.env.NODE_ENV = 'production';
+			process.env.PUBLIC_POSTHOG_KEY = 'phc_123';
 			const fn = vi.fn();
-			// mock the posthog client
-			const mockClient = {
-				identify: vi.fn(),
-				shutdown: vi.fn().mockResolvedValue(undefined)
-			} as unknown as PostHog;
-
-			// Mock the PostHog constructor to return our mock client
-			const { default: posthogModule } = await import('posthog-node');
-			vi.mocked(posthogModule.PostHog).mockImplementation(function (this: unknown) {
-				return mockClient;
-			});
 
 			await withPosthog(async (client) => {
 				fn(client);
