@@ -1,4 +1,4 @@
-import posthog, { PostHog } from 'posthog-node';
+import { PostHog } from 'posthog-node';
 import { PUBLIC_POSTHOG_KEY, PUBLIC_POSTHOG_HOST } from '$env/static/public';
 
 export async function withPosthog(fn: (client: PostHog) => Promise<void>) {
@@ -16,7 +16,7 @@ export async function withPosthog(fn: (client: PostHog) => Promise<void>) {
 }
 
 export function getPostHogClient() {
-	return new posthog.PostHog(PUBLIC_POSTHOG_KEY, {
+	return new PostHog(PUBLIC_POSTHOG_KEY, {
 		host: PUBLIC_POSTHOG_HOST
 	});
 }
