@@ -171,7 +171,7 @@ func SetupDB(t *testing.T) *gorm.DB {
 
 // SetupPostgresContainer returns a new database connection using the shared PostgreSQL container
 // This is used by HTTP tests that need both sql.DB and gorm.DB connections
-func SetupPostgresContainer(t *testing.T) (*pgxpool.Pool, *gorm.DB, string) {
+func SetupPostgresContainer(t *testing.T) (*sql.DB, *gorm.DB, string) {
 	// Ensure the shared container is started
 	setupSharedPostgresContainer(t)
 
@@ -216,7 +216,7 @@ func SetupPostgresContainer(t *testing.T) (*pgxpool.Pool, *gorm.DB, string) {
 	// The container will be automatically cleaned up by testcontainers when
 	// the test process exits, or we can rely on Docker's container lifecycle.
 
-	return pool, db, connStr
+	return sqlConn, db, connStr
 }
 
 // CleanRiverJobs deletes all River jobs between tests to ensure test isolation

@@ -14,7 +14,6 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	sentryecho "github.com/getsentry/sentry-go/echo"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/labstack/echo/v4"
@@ -23,7 +22,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/resend/resend-go/v2"
 	"github.com/riverqueue/river"
-	"github.com/riverqueue/river/riverdriver/riverpgxv5"
+	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	"github.com/riverqueue/river/rivermigrate"
 
 	stripeGo "github.com/stripe/stripe-go/v83"
@@ -46,8 +45,8 @@ func main() {
 		log.Fatalf("Error loading environment variables, %s", err)
 	}
 
-	conn, db := createDatabaseConnectionPool(config)
-	runDatabaseMigrations(db)
+	sqlDb, gormDb := createDatabaseConnectionPool(config)
+	runDatabaseMigrations(gormDb)
 
 	minioClient := createMinioClient(config)
 	initializeStorageBuckets(minioClient)
@@ -57,11 +56,11 @@ func main() {
 	posthogClient := createPostHogClient(config)
 
 	ctx := context.Background()
-	runRiverMigrations(ctx, conn)
+	runRiverMigrations(ctx, sqlDb)
 
-	riverClient := createRiverClient(ctx, config, conn, db, resendClient, stripeClient)
+	riverClient := createRiverClient(ctx, config, sqlDb, gormDb, resendClient, stripeClient)
 
-	e := createEchoServer(config, db, minioClient, riverClient, resendClient, stripeClient, posthogClient)
+	e := createEchoServer(config, gormDb, minioClient, riverClient, resendClient, stripeClient, posthogClient)
 
 	// Optional: Add body dump middleware for debugging (production only)
 	e.Use(middleware.BodyDump(func(c echo.Context, reqBody []byte, resBody []byte) {
@@ -115,7 +114,7 @@ func setupSentry(config *configuration.Config) {
 	}
 }
 
-func createDatabaseConnectionPool(config *configuration.Config) (*pgxpool.Pool, *gorm.DB) {
+func createDatabaseConnectionPool(config *configuration.Config) (*sql.DB, *gorm.DB) {
 	pool, err := pgxpool.New(context.Background(), config.DatabaseUri)
 	if err != nil {
 		log.Fatalf("Error opening database, %s", err)
@@ -136,7 +135,7 @@ func createDatabaseConnectionPool(config *configuration.Config) (*pgxpool.Pool, 
 	}
 
 	slog.Info("Database connected")
-	return pool, db
+	return sqlConn, db
 }
 
 func runDatabaseMigrations(db *gorm.DB) {
@@ -202,8 +201,8 @@ func createStripeClient(config *configuration.Config) *stripeGo.Client {
 	return stripeClient
 }
 
-func runRiverMigrations(ctx context.Context, conn *pgxpool.Pool) {
-	riverDriver := riverpgxv5.New(conn)
+func runRiverMigrations(ctx context.Context, sqlDb *sql.DB) {
+	riverDriver := riverdatabasesql.New(sqlDb)
 	migrator, err := rivermigrate.New(riverDriver, nil)
 	if err != nil {
 		log.Fatalf("Error creating River migrator, %s", err)
@@ -222,14 +221,14 @@ func runRiverMigrations(ctx context.Context, conn *pgxpool.Pool) {
 func createRiverClient(
 	ctx context.Context,
 	config *configuration.Config,
-	conn *pgxpool.Pool,
-	db *gorm.DB,
+	sqlDb *sql.DB,
+	gormDb *gorm.DB,
 	resendClient *resend.Client,
 	stripeClient *stripeGo.Client,
-) *river.Client[pgx.Tx] {
+) *river.Client[*sql.Tx] {
 	riverClient, err := jobs.NewRiverClient(ctx, jobs.RiverClientConfig{
-		SQLConn:      conn,
-		DB:           db,
+		SQLDB:        sqlDb,
+		GormDB:       gormDb,
 		Config:       config,
 		ResendClient: resendClient,
 		StripeClient: stripeClient,
@@ -253,7 +252,7 @@ func createEchoServer(
 	config *configuration.Config,
 	db *gorm.DB,
 	minioClient *minio.Client,
-	riverClient *river.Client[pgx.Tx],
+	riverClient *river.Client[*sql.Tx],
 	resendClient *resend.Client,
 	stripeClient *stripeGo.Client,
 	posthogClient *posthog.Client,
@@ -275,7 +274,7 @@ func createEchoServer(
 func gracefulShutdown(
 	ctx context.Context,
 	e *echo.Echo,
-	riverClient *river.Client[pgx.Tx],
+	riverClient *river.Client[*sql.Tx],
 	posthogClient *posthog.Client,
 	timeout time.Duration,
 ) {

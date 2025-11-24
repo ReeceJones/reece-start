@@ -3,7 +3,6 @@ package middleware
 import (
 	"database/sql"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/minio/minio-go/v7"
 	"github.com/resend/resend-go/v2"
@@ -18,7 +17,7 @@ type AppDependencies struct {
 	Config        *configuration.Config
 	DB            *gorm.DB
 	MinioClient   *minio.Client
-	RiverClient   *river.Client[pgx.Tx]
+	RiverClient   *river.Client[*sql.Tx]
 	ResendClient  *resend.Client
 	StripeClient  *stripeGo.Client
 	PostHogClient *posthog.Client

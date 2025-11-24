@@ -9,7 +9,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
@@ -25,12 +24,9 @@ func TestCreateOrganization(t *testing.T) {
 
 	db := testdb.SetupDB(t)
 	config := testconfig.CreateTestConfig()
+	posthogClient := mocks.NewMockPosthogClient()
+	stripeClient := mocks.NewMockStripeClient()
 	var minioClient *minio.Client // nil for tests
-
-	// Create a mock Stripe client
-	testKey := "sk_test_mock_" + uuid.New().String()[:32]
-	stripeGo.Key = testKey
-	stripeClient := stripeGo.NewClient(testKey)
 
 	t.Run("creates organization successfully", func(t *testing.T) {
 		tx := db.Begin()
@@ -64,12 +60,13 @@ func TestCreateOrganization(t *testing.T) {
 		}
 
 		result, err := createOrganization(CreateOrganizationServiceRequest{
-			Params:       params,
-			Tx:           tx,
-			MinioClient:  minioClient,
-			Config:       config,
-			StripeClient: stripeClient,
-			Context:      context.Background(),
+			Params:        params,
+			Tx:            tx,
+			MinioClient:   minioClient,
+			Config:        config,
+			StripeClient:  stripeClient,
+			Context:       context.Background(),
+			PostHogClient: posthogClient,
 		})
 
 		require.NoError(t, err)

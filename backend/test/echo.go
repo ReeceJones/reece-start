@@ -2,13 +2,13 @@ package test
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/minio/minio-go/v7"
 	"github.com/resend/resend-go/v2"
@@ -23,6 +23,7 @@ import (
 	testconfig "reece.start/test/config"
 	testdb "reece.start/test/db"
 	"reece.start/test/mocks"
+	testmocks "reece.start/test/mocks"
 )
 
 // TestContext holds all the testing infrastructure
@@ -32,7 +33,7 @@ type TestContext struct {
 	DB           *gorm.DB
 	Config       *configuration.Config
 	MinioClient  *minio.Client
-	RiverClient  *river.Client[pgx.Tx]
+	RiverClient  *river.Client[*sql.Tx]
 	ResendClient *resend.Client
 	StripeClient *stripeGo.Client
 }
@@ -42,7 +43,7 @@ type TestContext struct {
 // with the same middleware and routes as the production server.
 func SetupEchoTest(t *testing.T) *TestContext {
 	// Setup Postgres
-	pool, db, connStr := testdb.SetupPostgresContainer(t)
+	sqlDb, gormDb, connStr := testdb.SetupPostgresContainer(t)
 
 	// Create test config
 	config := testconfig.CreateTestConfig()
@@ -61,13 +62,16 @@ func SetupEchoTest(t *testing.T) *TestContext {
 	resendClient := resend.NewClient("test-key")
 
 	// Create mock Stripe client - HTTP calls will be intercepted by MockHTTPTransport
-	stripeClient := NewMockStripeClient()
+	stripeClient := testmocks.NewMockStripeClient()
+
+	// Create mock posthog client - HTTP calls will be intercepted by MockHTTPTransport
+	posthogClient := testmocks.NewMockPosthogClient()
 
 	// Create River client for background jobs (workers registered but NOT started in tests)
 	// River tables are already created during initial migration in setupSharedPostgresContainer
 	riverClient, err := jobs.NewRiverClient(t.Context(), jobs.RiverClientConfig{
-		SQLConn:      pool,
-		DB:           db,
+		SQLDB:        sqlDb,
+		GormDB:       gormDb,
 		Config:       config,
 		ResendClient: resendClient,
 		StripeClient: stripeClient,
@@ -77,18 +81,19 @@ func SetupEchoTest(t *testing.T) *TestContext {
 
 	// Create Echo server with all middleware and routes (same as production)
 	e := echoServer.NewEcho(appMiddleware.AppDependencies{
-		Config:       config,
-		DB:           db,
-		MinioClient:  minioClient,
-		RiverClient:  riverClient,
-		ResendClient: resendClient,
-		StripeClient: stripeClient,
+		Config:        config,
+		DB:            gormDb,
+		MinioClient:   minioClient,
+		RiverClient:   riverClient,
+		ResendClient:  resendClient,
+		StripeClient:  stripeClient,
+		PostHogClient: posthogClient,
 	})
 
 	return &TestContext{
 		T:            t,
 		Echo:         e,
-		DB:           db,
+		DB:           gormDb,
 		Config:       config,
 		MinioClient:  minioClient,
 		RiverClient:  riverClient,

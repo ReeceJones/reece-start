@@ -22,6 +22,7 @@ package test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -29,7 +30,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -305,7 +305,7 @@ func CreateAuthenticatedTestUserWithOptions(t *testing.T, tc *TestContext, role 
 // This is useful for testing job enqueueing and execution.
 // Jobs will run only once (max_attempts set to 1) and will not retry on failure.
 // It will poll the job queue every pollInterval until no jobs are pending/running or maxWaitTime is reached.
-func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[pgx.Tx], maxWaitTime time.Duration, pollInterval time.Duration) {
+func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[*sql.Tx], maxWaitTime time.Duration, pollInterval time.Duration) {
 	ctx := context.Background()
 
 	// Set all pending jobs to run only once (no retries)
@@ -381,6 +381,6 @@ func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[pg
 // RunAllPendingRiverJobs processes all pending River jobs with sensible defaults.
 // It will wait up to 10 seconds and poll every 100ms.
 // This is a convenience wrapper around RunPendingRiverJobs.
-func RunAllPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[pgx.Tx]) {
+func RunAllPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[*sql.Tx]) {
 	RunPendingRiverJobs(t, db, riverClient, 10*time.Second, 100*time.Millisecond)
 }

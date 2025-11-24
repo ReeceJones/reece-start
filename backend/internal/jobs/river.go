@@ -2,11 +2,10 @@ package jobs
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
-	"github.com/riverqueue/river/riverdriver/riverpgxv5"
+	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
 	"reece.start/internal/configuration"
@@ -17,8 +16,8 @@ import (
 )
 
 type RiverClientConfig struct {
-	SQLConn      *pgxpool.Pool
-	DB           *gorm.DB
+	SQLDB        *sql.DB
+	GormDB       *gorm.DB
 	Config       *configuration.Config
 	ResendClient *resend.Client
 	StripeClient *stripeGo.Client
@@ -26,14 +25,14 @@ type RiverClientConfig struct {
 }
 
 // NewRiverClient creates and optionally starts a River client with all workers registered
-func NewRiverClient(ctx context.Context, cfg RiverClientConfig) (*river.Client[pgx.Tx], error) {
+func NewRiverClient(ctx context.Context, cfg RiverClientConfig) (*river.Client[*sql.Tx], error) {
 	// Register all workers
 	workers := river.NewWorkers()
 
 	addWorkers(workers, cfg)
 
 	// Create River client
-	riverClient, err := river.NewClient(riverpgxv5.New(cfg.SQLConn), &river.Config{
+	riverClient, err := river.NewClient(riverdatabasesql.New(cfg.SQLDB), &river.Config{
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
 		},
@@ -56,17 +55,17 @@ func NewRiverClient(ctx context.Context, cfg RiverClientConfig) (*river.Client[p
 
 func addWorkers(workers *river.Workers, cfg RiverClientConfig) {
 	river.AddWorker(workers, &organizations.OrganizationInvitationEmailJobWorker{
-		DB:           cfg.DB,
+		DB:           cfg.GormDB,
 		Config:       cfg.Config,
 		ResendClient: cfg.ResendClient,
 	})
 	river.AddWorker(workers, &stripe.SnapshotWebhookProcessingJobWorker{
-		DB:           cfg.DB,
+		DB:           cfg.GormDB,
 		Config:       cfg.Config,
 		StripeClient: cfg.StripeClient,
 	})
 	river.AddWorker(workers, &stripe.ThinWebhookProcessingJobWorker{
-		DB:           cfg.DB,
+		DB:           cfg.GormDB,
 		Config:       cfg.Config,
 		StripeClient: cfg.StripeClient,
 	})

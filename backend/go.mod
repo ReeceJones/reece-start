@@ -4,9 +4,12 @@ go 1.24.4
 
 require (
 	github.com/caarlos0/env/v11 v11.3.1
+	github.com/getsentry/sentry-go v0.38.0
+	github.com/getsentry/sentry-go/echo v0.38.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lib/pq v1.10.9
@@ -15,7 +18,6 @@ require (
 	github.com/resend/resend-go/v2 v2.23.0
 	github.com/riverqueue/river v0.23.1
 	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.23.1
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.23.1
 	github.com/stretchr/testify v1.10.0
 	github.com/stripe/stripe-go/v83 v83.1.0-beta.2
 	github.com/testcontainers/testcontainers-go v0.39.0
@@ -45,8 +47,6 @@ require (
 	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/getsentry/sentry-go v0.38.0 // indirect
-	github.com/getsentry/sentry-go/echo v0.38.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -59,7 +59,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.7.5 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

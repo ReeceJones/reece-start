@@ -11,6 +11,7 @@ import (
 	"reece.start/internal/models"
 	testconfig "reece.start/test/config"
 	testdb "reece.start/test/db"
+	testmocks "reece.start/test/mocks"
 )
 
 // Note: Helper functions like normalizePageSize, applySearchFilter, etc. are private
@@ -26,6 +27,7 @@ import (
 func TestCreateUser(t *testing.T) {
 	db := testdb.SetupDB(t)
 	config := testconfig.CreateTestConfig()
+	posthogClient := testmocks.NewMockPosthogClient()
 
 	t.Run("creates user successfully", func(t *testing.T) {
 		tx := db.Begin()
@@ -39,9 +41,10 @@ func TestCreateUser(t *testing.T) {
 		}
 
 		result, err := createUser(CreateUserServiceRequest{
-			Params: params,
-			Tx:     tx,
-			Config: config,
+			Params:        params,
+			Tx:            tx,
+			Config:        config,
+			PostHogClient: posthogClient,
 		})
 
 		require.NoError(t, err)
@@ -65,9 +68,10 @@ func TestCreateUser(t *testing.T) {
 			Timezone: "UTC",
 		}
 		_, err := createUser(CreateUserServiceRequest{
-			Params: params1,
-			Tx:     tx,
-			Config: config,
+			Params:        params1,
+			Tx:            tx,
+			Config:        config,
+			PostHogClient: posthogClient,
 		})
 		require.NoError(t, err)
 
@@ -92,6 +96,7 @@ func TestCreateUser(t *testing.T) {
 func TestLoginUser(t *testing.T) {
 	db := testdb.SetupDB(t)
 	config := testconfig.CreateTestConfig()
+	posthogClient := testmocks.NewMockPosthogClient()
 	var minioClient *minio.Client // nil for tests
 
 	t.Run("logs in user with correct credentials", func(t *testing.T) {
@@ -106,9 +111,10 @@ func TestLoginUser(t *testing.T) {
 			Timezone: "UTC",
 		}
 		createdUser, err := createUser(CreateUserServiceRequest{
-			Params: createParams,
-			Tx:     tx,
-			Config: config,
+			Params:        createParams,
+			Tx:            tx,
+			Config:        config,
+			PostHogClient: posthogClient,
 		})
 		require.NoError(t, err)
 
@@ -161,9 +167,10 @@ func TestLoginUser(t *testing.T) {
 			Timezone: "UTC",
 		}
 		_, err := createUser(CreateUserServiceRequest{
-			Params: createParams,
-			Tx:     tx,
-			Config: config,
+			Params:        createParams,
+			Tx:            tx,
+			Config:        config,
+			PostHogClient: posthogClient,
 		})
 		require.NoError(t, err)
 
