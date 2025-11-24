@@ -3,6 +3,8 @@ import { ApiError, patch } from '$lib';
 import type { Actions } from './$types';
 import { authenticate } from '$lib/server/auth';
 import { updateUserRequestSchema, updateUserResponseSchema } from '$lib/schemas/user';
+import { updateUserSecurityFormSchema } from '$lib/schemas/user.server';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 export const load = async () => {
 	authenticate();
@@ -10,15 +12,13 @@ export const load = async () => {
 
 export const actions = {
 	default: async ({ request, fetch }) => {
-		const data = await request.formData();
-		const userId = data.get('userId') as string;
-		const email = data.get('email') as string;
-		const password = data.get('password') as string;
-		const confirmPassword = data.get('confirmPassword') as string;
+		const formData = await parseFormData(request, updateUserSecurityFormSchema);
 
-		if (!userId || !email) {
-			return fail(400, { success: false, message: 'Please fill out all the fields correctly.' });
+		if (!isParseSuccess(formData)) {
+			return formData;
 		}
+
+		const { userId, email, password, confirmPassword } = formData;
 
 		if (password && password !== confirmPassword) {
 			return fail(400, { success: false, message: 'Passwords do not match.' });

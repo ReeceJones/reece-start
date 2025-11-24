@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { post, ApiError } from '$lib';
 import { env } from '$env/dynamic/private';
 import { performGoogleOAuth } from '$lib/server/oauth';
+import { signinFormSchema } from '$lib/schemas/user.server';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 const loginUserRequestSchema = z.object({
 	data: z.object({
@@ -30,14 +32,19 @@ const loginUserResponseSchema = z.object({
 
 export const actions = {
 	signin: async ({ cookies, request, fetch }) => {
-		const data = await request.formData();
-		const email = data.get('email') as string;
-		const password = data.get('password') as string;
+		const formData = await parseFormData(request, signinFormSchema);
+
+		if (!isParseSuccess(formData)) {
+			return formData;
+		}
+
+		const { email, password } = formData;
 		const searchParams = new URLSearchParams(request.url.slice(request.url.indexOf('?')));
 		const redirectUrl = searchParams.get('redirect') ?? '/app';
+		const isSignInDisabled = env.PUBLIC_DISABLE_SIGNIN === 'true';
 
-		if (!email || !password) {
-			return fail(400, { success: false, message: 'Please fill out all the fields correctly.' });
+		if (!isSignInDisabled) {
+			return fail(403, { success: false, message: 'Sign in is disabled' });
 		}
 
 		try {

@@ -4,19 +4,25 @@ import { post } from '$lib';
 import { env } from '$env/dynamic/private';
 import { createUserRequestSchema, createUserResponseSchema } from '$lib/schemas/user';
 import { performGoogleOAuth } from '$lib/server/oauth';
+import { signupFormSchema } from '$lib/schemas/user.server';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 export const actions = {
 	signup: async ({ cookies, request, fetch }) => {
-		const data = await request.formData();
-		const name = data.get('name') as string;
-		const email = data.get('email') as string;
-		const password = data.get('password') as string;
+		const formData = await parseFormData(request, signupFormSchema);
+
+		if (!isParseSuccess(formData)) {
+			return formData;
+		}
+
+		const { name, email, password } = formData;
+		const isSignInDisabled = env.PUBLIC_DISABLE_SIGNIN === 'true';
 
 		const searchParams = new URLSearchParams(request.url.slice(request.url.indexOf('?')));
 		const redirectUrl = searchParams.get('redirect') ?? '/app';
 
-		if (!name || !email || !password) {
-			return fail(400, { success: false, message: 'Please fill out all the fields correctly.' });
+		if (!isSignInDisabled) {
+			return fail(403, { success: false, message: 'Sign in is disabled' });
 		}
 
 		const userWithToken = await post(

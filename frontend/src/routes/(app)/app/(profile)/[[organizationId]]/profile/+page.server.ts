@@ -3,6 +3,8 @@ import { ApiError, base64Encode, patch } from '$lib';
 import type { Actions } from './$types';
 import { authenticate } from '$lib/server/auth';
 import { updateUserRequestSchema, updateUserResponseSchema } from '$lib/schemas/user';
+import { updateUserProfileFormSchema } from '$lib/schemas/user.server';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 export const load = async () => {
 	authenticate();
@@ -10,21 +12,16 @@ export const load = async () => {
 
 export const actions = {
 	default: async ({ request, fetch }) => {
-		const data = await request.formData();
-		const userId = data.get('userId') as string;
-		const name = data.get('name') as string;
-		const logo = data.get('logo') as File;
+		const formData = await parseFormData(request, updateUserProfileFormSchema);
+
+		if (!isParseSuccess(formData)) {
+			return formData;
+		}
+
+		const { userId, name, logo } = formData;
 		let logoData: string | undefined = undefined;
 
-		if (!userId || !name) {
-			return fail(400, { success: false, message: 'Please fill out all the fields correctly.' });
-		}
-
-		if (logo.size > 3_000_000) {
-			return fail(400, { success: false, message: 'Logo must be less than 3MB.' });
-		}
-
-		if (logo.size > 0) {
+		if (logo && logo.size > 0) {
 			// need to base64 encode the logo content
 			const logoBuffer = await logo.arrayBuffer();
 			logoData = base64Encode(logoBuffer);

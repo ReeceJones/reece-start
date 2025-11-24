@@ -1,29 +1,26 @@
-import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { env } from '$env/dynamic/private';
 import { locales } from '$lib/i18n';
+import { z } from 'zod';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 const LOCALE_COOKIE_NAME = 'app-locale';
 
+const setLocaleFormSchema = z.object({
+	locale: z.string().refine((val) => locales.includes(val), {
+		message: 'Unsupported locale'
+	})
+});
+
 export const actions = {
 	setLocale: async ({ cookies, request }) => {
-		const data = await request.formData();
-		const locale = data.get('locale') as string;
+		const formData = await parseFormData(request, setLocaleFormSchema);
 
-		if (!locale) {
-			return fail(400, {
-				success: false,
-				message: 'Locale is required'
-			});
+		if (!isParseSuccess(formData)) {
+			return formData;
 		}
 
-		// Validate locale is one of the supported locales
-		if (!locales.includes(locale)) {
-			return fail(400, {
-				success: false,
-				message: 'Unsupported locale'
-			});
-		}
+		const { locale } = formData;
 
 		// Set the locale cookie with httpOnly, secure, and sameSite settings
 		cookies.set(LOCALE_COOKIE_NAME, locale, {

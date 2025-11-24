@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { DoorOpen, Rocket, Menu, X } from 'lucide-svelte';
 	import { t } from '$lib/i18n';
+	import { env } from '$env/dynamic/public';
 
 	const { isLoggedIn }: { isLoggedIn: boolean } = $props();
 
 	let isMobileMenuOpen = $state(false);
+	const isSignInDisabled = $derived(env.PUBLIC_DISABLE_SIGNIN === 'true');
 
 	function toggleMobileMenu() {
 		isMobileMenuOpen = !isMobileMenuOpen;
@@ -32,7 +34,7 @@
 				<DoorOpen class="size-5" />
 				{$t('dashboard')}
 			</a>
-		{:else}
+		{:else if !isSignInDisabled}
 			<a href="/signin" class="btn font-medium btn-outline btn-neutral"> {$t('signIn')} </a>
 			<a href="/signup" class="btn font-medium btn-neutral"> {$t('getStarted')} </a>
 		{/if}

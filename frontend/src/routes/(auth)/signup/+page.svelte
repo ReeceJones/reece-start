@@ -19,6 +19,7 @@
 
 	const redirect = $derived(page.url.searchParams.get('redirect'));
 	const googleClientId = $derived(env.PUBLIC_GOOGLE_OAUTH_CLIENT_ID || '');
+	const isSignInDisabled = $derived(env.PUBLIC_DISABLE_SIGNIN === 'true');
 </script>
 
 <svelte:head>
@@ -44,7 +45,10 @@
 						};
 					}}
 				>
-					<button class="btn w-full btn-neutral" disabled={!googleClientId || submitting}>
+					<button
+						class="btn w-full btn-neutral"
+						disabled={!googleClientId || submitting || isSignInDisabled}
+					>
 						{#if submittingGoogleOAuthForm}
 							<span class="loading loading-spinner"></span>
 						{:else}
@@ -103,7 +107,11 @@
 
 					<div class="mt-3 space-y-3">
 						<CardActions>
-							<button type="submit" class="btn mt-3 w-full btn-primary" disabled={submitting}>
+							<button
+								type="submit"
+								class="btn mt-3 w-full btn-primary"
+								disabled={submitting || isSignInDisabled}
+							>
 								{#if submittingPasswordForm}
 									<span class="loading loading-spinner"></span>
 								{:else}

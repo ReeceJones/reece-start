@@ -1,11 +1,9 @@
 <script>
-	import { Rocket } from 'lucide-svelte';
 	import { t } from '$lib/i18n';
 </script>
 
 <footer class="footer bg-base-200 p-16 text-base-content sm:footer-horizontal">
 	<aside>
-		<Rocket class="size-4 text-primary" />
 		<p>
 			<b>reece-start</b> - {$t('footer.description')}
 			<br />

@@ -343,8 +343,8 @@ export const translations = {
 			hero: {
 				title:
 					'Pre-packaged with everything you need to build,<br/>reece-start is how you skip the boilerplate and start shipping',
-				getStarted: 'Get started',
-				watchDemo: 'Watch demo',
+				getCode: 'Get the code',
+				faq: 'See FAQ',
 				features: {
 					authentication: 'Authentication',
 					billing: 'Billing',
@@ -543,57 +543,49 @@ export const translations = {
 				whySvelte: {
 					question: 'Why Svelte over React?',
 					answer:
-						'React has become increasingly complicated with SSR, RSC (React Server Components), and complex data loading patterns. Svelte offers a much nicer developer experience for building reactive applications while providing a good middle ground between highly interactive client-side apps and excellent server-side rendering capabilities. The compilation approach eliminates runtime overhead and the syntax is more intuitive and less verbose than React.'
+						'Modern react libraries are far too complicated. Nowadays many are VC backed and want you to use their cloud hosting service which introduces even more complexity. At the same time, SvelteKit provides a nicer interface for reactive UIs and supports impler data loading and mutation patterns.'
 				},
 				whyDaisyui: {
 					question: 'Why DaisyUI for styling?',
 					answer:
-						'DaisyUI provides a simple, semantic approach to building components while allowing you to build everything from scratch when needed. It gives you beautiful defaults and consistent design tokens without the complexity of component libraries like Material-UI or Chakra. You get the flexibility of Tailwind CSS with the convenience of pre-built component classes.'
+						"I thought it was neat and easy to use. If you don't like DaisyUI styles, you can always defined your own components and ignore DaisyUI altogether."
 				},
 				whyGo: {
 					question: 'Why Go for the backend?',
 					answer:
-						'Go provides exceptional performance with low resource consumption, making it cost-effective for deployment. It has excellent concurrency support, a robust standard library, and compiles to single binaries that are easy to deploy. The strong typing system and explicit error handling lead to more reliable code, and the ecosystem around web development (Echo, GORM) is mature and well-maintained.'
+						'Go has what I need for most of my projects: minimal resource usage, fast build times, simple developer experience.'
 				},
 				whyPostgresql: {
 					question: 'Why PostgreSQL?',
 					answer:
-						"PostgreSQL is a battle-tested, feature-rich relational database that handles complex queries, has excellent JSON support for flexibility, provides strong ACID guarantees, and scales well. It's open source, has a massive ecosystem of extensions, and is supported everywhere. Simply put - why not PostgreSQL?"
+						'Would you prefer I use DB2, MongoDB? Postgres is fast, easily available, and generally a good SQL database.'
 				},
 				whyRailway: {
 					question: 'Why Railway for deployment?',
 					answer:
-						"Railway provides a simple way to deploy containerized applications without the excessive costs of some other platforms. While it's not perfect, it supports most common use cases and offers a straightforward deployment experience with good Docker support, automatic deployments from Git, and reasonable pricing for small to medium-scale applications."
+						"I'm lazy. Maybe in the future I'll use uncloud or k8s, but railway works fine and is cheap."
 				},
 				whyCustomAuth: {
 					question: 'Why custom authentication instead of Auth0 or Clerk?',
 					answer:
-						'While services like Auth0 and Clerk are convenient, they often limit functionality and can become expensive at scale. I frequently found myself fighting these services to implement specific use cases, particularly the organization-member-user model with role-based access control. This project includes a complex, real-world authentication pattern out of the box that would be challenging and costly to implement with third-party auth services.'
+						'My authentication models have always slightly difered from Auth0 or Clerk which has resulted in time wasted trying to make them work for my use case. Here you own the auth model so you can hack it to your hearts content with minimal issues. For example, this enables B2B2B models.'
 				},
 				whatIsOrgModel: {
 					question: 'What is the organization-member-user model?',
 					answer:
-						"This is a multi-tenant architecture where users can belong to multiple organizations with different roles in each. Each organization acts as a separate workspace or tenant, and users have specific permissions within each organization they're part of. This pattern is common in B2B SaaS applications and enables complex permission structures and billing models."
+						'There are organizations, and users. Organizations own resources and users must be a member of the organization to access or modify the resource.'
 				},
 				whyMakefile: {
 					question: 'Why use a Makefile for development?',
-					answer:
-						"A Makefile simplifies the monorepo workflow without adding complexity from specialized monorepo tools. It provides simple, cross-platform commands for common development tasks like starting services, running migrations, and building containers. It's a lightweight solution that most developers are familiar with and doesn't require additional tooling or configuration."
+					answer: "Don't need fancy tools."
 				},
 				howToStart: {
 					question: 'How do I get started with development?',
-					answer:
-						'Start by cloning the repository and running <code class="rounded bg-base-300 px-2 py-1">make dev</code> to start all services with Docker Compose. The Makefile includes commands for database migrations, seeding data, and running both frontend and backend in development mode. Check the README for detailed setup instructions and environment variable configuration.'
+					answer: 'Clone the repo and open your text editor.'
 				},
 				withoutOrgs: {
 					question: 'Can I use this without the organization features?',
-					answer:
-						"Yes! If you don't need multi-tenant functionality, you can remove the organization-related code and simplify to a standard user authentication model. Remove the organization models, middleware, and related API endpoints, then update the authentication flow to work directly with users instead of organization memberships."
-				},
-				customizeEmails: {
-					question: 'How do I customize the email templates?',
-					answer:
-						'Email templates are located in <code class="rounded bg-base-300 px-2 py-1">backend/internal/email/templates/</code>. You can modify the HTML templates and update the email service configuration to match your branding. The system supports both HTML and plain text emails with template variable substitution.'
+					answer: 'Yes, you will just need to remove organizations from the codebase.'
 				},
 				addOauth: {
 					question: 'How do I add new OAuth providers?',
@@ -602,23 +594,11 @@ export const translations = {
 				},
 				otherPlatforms: {
 					question: 'Can I deploy this to other platforms besides Railway?',
-					answer:
-						'Absolutely! The application is containerized with Docker, so it can be deployed to any platform that supports containers: AWS ECS, Google Cloud Run, Azure Container Instances, DigitalOcean App Platform, or even your own servers with Docker Compose. Update the environment variables and database connection strings for your chosen platform.'
-				},
-				envVariables: {
-					question: 'What environment variables do I need to configure?',
-					answer:
-						'Key environment variables include database connection strings, JWT secrets, OAuth client credentials, email service configuration, and any third-party API keys. Check the <code class="rounded bg-base-300 px-2 py-1">.env.example</code> files in both frontend and backend directories for a complete list of required and optional variables.'
+					answer: 'Yes, there is nothing specific to railway here.'
 				},
 				billingIncluded: {
 					question: 'Is billing/payments functionality included?',
-					answer:
-						'Yes! Stripe is used for payments and is integrated with the organization-based billing model.'
-				},
-				productionReady: {
-					question: 'Is this production-ready?',
-					answer:
-						'Yes, this starter includes production-ready patterns: proper error handling, logging, database migrations, security middleware, rate limiting foundations, and containerized deployment. However, you should still review and adapt the code for your specific use case, add monitoring, set up proper CI/CD, and perform security audits before launching.'
+					answer: 'Yes, Stripe is included and comes with a subscription-based model by default.'
 				}
 			}
 		},

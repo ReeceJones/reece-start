@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { post } from '$lib/api';
 import { createUserResponseSchema } from '$lib/schemas/user';
 import { setTokenInCookies } from '$lib/server/auth';
+import { googleOAuthCallbackFormSchema } from '$lib/schemas/user.server';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 // Schema for Google OAuth callback request
 const GoogleOAuthCallbackRequest = z.object({
@@ -18,17 +20,13 @@ const GoogleOAuthCallbackRequest = z.object({
 export const actions: Actions = {
 	default: async (requestEvent) => {
 		const { request, fetch, url } = requestEvent;
-		const formData = await request.formData();
-		const code = formData.get('code') as string;
-		const state = formData.get('state') as string;
-		const redirectUrl = formData.get('redirect') as string;
+		const formData = await parseFormData(request, googleOAuthCallbackFormSchema);
 
-		if (!code || !state) {
-			return {
-				success: false,
-				message: 'Missing OAuth parameters'
-			};
+		if (!isParseSuccess(formData)) {
+			return formData;
 		}
+
+		const { code, state, redirect: redirectUrl } = formData;
 
 		try {
 			// Get the full redirect URI

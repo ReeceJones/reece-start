@@ -1,13 +1,14 @@
 import { ApiError, del, patch } from '$lib';
 import { API_TYPES } from '$lib/schemas/api.js';
 import {
+	updateOrganizationMembershipFormSchema,
 	updateOrganizationMembershipRequestSchema,
-	updateOrganizationMembershipResponseSchema,
-	type OrganizationMembershipRole
-} from '$lib/schemas/organization-membership.js';
+	updateOrganizationMembershipResponseSchema
+} from '$lib/schemas/organization-membership';
 import { authenticate } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
+import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
 export const load = async () => {
 	authenticate();
@@ -15,9 +16,14 @@ export const load = async () => {
 
 export const actions = {
 	update: async ({ request, fetch, params }) => {
-		const data = await request.formData();
 		const { organizationMembershipId } = params;
-		const role = data.get('role') as OrganizationMembershipRole;
+		const formData = await parseFormData(request, updateOrganizationMembershipFormSchema);
+
+		if (!isParseSuccess(formData)) {
+			return formData;
+		}
+
+		const { role } = formData;
 
 		if (!role) {
 			return fail(400, {

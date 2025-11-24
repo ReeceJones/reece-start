@@ -60,3 +60,7 @@ export const updateOrganizationMembershipRequestSchema = z.object({
 		attributes: organizationMembershipAttributesSchema.partial()
 	})
 });
+
+export const updateOrganizationMembershipFormSchema = z.object({
+	role: organizationMembershipRole
+});

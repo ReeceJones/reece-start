@@ -230,26 +230,6 @@
 				onkeydown={handleKeydown}
 				role="button"
 				tabindex="0"
-				aria-label="Toggle How do I customize the email templates section"
-			>
-				<input type="radio" name="faq-accordion" />
-				<div class="collapse-title font-semibold">
-					{$t('faq.questions.customizeEmails.question')}
-				</div>
-				<div class="collapse-content text-sm">
-					<p class="leading-relaxed">
-						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-						{@html $t('faq.questions.customizeEmails.answer')}
-					</p>
-				</div>
-			</div>
-
-			<div
-				class="collapse-arrow collapse border border-base-300 bg-base-200"
-				onclick={handleAccordionClick}
-				onkeydown={handleKeydown}
-				role="button"
-				tabindex="0"
 				aria-label="Toggle How do I add new OAuth providers section"
 			>
 				<input type="radio" name="faq-accordion" />
@@ -281,26 +261,6 @@
 				</div>
 			</div>
 
-			<div
-				class="collapse-arrow collapse border border-base-300 bg-base-200"
-				onclick={handleAccordionClick}
-				onkeydown={handleKeydown}
-				role="button"
-				tabindex="0"
-				aria-label="Toggle What environment variables do I need to configure section"
-			>
-				<input type="radio" name="faq-accordion" />
-				<div class="collapse-title font-semibold">
-					{$t('faq.questions.envVariables.question')}
-				</div>
-				<div class="collapse-content text-sm">
-					<p class="leading-relaxed">
-						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-						{@html $t('faq.questions.envVariables.answer')}
-					</p>
-				</div>
-			</div>
-
 			<!-- Billing & Business Questions -->
 			<div
 				class="collapse-arrow collapse border border-base-300 bg-base-200"
@@ -317,25 +277,6 @@
 				<div class="collapse-content text-sm">
 					<p class="leading-relaxed">
 						{$t('faq.questions.billingIncluded.answer')}
-					</p>
-				</div>
-			</div>
-
-			<div
-				class="collapse-arrow collapse border border-base-300 bg-base-200"
-				onclick={handleAccordionClick}
-				onkeydown={handleKeydown}
-				role="button"
-				tabindex="0"
-				aria-label="Toggle Is this production-ready section"
-			>
-				<input type="radio" name="faq-accordion" />
-				<div class="collapse-title font-semibold">
-					{$t('faq.questions.productionReady.question')}
-				</div>
-				<div class="collapse-content text-sm">
-					<p class="leading-relaxed">
-						{$t('faq.questions.productionReady.answer')}
 					</p>
 				</div>
 			</div>
