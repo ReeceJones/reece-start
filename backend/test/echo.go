@@ -2,13 +2,13 @@ package test
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/minio/minio-go/v7"
 	"github.com/resend/resend-go/v2"
@@ -30,10 +30,9 @@ type TestContext struct {
 	T            *testing.T
 	Echo         *echo.Echo
 	DB           *gorm.DB
-	SQLConn      *sql.DB
 	Config       *configuration.Config
 	MinioClient  *minio.Client
-	RiverClient  *river.Client[*sql.Tx]
+	RiverClient  *river.Client[pgx.Tx]
 	ResendClient *resend.Client
 	StripeClient *stripeGo.Client
 }
@@ -43,7 +42,7 @@ type TestContext struct {
 // with the same middleware and routes as the production server.
 func SetupEchoTest(t *testing.T) *TestContext {
 	// Setup Postgres
-	sqlConn, db, connStr := testdb.SetupPostgresContainer(t)
+	pool, db, connStr := testdb.SetupPostgresContainer(t)
 
 	// Create test config
 	config := testconfig.CreateTestConfig()
@@ -67,7 +66,7 @@ func SetupEchoTest(t *testing.T) *TestContext {
 	// Create River client for background jobs (workers registered but NOT started in tests)
 	// River tables are already created during initial migration in setupSharedPostgresContainer
 	riverClient, err := jobs.NewRiverClient(t.Context(), jobs.RiverClientConfig{
-		SQLConn:      sqlConn,
+		SQLConn:      pool,
 		DB:           db,
 		Config:       config,
 		ResendClient: resendClient,
@@ -90,7 +89,6 @@ func SetupEchoTest(t *testing.T) *TestContext {
 		T:            t,
 		Echo:         e,
 		DB:           db,
-		SQLConn:      sqlConn,
 		Config:       config,
 		MinioClient:  minioClient,
 		RiverClient:  riverClient,

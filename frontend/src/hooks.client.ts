@@ -1,4 +1,6 @@
 import type { HandleClientError } from '@sveltejs/kit';
+import * as Sentry from '@sentry/sveltekit';
+import { env } from '$env/dynamic/public';
 
 interface ErrorWithStatus extends Error {
 	status?: number;
@@ -15,7 +17,7 @@ function getErrorStatus(error: unknown): number {
 	return 500;
 }
 
-export const handleError: HandleClientError = ({ error, event }) => {
+const defaultErrorHandler: HandleClientError = ({ error, event }) => {
 	console.error('[Unhandled Error]', {
 		error,
 		url: event.url.toString(),
@@ -29,6 +31,8 @@ export const handleError: HandleClientError = ({ error, event }) => {
 		status: getErrorStatus(error)
 	};
 };
+
+export const handleError = Sentry.handleErrorWithSentry(defaultErrorHandler);
 
 // Handle unhandled promise rejections
 if (typeof window !== 'undefined') {
@@ -50,5 +54,12 @@ if (typeof window !== 'undefined') {
 			error: event.reason instanceof Error ? event.reason : undefined,
 			stack: event.reason instanceof Error ? event.reason.stack : undefined
 		});
+	});
+
+	Sentry.init({
+		dsn: env.PUBLIC_SENTRY_DSN,
+		// Adds request headers and IP for users, for more info visit:
+		// https://docs.sentry.io/platforms/javascript/guides/sveltekit/configuration/options/#sendDefaultPii
+		sendDefaultPii: true
 	});
 }

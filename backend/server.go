@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -23,6 +25,7 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivermigrate"
+
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -65,6 +68,11 @@ func main() {
 		slog.Info("Body dump", "request", string(reqBody), "response", string(resBody))
 	}))
 
+	// Add sentry middleware
+	if config.SentryDsn != "" {
+		e.Use(sentryecho.New(sentryecho.Options{}))
+	}
+
 	// Start HTTP server in a goroutine
 	serverErr := make(chan error, 1)
 	go func() {
@@ -91,6 +99,20 @@ func main() {
 func setupLogger() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
+}
+
+func setupSentry(config *configuration.Config) {
+	if config.SentryDsn == "" {
+		return
+	}
+
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: config.SentryDsn,
+	})
+
+	if err != nil {
+		log.Fatalf("Error initializing sentry, %s", err)
+	}
 }
 
 func createDatabaseConnectionPool(config *configuration.Config) (*pgxpool.Pool, *gorm.DB) {

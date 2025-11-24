@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	"github.com/riverqueue/river/rivermigrate"
 	"github.com/stretchr/testify/require"
@@ -101,8 +103,8 @@ func CleanAllTables(db *gorm.DB) error {
 	// Get all table names, excluding River tables
 	var tables []string
 	if err := db.Raw(`
-		SELECT tablename 
-		FROM pg_tables 
+		SELECT tablename
+		FROM pg_tables
 		WHERE schemaname = 'public'
 		AND tablename NOT LIKE 'river_%'
 	`).Scan(&tables).Error; err != nil {
@@ -169,7 +171,7 @@ func SetupDB(t *testing.T) *gorm.DB {
 
 // SetupPostgresContainer returns a new database connection using the shared PostgreSQL container
 // This is used by HTTP tests that need both sql.DB and gorm.DB connections
-func SetupPostgresContainer(t *testing.T) (*sql.DB, *gorm.DB, string) {
+func SetupPostgresContainer(t *testing.T) (*pgxpool.Pool, *gorm.DB, string) {
 	// Ensure the shared container is started
 	setupSharedPostgresContainer(t)
 
@@ -178,15 +180,18 @@ func SetupPostgresContainer(t *testing.T) (*sql.DB, *gorm.DB, string) {
 	require.NoError(t, err)
 
 	// Create a new connection from the shared container
-	conn, err := sql.Open("pgx", connStr)
+	pool, err := pgxpool.New(context.Background(), connStr)
 	require.NoError(t, err)
 
-	// Verify the connection works by pinging
-	err = conn.Ping()
-	require.NoError(t, err)
+	connector := stdlib.GetPoolConnector(pool)
+	sqlConn := sql.OpenDB(connector)
 
-	// Create GORM connection
-	db, err := gorm.Open(postgres.New(postgres.Config{Conn: conn}), &gorm.Config{})
+	sqlConn.SetMaxIdleConns(0)
+
+	// Create the gorm connection
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: sqlConn,
+	}), &gorm.Config{})
 	require.NoError(t, err)
 
 	// Clean all tables before each test
@@ -211,7 +216,7 @@ func SetupPostgresContainer(t *testing.T) (*sql.DB, *gorm.DB, string) {
 	// The container will be automatically cleaned up by testcontainers when
 	// the test process exits, or we can rely on Docker's container lifecycle.
 
-	return conn, db, connStr
+	return pool, db, connStr
 }
 
 // CleanRiverJobs deletes all River jobs between tests to ensure test isolation

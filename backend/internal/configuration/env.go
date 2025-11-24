@@ -50,6 +50,8 @@ type Config struct {
 
 	PostHogApiKey string `env:"POSTHOG_API_KEY" envDefault:""`
 	PostHogHost   string `env:"POSTHOG_HOST" envDefault:"https://us.i.posthog.com"`
+
+	SentryDsn string `env:"SENTRY_DSN" envDefault:""`
 }
 
 func LoadEnvironmentVariables() (*Config, error) {

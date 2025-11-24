@@ -22,7 +22,6 @@ package test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -30,6 +29,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -305,13 +305,13 @@ func CreateAuthenticatedTestUserWithOptions(t *testing.T, tc *TestContext, role 
 // This is useful for testing job enqueueing and execution.
 // Jobs will run only once (max_attempts set to 1) and will not retry on failure.
 // It will poll the job queue every pollInterval until no jobs are pending/running or maxWaitTime is reached.
-func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[*sql.Tx], maxWaitTime time.Duration, pollInterval time.Duration) {
+func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[pgx.Tx], maxWaitTime time.Duration, pollInterval time.Duration) {
 	ctx := context.Background()
 
 	// Set all pending jobs to run only once (no retries)
 	err := db.Exec(`
-		UPDATE river_job 
-		SET max_attempts = 1 
+		UPDATE river_job
+		SET max_attempts = 1
 		WHERE state IN ('available', 'scheduled', 'retryable')
 	`).Error
 	require.NoError(t, err)
@@ -340,8 +340,8 @@ func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[*s
 		// Jobs in 'available', 'running', 'retryable', or 'scheduled' states are still in progress
 		var pendingCount int64
 		err := db.Raw(`
-			SELECT COUNT(*) 
-			FROM river_job 
+			SELECT COUNT(*)
+			FROM river_job
 			WHERE state IN ('available', 'running', 'retryable', 'scheduled')
 		`).Scan(&pendingCount).Error
 		require.NoError(t, err)
@@ -354,7 +354,7 @@ func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[*s
 				Cancelled int64
 			}
 			err := db.Raw(`
-				SELECT 
+				SELECT
 					COUNT(CASE WHEN state = 'completed' THEN 1 END) as completed,
 					COUNT(CASE WHEN state = 'discarded' THEN 1 END) as discarded,
 					COUNT(CASE WHEN state = 'cancelled' THEN 1 END) as cancelled
@@ -381,6 +381,6 @@ func RunPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[*s
 // RunAllPendingRiverJobs processes all pending River jobs with sensible defaults.
 // It will wait up to 10 seconds and poll every 100ms.
 // This is a convenience wrapper around RunPendingRiverJobs.
-func RunAllPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[*sql.Tx]) {
+func RunAllPendingRiverJobs(t *testing.T, db *gorm.DB, riverClient *river.Client[pgx.Tx]) {
 	RunPendingRiverJobs(t, db, riverClient, 10*time.Second, 100*time.Millisecond)
 }

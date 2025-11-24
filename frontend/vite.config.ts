@@ -3,9 +3,11 @@ import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { configDefaults, defineConfig } from 'vitest/config';
 import { svelteTesting } from '@testing-library/svelte/vite';
+import { sentrySvelteKit } from '@sentry/sveltekit';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit(), devtoolsJson(), svelteTesting()],
+	// follow instructions here to get sourcemaps with sentry: https://docs.sentry.io/platforms/javascript/guides/sveltekit/manual-setup/#step-3-add-readable-stack-traces-with-source-maps-optional
+	plugins: [tailwindcss(), sentrySvelteKit(), sveltekit(), devtoolsJson(), svelteTesting()],
 	define: {
 		// Eliminate in-source test code
 		'import.meta.vitest': 'undefined'
