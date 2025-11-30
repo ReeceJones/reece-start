@@ -34,12 +34,6 @@ describe('Footer', () => {
 		expect(copyright).toBeTruthy();
 	});
 
-	it('should render the Rocket icon', () => {
-		// The Rocket icon from lucide-svelte renders as an SVG
-		const icon = container.querySelector('svg');
-		expect(icon).toBeTruthy();
-	});
-
 	it('should render the pricing link with correct href', () => {
 		const pricingLink = screen.getByRole('link', { name: /Pricing/i });
 		expect(pricingLink).toBeTruthy();

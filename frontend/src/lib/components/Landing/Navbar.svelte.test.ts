@@ -1,7 +1,14 @@
 import { render, screen, cleanup, waitFor } from '@testing-library/svelte';
-import { expect, describe, it, beforeEach, afterEach } from 'vitest';
+import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import Navbar from './Navbar.svelte';
+
+// Mock $env/dynamic/public
+vi.mock('$env/dynamic/public', () => ({
+	env: {
+		PUBLIC_DISABLE_SIGNIN: undefined
+	}
+}));
 
 describe('Navbar', () => {
 	afterEach(() => {
