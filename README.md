@@ -30,7 +30,6 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
   - Formatting
 - Structured logging
 - Railway deployment template
-  - Reach out to stripe support to figure out why events are being sent to event destinations in sandbox mode (TODO)
 - Posthog integration
 - Sentry integration
 
@@ -70,6 +69,7 @@ Run `make` or `make help` to see all available commands.
 - `make backend-dev` - Start the dev backend server w/ auto-reload
 - `make backend-build` - Build the backend for production
 - `make backend-format` - Format backend code
+- `make backend-tidy` - Tidy the backend dependencies
 - `make backend-test` - Run backend tests (requires Docker for testcontainers)
 - `make backend-test-verbose` - Run backend tests with verbose output
 - `make backend-test-coverage` - Run backend tests with coverage report
