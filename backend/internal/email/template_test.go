@@ -69,8 +69,8 @@ func TestOrganizationInvitationEmailTemplateParams(t *testing.T) {
 			ID:             invitationID,
 			Email:          "invitee@example.com",
 			Role:           string(constants.OrganizationRoleAdmin),
-			OrganizationID: 1,
-			InvitingUserID: 1,
+			OrganizationID: uuid.New(),
+			InvitingUserID: uuid.New(),
 			Status:         string(constants.OrganizationInvitationStatusPending),
 		}
 
@@ -128,8 +128,8 @@ func TestApplyHtmlTemplate(t *testing.T) {
 			ID:             invitationID,
 			Email:          "newuser@example.com",
 			Role:           string(constants.OrganizationRoleMember),
-			OrganizationID: 1,
-			InvitingUserID: 1,
+			OrganizationID: uuid.New(),
+			InvitingUserID: uuid.New(),
 			Status:         string(constants.OrganizationInvitationStatusPending),
 		}
 

@@ -189,11 +189,11 @@ type GetOrganizationMembershipResponse struct {
 }
 
 type GetOrganizationMembershipsQuery struct {
-	OrganizationID uint `query:"organizationId" validate:"required,min=1"`
+	OrganizationID uuid.UUID `query:"organizationId" validate:"required"`
 }
 
 type GetOrganizationInvitationsQuery struct {
-	OrganizationID uint `query:"organizationId" validate:"required,min=1"`
+	OrganizationID uuid.UUID `query:"organizationId" validate:"required"`
 }
 
 type InviteToOrganizationRelationships struct {
@@ -305,7 +305,7 @@ type DeclineOrganizationInvitationResponse struct {
 type CreateOrganizationParams struct {
 	Name                string
 	Description         string
-	UserID              uint
+	UserID              uuid.UUID
 	Logo                string
 	ContactEmail        string
 	ContactPhone        string
@@ -326,20 +326,20 @@ type CreateOrganizationServiceRequest struct {
 }
 
 type GetOrganizationsByUserIDServiceRequest struct {
-	UserID      uint
+	UserID      uuid.UUID
 	Tx          *gorm.DB
 	MinioClient *minio.Client
 }
 
 type GetOrganizationByIDServiceRequest struct {
-	OrganizationID uint
-	UserID         uint
+	OrganizationID uuid.UUID
+	UserID         uuid.UUID
 	Tx             *gorm.DB
 	MinioClient    *minio.Client
 }
 
 type UpdateOrganizationParams struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	Name           *string
 	Description    *string
 	Logo           *string
@@ -353,24 +353,24 @@ type UpdateOrganizationServiceRequest struct {
 }
 
 type DeleteOrganizationServiceRequest struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	Tx             *gorm.DB
 }
 
 type CheckUserOrganizationAccessServiceRequest struct {
-	UserID         uint
-	OrganizationID uint
+	UserID         uuid.UUID
+	OrganizationID uuid.UUID
 	Tx             *gorm.DB
 }
 
 type CheckUserOrganizationAdminAccessServiceRequest struct {
-	UserID         uint
-	OrganizationID uint
+	UserID         uuid.UUID
+	OrganizationID uuid.UUID
 	Tx             *gorm.DB
 }
 
 type GetOrganizationLogoDistributionUrlServiceRequest struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	Tx             *gorm.DB
 	MinioClient    *minio.Client
 }
@@ -389,8 +389,8 @@ type OrganizationMembershipDto struct {
 
 // Organization Membership Service Types
 type CreateOrganizationMembershipParams struct {
-	UserID         uint
-	OrganizationID uint
+	UserID         uuid.UUID
+	OrganizationID uuid.UUID
 	Role           string
 }
 
@@ -400,19 +400,19 @@ type CreateOrganizationMembershipServiceRequest struct {
 }
 
 type GetOrganizationMembershipsServiceRequest struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	Tx             *gorm.DB
 	MinioClient    *minio.Client
 }
 
 type GetOrganizationMembershipByIDServiceRequest struct {
-	MembershipID uint
+	MembershipID uuid.UUID
 	Tx           *gorm.DB
 	MinioClient  *minio.Client
 }
 
 type UpdateOrganizationMembershipParams struct {
-	MembershipID uint
+	MembershipID uuid.UUID
 	Role         *string
 }
 
@@ -422,7 +422,7 @@ type UpdateOrganizationMembershipServiceRequest struct {
 }
 
 type DeleteOrganizationMembershipServiceRequest struct {
-	MembershipID uint
+	MembershipID uuid.UUID
 	Tx           *gorm.DB
 }
 
@@ -430,8 +430,8 @@ type DeleteOrganizationMembershipServiceRequest struct {
 type CreateOrganizationInvitationParams struct {
 	Email          string
 	Role           string
-	OrganizationID uint
-	InvitingUserID uint
+	OrganizationID uuid.UUID
+	InvitingUserID uuid.UUID
 }
 
 type CreateOrganizationInvitationServiceRequest struct {
@@ -452,7 +452,7 @@ type OrganizationInvitationDto struct {
 }
 
 type GetOrganizationInvitationsServiceRequest struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	Tx             *gorm.DB
 }
 
@@ -469,14 +469,14 @@ type DeleteOrganizationInvitationServiceRequest struct {
 
 type AcceptOrganizationInvitationServiceRequest struct {
 	InvitationID uuid.UUID
-	UserID       uint
+	UserID       uuid.UUID
 	Tx           *gorm.DB
 	MinioClient  *minio.Client
 }
 
 type DeclineOrganizationInvitationServiceRequest struct {
 	InvitationID uuid.UUID
-	UserID       uint
+	UserID       uuid.UUID
 	Tx           *gorm.DB
 	MinioClient  *minio.Client
 }
@@ -488,7 +488,7 @@ type UpdateOrganizationStripeInformationServiceRequest struct {
 
 // Stripe onboarding link service types
 type CreateStripeOnboardingLinkParams struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 }
 
 type CreateStripeOnboardingLinkServiceRequest struct {
@@ -519,7 +519,7 @@ type CreateStripeOnboardingLinkResponse struct {
 
 // Stripe dashboard link service types
 type CreateStripeDashboardLinkParams struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 }
 
 type CreateStripeDashboardLinkServiceRequest struct {

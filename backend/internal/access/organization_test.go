@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"reece.start/internal/api"
 	"reece.start/internal/authentication"
@@ -35,7 +36,7 @@ func TestHasOrganizationAccess(t *testing.T) {
 		c := createTestContext(t, claims)
 
 		params := HasOrganizationAccessParams{
-			OrganizationID: 123,
+			OrganizationID: uuid.New(),
 			Scopes: []constants.UserScope{
 				constants.UserScopeOrganizationRead,
 			},
@@ -57,7 +58,7 @@ func TestHasOrganizationAccess(t *testing.T) {
 		c := createTestContext(t, claims)
 
 		params := HasOrganizationAccessParams{
-			OrganizationID: 123,
+			OrganizationID: uuid.New(),
 			Scopes: []constants.UserScope{
 				constants.UserScopeOrganizationRead,
 				constants.UserScopeOrganizationUpdate,
@@ -78,7 +79,7 @@ func TestHasOrganizationAccess(t *testing.T) {
 		c := createTestContext(t, claims)
 
 		params := HasOrganizationAccessParams{
-			OrganizationID: 123,
+			OrganizationID: uuid.New(),
 			Scopes: []constants.UserScope{
 				constants.UserScopeOrganizationRead,
 				constants.UserScopeOrganizationUpdate, // Missing this scope
@@ -98,7 +99,7 @@ func TestHasOrganizationAccess(t *testing.T) {
 		c := createTestContext(t, claims)
 
 		params := HasOrganizationAccessParams{
-			OrganizationID: 123,
+			OrganizationID: uuid.New(),
 			Scopes: []constants.UserScope{
 				constants.UserScopeOrganizationRead,
 			},
@@ -116,7 +117,7 @@ func TestHasOrganizationAccess(t *testing.T) {
 		c := createTestContext(t, claims)
 
 		params := HasOrganizationAccessParams{
-			OrganizationID: 123,
+			OrganizationID: uuid.New(),
 			Scopes: []constants.UserScope{
 				constants.UserScopeOrganizationRead,
 			},
@@ -138,7 +139,7 @@ func TestHasOrganizationAccess(t *testing.T) {
 		c := createTestContext(t, claims)
 
 		params := HasOrganizationAccessParams{
-			OrganizationID: 123,
+			OrganizationID: uuid.New(),
 			Scopes:         []constants.UserScope{},
 		}
 

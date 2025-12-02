@@ -1,46 +1,44 @@
 package api
 
 import (
-	"strconv"
-
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // ParseOrganizationIDFromParams parses organization ID from URL parameter
-func ParseOrganizationIDFromParams(c echo.Context) (uint, error) {
-	paramOrgID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+func ParseOrganizationIDFromParams(c echo.Context) (uuid.UUID, error) {
+	paramOrgID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return 0, ErrInvalidOrganizationID
+		return uuid.Nil, ErrInvalidOrganizationID
 	}
-	return uint(paramOrgID), nil
+	return paramOrgID, nil
 }
 
 // ParseOrganizationIDFromString parses organization ID from string
-func ParseOrganizationIDFromString(idStr string) (uint, error) {
-	paramOrgID, err := strconv.ParseUint(idStr, 10, 32)
+func ParseOrganizationIDFromString(idStr string) (uuid.UUID, error) {
+	paramOrgID, err := uuid.Parse(idStr)
 	if err != nil {
-		return 0, ErrInvalidOrganizationID
+		return uuid.Nil, ErrInvalidOrganizationID
 	}
-	return uint(paramOrgID), nil
+	return paramOrgID, nil
 }
 
 // ParseUserIDFromString parses user ID from string
-func ParseUserIDFromString(idStr string) (uint, error) {
-	paramUserID, err := strconv.ParseUint(idStr, 10, 32)
+func ParseUserIDFromString(idStr string) (uuid.UUID, error) {
+	paramUserID, err := uuid.Parse(idStr)
 	if err != nil {
-		return 0, ErrInvalidUserID
+		return uuid.Nil, ErrInvalidUserID
 	}
-	return uint(paramUserID), nil
+	return paramUserID, nil
 }
 
 // ParseMembershipIDFromParams parses membership ID from URL parameter
-func ParseMembershipIDFromParams(c echo.Context) (uint, error) {
-	paramMembershipID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+func ParseMembershipIDFromParams(c echo.Context) (uuid.UUID, error) {
+	paramMembershipID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return 0, ErrInvalidMembershipID
+		return uuid.Nil, ErrInvalidMembershipID
 	}
-	return uint(paramMembershipID), nil
+	return paramMembershipID, nil
 }
 
 // ParseOrganizationInvitationIDFromParams parses invitation ID from URL parameter

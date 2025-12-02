@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -225,7 +226,7 @@ func TestGetUserByID(t *testing.T) {
 		defer tx.Rollback()
 
 		_, err := getUserByID(GetUserByIDServiceRequest{
-			UserID:      99999,
+			UserID:      uuid.New(),
 			Tx:          tx,
 			MinioClient: minioClient,
 		})

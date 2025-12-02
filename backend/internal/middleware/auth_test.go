@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,8 +22,9 @@ func TestJwtAuthMiddleware(t *testing.T) {
 		e := echo.New()
 
 		// Create a valid token
+		testUserID := uuid.New()
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 		})
 		require.NoError(t, err)
 
@@ -59,8 +61,9 @@ func TestJwtAuthMiddleware(t *testing.T) {
 		e := echo.New()
 
 		// Create a valid token
+		testUserID := uuid.New()
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 		})
 		require.NoError(t, err)
 
@@ -100,13 +103,15 @@ func TestJwtAuthMiddleware(t *testing.T) {
 		e := echo.New()
 
 		// Create two tokens
+		testUserID1 := uuid.New()
+		testUserID2 := uuid.New()
 		cookieToken, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID1,
 		})
 		require.NoError(t, err)
 
 		headerToken, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 456,
+			UserId: testUserID2,
 		})
 		require.NoError(t, err)
 
@@ -133,12 +138,12 @@ func TestJwtAuthMiddleware(t *testing.T) {
 
 		e.ServeHTTP(rec, req)
 
-		// Assert cookie token was used (user ID 123)
+		// Assert cookie token was used (user ID 1)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		var response map[string]interface{}
 		err = json.Unmarshal(rec.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "123", response["user_id"])
+		assert.Equal(t, testUserID1.String(), response["user_id"])
 	})
 
 	t.Run("InvalidToken", func(t *testing.T) {
@@ -247,8 +252,9 @@ func TestGetUserIDFromJWT(t *testing.T) {
 		e := echo.New()
 
 		// Create token with user ID
+		testUserID := uuid.New()
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 		})
 		require.NoError(t, err)
 
@@ -260,7 +266,7 @@ func TestGetUserIDFromJWT(t *testing.T) {
 
 		userID, err := GetUserIDFromJWT(c)
 		require.NoError(t, err)
-		assert.Equal(t, uint(123), userID)
+		assert.Equal(t, testUserID, userID)
 	})
 
 	t.Run("InvalidUserID", func(t *testing.T) {
@@ -276,7 +282,7 @@ func TestGetUserIDFromJWT(t *testing.T) {
 
 		userID, err := GetUserIDFromJWT(c)
 		require.Error(t, err)
-		assert.Equal(t, uint(0), userID)
+		assert.Equal(t, uuid.Nil, userID)
 	})
 
 	t.Run("MissingClaims", func(t *testing.T) {
@@ -295,9 +301,10 @@ func TestGetRoleFromJWT(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
+		testUserID := uuid.New()
 		userRole := constants.UserRoleAdmin
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 			Role:   &userRole,
 		})
 		require.NoError(t, err)
@@ -317,8 +324,9 @@ func TestGetRoleFromJWT(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
+		testUserID := uuid.New()
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 			Role:   nil,
 		})
 		require.NoError(t, err)
@@ -341,12 +349,13 @@ func TestGetScopesFromJWT(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
+		testUserID := uuid.New()
 		scopes := []constants.UserScope{
 			constants.UserScopeAdmin,
 			constants.UserScopeOrganizationRead,
 		}
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 			Scopes: &scopes,
 		})
 		require.NoError(t, err)
@@ -368,8 +377,9 @@ func TestGetScopesFromJWT(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
+		testUserID := uuid.New()
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 			Scopes: nil,
 		})
 		require.NoError(t, err)
@@ -392,10 +402,11 @@ func TestGetImpersonatingUserIDFromJWT(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
-		impersonatingUserID := "789"
+		testUserID := uuid.New()
+		impersonatingUserID := uuid.New()
 		isImpersonating := true
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId:              123,
+			UserId:              testUserID,
 			IsImpersonating:     &isImpersonating,
 			ImpersonatingUserId: &impersonatingUserID,
 		})
@@ -409,15 +420,16 @@ func TestGetImpersonatingUserIDFromJWT(t *testing.T) {
 
 		userID, err := GetImpersonatingUserIDFromJWT(c)
 		require.NoError(t, err)
-		assert.Equal(t, uint(789), userID)
+		assert.Equal(t, impersonatingUserID, userID)
 	})
 
 	t.Run("MissingImpersonatingUserID", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
+		testUserID := uuid.New()
 		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID,
 		})
 		require.NoError(t, err)
 
@@ -429,32 +441,8 @@ func TestGetImpersonatingUserIDFromJWT(t *testing.T) {
 
 		userID, err := GetImpersonatingUserIDFromJWT(c)
 		require.Error(t, err)
-		assert.Equal(t, uint(0), userID)
+		assert.Equal(t, uuid.Nil, userID)
 		assert.Contains(t, err.Error(), "impersonating user ID is not set")
-	})
-
-	t.Run("InvalidUserID", func(t *testing.T) {
-		config := testconfig.CreateTestConfig()
-		e := echo.New()
-
-		impersonatingUserID := "invalid"
-		isImpersonating := true
-		token, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId:              123,
-			IsImpersonating:     &isImpersonating,
-			ImpersonatingUserId: &impersonatingUserID,
-		})
-		require.NoError(t, err)
-
-		claims, err := authentication.ValidateJWT(config, token)
-		require.NoError(t, err)
-
-		c := e.NewContext(httptest.NewRequest(http.MethodGet, "/test", nil), httptest.NewRecorder())
-		c.Set("claims", claims)
-
-		userID, err := GetImpersonatingUserIDFromJWT(c)
-		require.Error(t, err)
-		assert.Equal(t, uint(0), userID)
 	})
 }
 
@@ -465,13 +453,15 @@ func TestGetTokenFromRequest(t *testing.T) {
 		e := echo.New()
 
 		// Create two tokens
+		testUserID1 := uuid.New()
+		testUserID2 := uuid.New()
 		cookieToken, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 123,
+			UserId: testUserID1,
 		})
 		require.NoError(t, err)
 
 		headerToken, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 456,
+			UserId: testUserID2,
 		})
 		require.NoError(t, err)
 
@@ -496,20 +486,21 @@ func TestGetTokenFromRequest(t *testing.T) {
 
 		e.ServeHTTP(rec, req)
 
-		// Cookie token should be used (user ID 123)
+		// Cookie token should be used
 		assert.Equal(t, http.StatusOK, rec.Code)
 		var response map[string]interface{}
 		err = json.Unmarshal(rec.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "123", response["user_id"])
+		assert.Equal(t, testUserID1.String(), response["user_id"])
 	})
 
 	t.Run("HeaderFallback", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		e := echo.New()
 
+		testUserID := uuid.New()
 		headerToken, err := authentication.CreateJWT(config, authentication.JwtOptions{
-			UserId: 456,
+			UserId: testUserID,
 		})
 		require.NoError(t, err)
 
@@ -530,11 +521,11 @@ func TestGetTokenFromRequest(t *testing.T) {
 
 		e.ServeHTTP(rec, req)
 
-		// Header token should be used (user ID 456)
+		// Header token should be used
 		assert.Equal(t, http.StatusOK, rec.Code)
 		var response map[string]interface{}
 		err = json.Unmarshal(rec.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "456", response["user_id"])
+		assert.Equal(t, testUserID.String(), response["user_id"])
 	})
 }

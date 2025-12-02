@@ -3,6 +3,7 @@ package access
 import (
 	"slices"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"reece.start/internal/api"
 	"reece.start/internal/constants"
@@ -10,7 +11,7 @@ import (
 )
 
 type HasOrganizationAccessParams struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	Scopes         []constants.UserScope
 }
 

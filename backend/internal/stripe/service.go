@@ -1,14 +1,13 @@
 package stripe
 
 import (
-	"fmt"
-	"log/slog"
-	"strconv"
-
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/google/uuid"
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"github.com/stripe/stripe-go/v83/billingportal/session"
 	checkoutSession "github.com/stripe/stripe-go/v83/checkout/session"
@@ -65,7 +64,7 @@ func CreateStripeConnectAccount(request CreateStripeAccountServiceRequest) (*str
 			},
 		},
 		Metadata: map[string]string{
-			"organization_id": fmt.Sprintf("%d", request.Params.OrganizationID),
+			"organization_id": request.Params.OrganizationID.String(),
 		},
 		Include: []*string{
 			stripeGo.String("configuration.customer"),
@@ -226,13 +225,15 @@ func handleSubscriptionCreatedOrUpdated(request ProcessSnapshotWebhookEventServi
 		return nil
 	}
 
-	orgID, err := strconv.ParseUint(orgIDStr, 10, 32)
+	slog.Info("Organization ID from subscription metadata", "organizationID", orgIDStr)
+
+	orgID, err := uuid.Parse(orgIDStr)
 	if err != nil {
 		slog.Error("Failed to parse organization ID from metadata", "error", err)
 		return err
 	}
 
-	err = request.DB.WithContext(request.Context).First(&org, uint(orgID)).Error
+	err = request.DB.WithContext(request.Context).First(&org, orgID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("Organization not found for subscription", "organizationID", orgID, "subscriptionID", fetchedSub.ID)

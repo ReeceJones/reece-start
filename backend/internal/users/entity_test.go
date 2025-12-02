@@ -1,10 +1,10 @@
 package users
 
 import (
-	"strconv"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 	"reece.start/internal/constants"
@@ -14,10 +14,10 @@ import (
 func TestMapUserToResponse(t *testing.T) {
 	t.Run("maps user with all fields", func(t *testing.T) {
 		now := time.Now()
+		userID := uuid.New()
 		user := &models.User{
-			Model: gorm.Model{
-				ID: 123,
-			},
+			Model: gorm.Model{},
+			ID:    userID,
 			Name:  "Test User",
 			Email: "test@example.com",
 			Revocation: models.UserTokenRevocation{
@@ -34,7 +34,7 @@ func TestMapUserToResponse(t *testing.T) {
 
 		result := mapUserToResponse(dto)
 
-		assert.Equal(t, strconv.FormatUint(123, 10), result.Data.Id)
+		assert.Equal(t, userID.String(), result.Data.Id)
 		assert.Equal(t, constants.ApiTypeUser, result.Data.Type)
 		assert.Equal(t, "Test User", result.Data.Attributes.Name)
 		assert.Equal(t, "test@example.com", result.Data.Attributes.Email)
@@ -45,10 +45,10 @@ func TestMapUserToResponse(t *testing.T) {
 	})
 
 	t.Run("maps user without optional fields", func(t *testing.T) {
+		userID := uuid.New()
 		user := &models.User{
-			Model: gorm.Model{
-				ID: 456,
-			},
+			Model: gorm.Model{},
+			ID:    userID,
 			Name:  "Another User",
 			Email: "another@example.com",
 			Revocation: models.UserTokenRevocation{
@@ -65,7 +65,7 @@ func TestMapUserToResponse(t *testing.T) {
 
 		result := mapUserToResponse(dto)
 
-		assert.Equal(t, strconv.FormatUint(456, 10), result.Data.Id)
+		assert.Equal(t, userID.String(), result.Data.Id)
 		assert.Equal(t, "Another User", result.Data.Attributes.Name)
 		assert.Equal(t, "another@example.com", result.Data.Attributes.Email)
 		assert.Empty(t, result.Data.Meta.Token)

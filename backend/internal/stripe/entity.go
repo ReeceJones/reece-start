@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/riverqueue/river"
 	stripeGo "github.com/stripe/stripe-go/v83"
 	"gorm.io/gorm"
@@ -29,7 +30,7 @@ type CompanyAccount struct {
 }
 
 type CreateStripeAccountParams struct {
-	OrganizationID  uint
+	OrganizationID  uuid.UUID
 	Type            stripeGo.AccountBusinessType
 	DisplayName     string
 	ContactEmail    string
@@ -109,7 +110,7 @@ type CreateCheckoutSessionServiceRequest struct {
 }
 
 type CreateCheckoutSessionParams struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	SuccessURL     string
 	CancelURL      string
 }
@@ -123,14 +124,14 @@ type CreateBillingPortalSessionServiceRequest struct {
 }
 
 type CreateBillingPortalSessionParams struct {
-	OrganizationID uint
+	OrganizationID uuid.UUID
 	ReturnURL      string
 }
 
 type GetSubscriptionServiceRequest struct {
 	Context        context.Context
 	DB             *gorm.DB
-	OrganizationID uint
+	OrganizationID uuid.UUID
 }
 
 // Response structs for HTTP endpoints

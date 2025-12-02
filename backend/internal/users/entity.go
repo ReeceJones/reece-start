@@ -1,9 +1,9 @@
 package users
 
 import (
-	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 	"reece.start/internal/api"
@@ -190,13 +190,13 @@ type LoginUserServiceRequest struct {
 }
 
 type GetUserByIDServiceRequest struct {
-	UserID      uint
+	UserID      uuid.UUID
 	Tx          *gorm.DB
 	MinioClient *minio.Client
 }
 
 type UpdateUserParams struct {
-	UserID   uint
+	UserID   uuid.UUID
 	Name     string
 	Email    string
 	Password string
@@ -211,7 +211,7 @@ type UpdateUserServiceRequest struct {
 }
 
 type GetUserLogoDistributionUrlServiceRequest struct {
-	UserID      uint
+	UserID      uuid.UUID
 	Tx          *gorm.DB
 	MinioClient *minio.Client
 }
@@ -245,9 +245,9 @@ type CreateAuthenticatedUserTokenServiceRequest struct {
 }
 
 type CreateAuthenticatedUserTokenParams struct {
-	UserId              uint
-	OrganizationId      *uint
-	ImpersonatingUserId *uint
+	UserId              uuid.UUID
+	OrganizationId      *uuid.UUID
+	ImpersonatingUserId *uuid.UUID
 	CustomExpiry        *time.Time
 }
 
@@ -270,7 +270,7 @@ type SelectMembershipRole struct {
 }
 
 type GetUsersCursor struct {
-	UserID    uint
+	UserID    uuid.UUID
 	Direction string
 }
 
@@ -279,7 +279,7 @@ func mapUserToResponse(params *UserDto) UserResponse {
 	return UserResponse{
 		Data: UserDataWithMeta{
 			UserData: UserData{
-				Id:   strconv.FormatUint(uint64(params.User.ID), 10),
+				Id:   params.User.ID.String(),
 				Type: constants.ApiTypeUser,
 				Attributes: UserAttributes{
 					Name:  params.User.Name,

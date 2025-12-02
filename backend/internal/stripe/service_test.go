@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strconv"
 	"testing"
 	"time"
 
@@ -76,7 +75,7 @@ func TestCreateCheckoutSession(t *testing.T) {
 			StripeClient: stripeClient,
 			DB:           tx,
 			Params: CreateCheckoutSessionParams{
-				OrganizationID: 99999,
+				OrganizationID: uuid.New(),
 				SuccessURL:     "https://example.com/success",
 				CancelURL:      "https://example.com/cancel",
 			},
@@ -200,7 +199,7 @@ func TestCreateBillingPortalSession(t *testing.T) {
 			StripeClient: stripeClient,
 			DB:           tx,
 			Params: CreateBillingPortalSessionParams{
-				OrganizationID: 99999,
+				OrganizationID: uuid.New(),
 				ReturnURL:      "https://example.com/return",
 			},
 		})
@@ -358,7 +357,7 @@ func TestHandleSubscriptionCreatedOrUpdated(t *testing.T) {
 			ID:     subscriptionID,
 			Status: stripeGo.SubscriptionStatusActive,
 			Metadata: map[string]string{
-				"organization_id": strconv.FormatUint(uint64(org.ID), 10),
+				"organization_id": org.ID.String(),
 			},
 			BillingCycleAnchor: time.Now().Unix(),
 			Items: &stripeGo.SubscriptionItemList{

@@ -4,7 +4,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -130,15 +129,14 @@ func CreateCheckoutSessionEndpoint(c echo.Context, req CreateCheckoutSessionRequ
 	ctx := c.Request().Context()
 
 	// Get organization ID from path
-	organizationIDStr := c.Param("id")
-	organizationID, err := strconv.ParseUint(organizationIDStr, 10, 32)
+	organizationID, err := api.ParseOrganizationIDFromParams(c)
 	if err != nil {
-		return api.ErrInvalidOrganizationID
+		return err
 	}
 
 	// Check organization access
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
-		OrganizationID: uint(organizationID),
+		OrganizationID: organizationID,
 		Scopes:         []constants.UserScope{constants.UserScopeOrganizationBillingUpdate},
 	}); err != nil {
 		return err
@@ -151,7 +149,7 @@ func CreateCheckoutSessionEndpoint(c echo.Context, req CreateCheckoutSessionRequ
 		StripeClient: stripeClient,
 		DB:           db,
 		Params: CreateCheckoutSessionParams{
-			OrganizationID: uint(organizationID),
+			OrganizationID: organizationID,
 			SuccessURL:     req.SuccessURL,
 			CancelURL:      req.CancelURL,
 		},
@@ -181,15 +179,14 @@ func CreateBillingPortalSessionEndpoint(c echo.Context, req CreateBillingPortalS
 	ctx := c.Request().Context()
 
 	// Get organization ID from path
-	organizationIDStr := c.Param("id")
-	organizationID, err := strconv.ParseUint(organizationIDStr, 10, 32)
+	organizationID, err := api.ParseOrganizationIDFromParams(c)
 	if err != nil {
-		return api.ErrInvalidOrganizationID
+		return err
 	}
 
 	// Check organization access
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
-		OrganizationID: uint(organizationID),
+		OrganizationID: organizationID,
 		Scopes:         []constants.UserScope{constants.UserScopeOrganizationBillingUpdate},
 	}); err != nil {
 		return err
@@ -202,7 +199,7 @@ func CreateBillingPortalSessionEndpoint(c echo.Context, req CreateBillingPortalS
 		StripeClient: stripeClient,
 		DB:           db,
 		Params: CreateBillingPortalSessionParams{
-			OrganizationID: uint(organizationID),
+			OrganizationID: organizationID,
 			ReturnURL:      req.ReturnURL,
 		},
 	})
@@ -229,15 +226,14 @@ func GetSubscriptionEndpoint(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Get organization ID from path
-	organizationIDStr := c.Param("id")
-	organizationID, err := strconv.ParseUint(organizationIDStr, 10, 32)
+	organizationID, err := api.ParseOrganizationIDFromParams(c)
 	if err != nil {
-		return api.ErrInvalidOrganizationID
+		return err
 	}
 
 	// Check organization access (any member can view)
 	if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
-		OrganizationID: uint(organizationID),
+		OrganizationID: organizationID,
 		Scopes:         []constants.UserScope{constants.UserScopeOrganizationRead},
 	}); err != nil {
 		return err
@@ -247,7 +243,7 @@ func GetSubscriptionEndpoint(c echo.Context) error {
 	subscription, err := GetSubscription(GetSubscriptionServiceRequest{
 		Context:        ctx,
 		DB:             db,
-		OrganizationID: uint(organizationID),
+		OrganizationID: organizationID,
 	})
 
 	if err != nil {
@@ -276,7 +272,7 @@ func GetSubscriptionEndpoint(c echo.Context) error {
 	return c.JSON(http.StatusOK, SubscriptionResponse{
 		Data: SubscriptionData{
 			Type: "subscription",
-			ID:   strconv.FormatUint(uint64(subscription.ID), 10),
+			ID:   subscription.StripeSubscriptionID,
 			Attributes: SubscriptionAttributes{
 				Plan:               string(subscription.Plan),
 				BillingPeriodStart: &billingPeriodStart,

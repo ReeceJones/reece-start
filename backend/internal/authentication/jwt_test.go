@@ -7,6 +7,7 @@ import (
 	"reece.start/internal/constants"
 	testconfig "reece.start/test/config"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +15,7 @@ func TestCreateJWT(t *testing.T) {
 	t.Run("MinimalOptions", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		token, err := CreateJWT(config, options)
@@ -24,7 +25,7 @@ func TestCreateJWT(t *testing.T) {
 		// Validate the token
 		claims, err := ValidateJWT(config, token)
 		require.NoError(t, err)
-		require.Equal(t, "123", claims.UserId)
+		require.Equal(t, options.UserId.String(), claims.UserId)
 		require.Nil(t, claims.OrganizationId)
 		require.Nil(t, claims.OrganizationRole)
 		require.Nil(t, claims.Scopes)
@@ -33,15 +34,15 @@ func TestCreateJWT(t *testing.T) {
 		require.Nil(t, claims.ImpersonatingUserId)
 		require.Equal(t, config.JwtIssuer, claims.Issuer)
 		require.Equal(t, config.JwtAudience, claims.Audience[0])
-		require.Equal(t, "123", claims.Subject)
+		require.Equal(t, options.UserId.String(), claims.Subject)
 	})
 
 	t.Run("WithOrganization", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
-		orgId := uint(456)
+		orgId := uuid.New()
 		orgRole := constants.OrganizationRoleAdmin
 		options := JwtOptions{
-			UserId:           123,
+			UserId:           uuid.New(),
 			OrganizationId:   &orgId,
 			OrganizationRole: &orgRole,
 		}
@@ -52,16 +53,16 @@ func TestCreateJWT(t *testing.T) {
 
 		claims, err := ValidateJWT(config, token)
 		require.NoError(t, err)
-		require.Equal(t, "123", claims.UserId)
+		require.Equal(t, options.UserId.String(), claims.UserId)
 		require.NotNil(t, claims.OrganizationId)
-		require.Equal(t, "456", *claims.OrganizationId)
+		require.Equal(t, orgId.String(), *claims.OrganizationId)
 		require.NotNil(t, claims.OrganizationRole)
 		require.Equal(t, constants.OrganizationRoleAdmin, *claims.OrganizationRole)
 	})
 
 	t.Run("WithAllOptions", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
-		orgId := uint(456)
+		orgId := uuid.New()
 		orgRole := constants.OrganizationRoleAdmin
 		userRole := constants.UserRoleAdmin
 		scopes := []constants.UserScope{
@@ -69,10 +70,10 @@ func TestCreateJWT(t *testing.T) {
 			constants.UserScopeOrganizationRead,
 		}
 		isImpersonating := true
-		impersonatingUserId := "789"
+		impersonatingUserId := uuid.New()
 
 		options := JwtOptions{
-			UserId:              123,
+			UserId:              uuid.New(),
 			OrganizationId:      &orgId,
 			OrganizationRole:    &orgRole,
 			Role:                &userRole,
@@ -87,8 +88,8 @@ func TestCreateJWT(t *testing.T) {
 
 		claims, err := ValidateJWT(config, token)
 		require.NoError(t, err)
-		require.Equal(t, "123", claims.UserId)
-		require.Equal(t, "456", *claims.OrganizationId)
+		require.Equal(t, options.UserId.String(), claims.UserId)
+		require.Equal(t, orgId.String(), *claims.OrganizationId)
 		require.Equal(t, constants.OrganizationRoleAdmin, *claims.OrganizationRole)
 		require.Equal(t, constants.UserRoleAdmin, *claims.Role)
 		require.NotNil(t, claims.Scopes)
@@ -97,14 +98,14 @@ func TestCreateJWT(t *testing.T) {
 		require.Equal(t, constants.UserScopeOrganizationRead, (*claims.Scopes)[1])
 		require.NotNil(t, claims.IsImpersonating)
 		require.True(t, *claims.IsImpersonating)
-		require.Equal(t, impersonatingUserId, *claims.ImpersonatingUserId)
+		require.Equal(t, impersonatingUserId.String(), *claims.ImpersonatingUserId)
 	})
 
 	t.Run("WithCustomExpiry", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		customExpiry := time.Now().Add(2 * time.Hour)
 		options := JwtOptions{
-			UserId:       123,
+			UserId:       uuid.New(),
 			CustomExpiry: &customExpiry,
 		}
 
@@ -114,7 +115,7 @@ func TestCreateJWT(t *testing.T) {
 
 		claims, err := ValidateJWT(config, token)
 		require.NoError(t, err)
-		require.Equal(t, "123", claims.UserId)
+		require.Equal(t, options.UserId.String(), claims.UserId)
 		require.NotNil(t, claims.ExpiresAt)
 		// Check that expiry is approximately 2 hours from now (within 1 minute tolerance)
 		expectedExpiry := customExpiry.Unix()
@@ -125,7 +126,7 @@ func TestCreateJWT(t *testing.T) {
 	t.Run("WithDefaultExpiry", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		token, err := CreateJWT(config, options)
@@ -144,7 +145,7 @@ func TestCreateJWT(t *testing.T) {
 
 	t.Run("RoundTripWithValidateJWT", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
-		orgId := uint(789)
+		orgId := uuid.New()
 		orgRole := constants.OrganizationRoleMember
 		userRole := constants.UserRoleDefault
 		scopes := []constants.UserScope{
@@ -153,7 +154,7 @@ func TestCreateJWT(t *testing.T) {
 		isImpersonating := false
 
 		options := JwtOptions{
-			UserId:           999,
+			UserId:           uuid.New(),
 			OrganizationId:   &orgId,
 			OrganizationRole: &orgRole,
 			Role:             &userRole,
@@ -172,9 +173,9 @@ func TestCreateJWT(t *testing.T) {
 		require.NotNil(t, claims)
 
 		// Verify all fields
-		require.Equal(t, "999", claims.UserId)
+		require.Equal(t, options.UserId.String(), claims.UserId)
 		require.NotNil(t, claims.OrganizationId)
-		require.Equal(t, "789", *claims.OrganizationId)
+		require.Equal(t, orgId.String(), *claims.OrganizationId)
 		require.NotNil(t, claims.OrganizationRole)
 		require.Equal(t, constants.OrganizationRoleMember, *claims.OrganizationRole)
 		require.NotNil(t, claims.Role)
@@ -192,7 +193,7 @@ func TestValidateJWT(t *testing.T) {
 	t.Run("ValidToken", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		token, err := CreateJWT(config, options)
@@ -201,13 +202,13 @@ func TestValidateJWT(t *testing.T) {
 		claims, err := ValidateJWT(config, token)
 		require.NoError(t, err)
 		require.NotNil(t, claims)
-		require.Equal(t, "123", claims.UserId)
+		require.Equal(t, options.UserId.String(), claims.UserId)
 	})
 
 	t.Run("InvalidSecret", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		token, err := CreateJWT(config, options)
@@ -226,7 +227,7 @@ func TestValidateJWT(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		pastTime := time.Now().Add(-1 * time.Hour)
 		options := JwtOptions{
-			UserId:       123,
+			UserId:       uuid.New(),
 			CustomExpiry: &pastTime,
 		}
 
@@ -261,7 +262,7 @@ func TestValidateJWT(t *testing.T) {
 	t.Run("WrongIssuer", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		// Create token with different issuer
@@ -281,7 +282,7 @@ func TestValidateJWT(t *testing.T) {
 	t.Run("WrongAudience", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		// Create token with different audience
@@ -301,20 +302,20 @@ func TestValidateJWT(t *testing.T) {
 
 func TestGetActiveOrganizationIdFromOptions(t *testing.T) {
 	t.Run("WithOrganizationId", func(t *testing.T) {
-		orgId := uint(456)
+		orgId := uuid.New()
 		options := JwtOptions{
-			UserId:         123,
+			UserId:         uuid.New(),
 			OrganizationId: &orgId,
 		}
 
 		result := getActiveOrganizationIdFromOptions(options)
 		require.NotNil(t, result)
-		require.Equal(t, "456", *result)
+		require.Equal(t, orgId.String(), *result)
 	})
 
 	t.Run("WithoutOrganizationId", func(t *testing.T) {
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		result := getActiveOrganizationIdFromOptions(options)
@@ -323,7 +324,7 @@ func TestGetActiveOrganizationIdFromOptions(t *testing.T) {
 
 	t.Run("NilOrganizationId", func(t *testing.T) {
 		options := JwtOptions{
-			UserId:         123,
+			UserId:         uuid.New(),
 			OrganizationId: nil,
 		}
 
@@ -337,7 +338,7 @@ func TestGetExpiryFromOptions(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		customExpiry := time.Now().Add(2 * time.Hour)
 		options := JwtOptions{
-			UserId:       123,
+			UserId:       uuid.New(),
 			CustomExpiry: &customExpiry,
 		}
 
@@ -352,7 +353,7 @@ func TestGetExpiryFromOptions(t *testing.T) {
 	t.Run("WithoutCustomExpiry", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId: 123,
+			UserId: uuid.New(),
 		}
 
 		result := getExpiryFromOptions(config, options)
@@ -367,7 +368,7 @@ func TestGetExpiryFromOptions(t *testing.T) {
 	t.Run("NilCustomExpiry", func(t *testing.T) {
 		config := testconfig.CreateTestConfig()
 		options := JwtOptions{
-			UserId:       123,
+			UserId:       uuid.New(),
 			CustomExpiry: nil,
 		}
 

@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"reece.start/internal/constants"
 )
@@ -10,7 +11,7 @@ import (
 // A period of time that an organization is subscribed to a plan
 type OrganizationPlanPeriod struct {
 	gorm.Model
-	OrganizationID       uint                     `gorm:"not null"`
+	OrganizationID       uuid.UUID                `gorm:"not null;type:uuid"`
 	Plan                 constants.MembershipPlan `gorm:"not null;index"`
 	StripeSubscriptionID string                   `gorm:"not null"`
 	BillingPeriodStart   time.Time                `gorm:"not null;index"`

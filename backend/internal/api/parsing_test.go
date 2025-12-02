@@ -13,16 +13,17 @@ import (
 
 func TestParseOrganizationIDFromParams(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
+		validUUID := uuid.New()
 		e := echo.New()
-		req := httptest.NewRequest(http.MethodGet, "/organizations/123", nil)
+		req := httptest.NewRequest(http.MethodGet, "/organizations/"+validUUID.String(), nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
-		c.SetParamValues("123")
+		c.SetParamValues(validUUID.String())
 
 		orgID, err := ParseOrganizationIDFromParams(c)
 		require.NoError(t, err)
-		require.Equal(t, uint(123), orgID)
+		require.Equal(t, validUUID, orgID)
 	})
 
 	t.Run("InvalidNonNumeric", func(t *testing.T) {
@@ -36,7 +37,7 @@ func TestParseOrganizationIDFromParams(t *testing.T) {
 		orgID, err := ParseOrganizationIDFromParams(c)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
-		require.Equal(t, uint(0), orgID)
+		require.Equal(t, uuid.Nil, orgID)
 	})
 
 	t.Run("InvalidEmpty", func(t *testing.T) {
@@ -50,7 +51,7 @@ func TestParseOrganizationIDFromParams(t *testing.T) {
 		orgID, err := ParseOrganizationIDFromParams(c)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
-		require.Equal(t, uint(0), orgID)
+		require.Equal(t, uuid.Nil, orgID)
 	})
 
 	t.Run("InvalidNegative", func(t *testing.T) {
@@ -64,111 +65,117 @@ func TestParseOrganizationIDFromParams(t *testing.T) {
 		orgID, err := ParseOrganizationIDFromParams(c)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
-		require.Equal(t, uint(0), orgID)
+		require.Equal(t, uuid.Nil, orgID)
 	})
 
-	t.Run("ValidZero", func(t *testing.T) {
+	t.Run("InvalidPartialUUID", func(t *testing.T) {
 		e := echo.New()
-		req := httptest.NewRequest(http.MethodGet, "/organizations/0", nil)
+		req := httptest.NewRequest(http.MethodGet, "/organizations/123e4567-e89b-12d3", nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
-		c.SetParamValues("0")
+		c.SetParamValues("123e4567-e89b-12d3")
 
 		orgID, err := ParseOrganizationIDFromParams(c)
-		require.NoError(t, err)
-		require.Equal(t, uint(0), orgID)
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
+		require.Equal(t, uuid.Nil, orgID)
 	})
 }
 
 func TestParseOrganizationIDFromString(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
-		orgID, err := ParseOrganizationIDFromString("456")
+		validUUID := uuid.New()
+		orgID, err := ParseOrganizationIDFromString(validUUID.String())
 		require.NoError(t, err)
-		require.Equal(t, uint(456), orgID)
+		require.Equal(t, validUUID, orgID)
 	})
 
 	t.Run("InvalidNonNumeric", func(t *testing.T) {
 		orgID, err := ParseOrganizationIDFromString("xyz")
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
-		require.Equal(t, uint(0), orgID)
+		require.Equal(t, uuid.Nil, orgID)
 	})
 
 	t.Run("InvalidEmpty", func(t *testing.T) {
 		orgID, err := ParseOrganizationIDFromString("")
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
-		require.Equal(t, uint(0), orgID)
+		require.Equal(t, uuid.Nil, orgID)
 	})
 
 	t.Run("InvalidNegative", func(t *testing.T) {
 		orgID, err := ParseOrganizationIDFromString("-5")
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
-		require.Equal(t, uint(0), orgID)
+		require.Equal(t, uuid.Nil, orgID)
 	})
 
-	t.Run("ValidZero", func(t *testing.T) {
-		orgID, err := ParseOrganizationIDFromString("0")
-		require.NoError(t, err)
-		require.Equal(t, uint(0), orgID)
+	t.Run("InvalidPartialUUID", func(t *testing.T) {
+		orgID, err := ParseOrganizationIDFromString("123e4567-e89b-12d3")
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidOrganizationID))
+		require.Equal(t, uuid.Nil, orgID)
 	})
 
-	t.Run("ValidMaxUint32", func(t *testing.T) {
-		orgID, err := ParseOrganizationIDFromString("4294967295")
+	t.Run("ValidNilUUID", func(t *testing.T) {
+		orgID, err := ParseOrganizationIDFromString(uuid.Nil.String())
 		require.NoError(t, err)
-		require.Equal(t, uint(4294967295), orgID)
+		require.Equal(t, uuid.Nil, orgID)
 	})
 }
 
 func TestParseUserIDFromString(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
-		userID, err := ParseUserIDFromString("789")
+		validUUID := uuid.New()
+		userID, err := ParseUserIDFromString(validUUID.String())
 		require.NoError(t, err)
-		require.Equal(t, uint(789), userID)
+		require.Equal(t, validUUID, userID)
 	})
 
 	t.Run("InvalidNonNumeric", func(t *testing.T) {
 		userID, err := ParseUserIDFromString("invalid")
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidUserID))
-		require.Equal(t, uint(0), userID)
+		require.Equal(t, uuid.Nil, userID)
 	})
 
 	t.Run("InvalidEmpty", func(t *testing.T) {
 		userID, err := ParseUserIDFromString("")
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidUserID))
-		require.Equal(t, uint(0), userID)
+		require.Equal(t, uuid.Nil, userID)
 	})
 
 	t.Run("InvalidNegative", func(t *testing.T) {
 		userID, err := ParseUserIDFromString("-10")
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidUserID))
-		require.Equal(t, uint(0), userID)
+		require.Equal(t, uuid.Nil, userID)
 	})
 
-	t.Run("ValidZero", func(t *testing.T) {
-		userID, err := ParseUserIDFromString("0")
-		require.NoError(t, err)
-		require.Equal(t, uint(0), userID)
+	t.Run("InvalidPartialUUID", func(t *testing.T) {
+		userID, err := ParseUserIDFromString("123e4567-e89b-12d3")
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidUserID))
+		require.Equal(t, uuid.Nil, userID)
 	})
 }
 
 func TestParseMembershipIDFromParams(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
+		validUUID := uuid.New()
 		e := echo.New()
-		req := httptest.NewRequest(http.MethodGet, "/memberships/42", nil)
+		req := httptest.NewRequest(http.MethodGet, "/memberships/"+validUUID.String(), nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
-		c.SetParamValues("42")
+		c.SetParamValues(validUUID.String())
 
 		membershipID, err := ParseMembershipIDFromParams(c)
 		require.NoError(t, err)
-		require.Equal(t, uint(42), membershipID)
+		require.Equal(t, validUUID, membershipID)
 	})
 
 	t.Run("InvalidNonNumeric", func(t *testing.T) {
@@ -182,7 +189,7 @@ func TestParseMembershipIDFromParams(t *testing.T) {
 		membershipID, err := ParseMembershipIDFromParams(c)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidMembershipID))
-		require.Equal(t, uint(0), membershipID)
+		require.Equal(t, uuid.Nil, membershipID)
 	})
 
 	t.Run("InvalidEmpty", func(t *testing.T) {
@@ -196,7 +203,7 @@ func TestParseMembershipIDFromParams(t *testing.T) {
 		membershipID, err := ParseMembershipIDFromParams(c)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidMembershipID))
-		require.Equal(t, uint(0), membershipID)
+		require.Equal(t, uuid.Nil, membershipID)
 	})
 
 	t.Run("InvalidNegative", func(t *testing.T) {
@@ -210,20 +217,21 @@ func TestParseMembershipIDFromParams(t *testing.T) {
 		membershipID, err := ParseMembershipIDFromParams(c)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidMembershipID))
-		require.Equal(t, uint(0), membershipID)
+		require.Equal(t, uuid.Nil, membershipID)
 	})
 
-	t.Run("ValidZero", func(t *testing.T) {
+	t.Run("InvalidPartialUUID", func(t *testing.T) {
 		e := echo.New()
-		req := httptest.NewRequest(http.MethodGet, "/memberships/0", nil)
+		req := httptest.NewRequest(http.MethodGet, "/memberships/123e4567-e89b-12d3", nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
-		c.SetParamValues("0")
+		c.SetParamValues("123e4567-e89b-12d3")
 
 		membershipID, err := ParseMembershipIDFromParams(c)
-		require.NoError(t, err)
-		require.Equal(t, uint(0), membershipID)
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidMembershipID))
+		require.Equal(t, uuid.Nil, membershipID)
 	})
 }
 

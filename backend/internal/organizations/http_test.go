@@ -2,9 +2,9 @@ package organizations_test
 
 import (
 	"net/http"
-	"strconv"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"reece.start/internal/constants"
@@ -13,14 +13,14 @@ import (
 )
 
 // createTokenWithOrganizationContext creates a token with organization context for testing
-func createTokenWithOrganizationContext(t *testing.T, tc *test.TestContext, initialToken string, orgID uint) string {
+func createTokenWithOrganizationContext(t *testing.T, tc *test.TestContext, initialToken string, orgID uuid.UUID) string {
 	tokenReqBody := map[string]interface{}{
 		"data": map[string]interface{}{
 			"type": constants.ApiTypeToken,
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(orgID), 10),
+						"id":   orgID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -118,13 +118,13 @@ func TestGetOrganizationsEndpoint(t *testing.T) {
 	assert.GreaterOrEqual(t, len(data), 2)
 
 	// Verify both organizations are in the response
-	orgIDs := make(map[uint]bool)
+	orgIDs := make(map[uuid.UUID]bool)
 	for _, item := range data {
 		orgData := item.(map[string]interface{})
 		orgIDStr := orgData["id"].(string)
-		orgID, err := strconv.ParseUint(orgIDStr, 10, 32)
+		orgID, err := uuid.Parse(orgIDStr)
 		require.NoError(t, err)
-		orgIDs[uint(orgID)] = true
+		orgIDs[orgID] = true
 	}
 
 	assert.True(t, orgIDs[org.ID])
@@ -142,7 +142,7 @@ func TestGetOrganizationEndpoint(t *testing.T) {
 		token := createTokenWithOrganizationContext(t, tc, initialToken, org.ID)
 
 		// Make request
-		rec := tc.MakeAuthenticatedRequest(http.MethodGet, "/organizations/"+strconv.FormatUint(uint64(org.ID), 10), nil, token)
+		rec := tc.MakeAuthenticatedRequest(http.MethodGet, "/organizations/"+org.ID.String(), nil, token)
 
 		// Assert response
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -154,7 +154,7 @@ func TestGetOrganizationEndpoint(t *testing.T) {
 		data := response["data"].(map[string]interface{})
 		attributes := data["attributes"].(map[string]interface{})
 
-		assert.Equal(t, strconv.FormatUint(uint64(org.ID), 10), data["id"])
+		assert.Equal(t, org.ID.String(), data["id"])
 		assert.Equal(t, org.Name, attributes["name"])
 
 		// Keep user variable to avoid unused variable warning
@@ -169,7 +169,7 @@ func TestGetOrganizationEndpoint(t *testing.T) {
 		_, _, token2 := test.CreateAuthenticatedTestUser(t, tc, constants.OrganizationRoleAdmin)
 
 		// Try to access org1 with token2 (should fail)
-		rec := tc.MakeAuthenticatedRequest(http.MethodGet, "/organizations/"+strconv.FormatUint(uint64(org1.ID), 10), nil, token2)
+		rec := tc.MakeAuthenticatedRequest(http.MethodGet, "/organizations/"+org1.ID.String(), nil, token2)
 
 		// Assert unauthorized response
 		assert.Equal(t, http.StatusForbidden, rec.Code)
@@ -199,7 +199,7 @@ func TestUpdateOrganizationEndpoint(t *testing.T) {
 	// Make request
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodPatch,
-		"/organizations/"+strconv.FormatUint(uint64(org.ID), 10),
+		"/organizations/"+org.ID.String(),
 		reqBody,
 		token,
 	)
@@ -227,7 +227,7 @@ func TestDeleteOrganizationEndpoint(t *testing.T) {
 	// Make request
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodDelete,
-		"/organizations/"+strconv.FormatUint(uint64(org.ID), 10),
+		"/organizations/"+org.ID.String(),
 		nil,
 		token,
 	)
@@ -264,7 +264,7 @@ func TestGetOrganizationMembershipsEndpoint(t *testing.T) {
 	// Make request
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodGet,
-		"/organization-memberships?organizationId="+strconv.FormatUint(uint64(org.ID), 10),
+		"/organization-memberships?organizationId="+org.ID.String(),
 		nil,
 		token1,
 	)
@@ -280,14 +280,14 @@ func TestGetOrganizationMembershipsEndpoint(t *testing.T) {
 	assert.Len(t, data, 2)
 
 	// Verify both users are in the response
-	userIDs := make(map[uint]bool)
+	userIDs := make(map[uuid.UUID]bool)
 	included := response["included"].([]interface{})
 	for _, item := range included {
 		userData := item.(map[string]interface{})
 		userIDStr := userData["id"].(string)
-		userID, err := strconv.ParseUint(userIDStr, 10, 32)
+		userID, err := uuid.Parse(userIDStr)
 		require.NoError(t, err)
-		userIDs[uint(userID)] = true
+		userIDs[userID] = true
 	}
 
 	assert.True(t, userIDs[user1.ID])
@@ -311,7 +311,7 @@ func TestGetOrganizationMembershipEndpoint(t *testing.T) {
 	// Make request
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodGet,
-		"/organization-memberships/"+strconv.FormatUint(uint64(membership.ID), 10),
+		"/organization-memberships/"+membership.ID.String(),
 		nil,
 		token,
 	)
@@ -326,7 +326,7 @@ func TestGetOrganizationMembershipEndpoint(t *testing.T) {
 	data := response["data"].(map[string]interface{})
 	attributes := data["attributes"].(map[string]interface{})
 
-	assert.Equal(t, strconv.FormatUint(uint64(membership.ID), 10), data["id"])
+	assert.Equal(t, membership.ID.String(), data["id"])
 	assert.Equal(t, string(constants.OrganizationRoleAdmin), attributes["role"])
 }
 
@@ -352,13 +352,13 @@ func TestCreateOrganizationMembershipEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"user": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(user2.ID), 10),
+						"id":   user2.ID.String(),
 						"type": constants.ApiTypeUser,
 					},
 				},
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -405,7 +405,7 @@ func TestUpdateOrganizationMembershipEndpoint(t *testing.T) {
 	// Make request
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodPatch,
-		"/organization-memberships/"+strconv.FormatUint(uint64(membership.ID), 10),
+		"/organization-memberships/"+membership.ID.String(),
 		reqBody,
 		adminToken,
 	)
@@ -436,7 +436,7 @@ func TestDeleteOrganizationMembershipEndpoint(t *testing.T) {
 	// Make request
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodDelete,
-		"/organization-memberships/"+strconv.FormatUint(uint64(membership.ID), 10),
+		"/organization-memberships/"+membership.ID.String(),
 		nil,
 		adminToken,
 	)
@@ -470,7 +470,7 @@ func TestInviteToOrganizationEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -523,7 +523,7 @@ func TestGetOrganizationInvitationsEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -542,7 +542,7 @@ func TestGetOrganizationInvitationsEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -554,7 +554,7 @@ func TestGetOrganizationInvitationsEndpoint(t *testing.T) {
 	// Make request to get invitations
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodGet,
-		"/organization-invitations?organizationId="+strconv.FormatUint(uint64(org.ID), 10),
+		"/organization-invitations?organizationId="+org.ID.String(),
 		nil,
 		token,
 	)
@@ -590,7 +590,7 @@ func TestGetOrganizationInvitationEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -646,7 +646,7 @@ func TestDeleteOrganizationInvitationEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -699,7 +699,7 @@ func TestAcceptOrganizationInvitationEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -769,7 +769,7 @@ func TestDeclineOrganizationInvitationEndpoint(t *testing.T) {
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(org.ID), 10),
+						"id":   org.ID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},

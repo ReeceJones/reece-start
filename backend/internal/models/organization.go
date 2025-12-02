@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type OrganizationStripeAccount struct {
 	// Account ID
@@ -21,6 +24,7 @@ type OrganizationStripeAccount struct {
 
 type Organization struct {
 	gorm.Model
+	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
 
 	// Basic information
 	Name               string `gorm:"not null;size:100"`

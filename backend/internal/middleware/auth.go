@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"errors"
-	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"reece.start/internal/api"
 	"reece.start/internal/authentication"
@@ -36,13 +36,13 @@ func JwtAuthMiddleware(config *configuration.Config) echo.MiddlewareFunc {
 }
 
 // GetUserIDFromJWT extracts the user ID from the JWT claims in the context
-func GetUserIDFromJWT(c echo.Context) (uint, error) {
+func GetUserIDFromJWT(c echo.Context) (uuid.UUID, error) {
 	claims := c.Get("claims").(*authentication.JwtClaims)
-	userID, err := strconv.ParseUint(claims.UserId, 10, 32)
+	userID, err := uuid.Parse(claims.UserId)
 	if err != nil {
-		return 0, err
+		return uuid.Nil, err
 	}
-	return uint(userID), nil
+	return userID, nil
 }
 
 func GetRoleFromJWT(c echo.Context) (constants.UserRole, error) {
@@ -61,18 +61,18 @@ func GetScopesFromJWT(c echo.Context) ([]constants.UserScope, error) {
 	return *claims.Scopes, nil
 }
 
-func GetImpersonatingUserIDFromJWT(c echo.Context) (uint, error) {
+func GetImpersonatingUserIDFromJWT(c echo.Context) (uuid.UUID, error) {
 	claims := c.Get("claims").(*authentication.JwtClaims)
 
 	if claims.ImpersonatingUserId == nil {
-		return 0, errors.New("impersonating user ID is not set")
+		return uuid.Nil, errors.New("impersonating user ID is not set")
 	}
 
-	impersonatingUserID, err := strconv.ParseUint(*claims.ImpersonatingUserId, 10, 32)
+	impersonatingUserID, err := uuid.Parse(*claims.ImpersonatingUserId)
 	if err != nil {
-		return 0, err
+		return uuid.Nil, err
 	}
-	return uint(impersonatingUserID), nil
+	return impersonatingUserID, nil
 }
 
 func getTokenFromRequest(c echo.Context) (string, error) {

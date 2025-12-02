@@ -3,8 +3,8 @@ package users
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"reece.start/internal/access"
 	"reece.start/internal/api"
@@ -86,10 +86,14 @@ func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticate
 	}
 
 	impersonatingUserId, _ := middleware.GetImpersonatingUserIDFromJWT(c)
+	var impersonatingUserIdPtr *uuid.UUID
+	if impersonatingUserId != uuid.Nil {
+		impersonatingUserIdPtr = &impersonatingUserId
+	}
 
 	if req.Data.Relationships.ImpersonatedUser != nil {
-		if impersonatingUserId != 0 {
-			// if the impersonating user id is not 0, then the user is already impersonating someone
+		if impersonatingUserIdPtr != nil {
+			// if the impersonating user id is not nil, then the user is already impersonating someone
 			return api.ErrForbiddenImpersonationNotAllowed
 		}
 
@@ -98,33 +102,34 @@ func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticate
 		}
 
 		// set the user id to the impersonated user id
-		impersonatingUserId, err = api.ParseUserIDFromString(req.Data.Relationships.ImpersonatedUser.Data.Id)
+		parsedImpersonatingUserId, err := api.ParseUserIDFromString(req.Data.Relationships.ImpersonatedUser.Data.Id)
 
 		if err != nil {
 			return err
 		}
 
 		actualUserId := userId
-		userId = impersonatingUserId
-		impersonatingUserId = actualUserId
+		userId = parsedImpersonatingUserId
+		impersonatingUserIdPtr = &actualUserId
 	}
 
 	if req.Data.Meta.StopImpersonating {
-		if impersonatingUserId == 0 {
-			// if the impersonating user id is 0, then the user is not impersonating anyone
+		if impersonatingUserIdPtr == nil {
+			// if the impersonating user id is nil, then the user is not impersonating anyone
 			return api.ErrForbiddenImpersonationNotAllowed
 		}
 
-		userId = impersonatingUserId
-		impersonatingUserId = 0
+		userId = *impersonatingUserIdPtr
+		impersonatingUserIdPtr = nil
 	}
 
-	var organizationId uint
+	var organizationId *uuid.UUID
 	if req.Data.Relationships.Organization != nil {
-		organizationId, err = api.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
+		parsedOrgID, err := api.ParseOrganizationIDFromString(req.Data.Relationships.Organization.Data.Id)
 		if err != nil {
 			return err
 		}
+		organizationId = &parsedOrgID
 	}
 
 	tx := middleware.GetDB(c)
@@ -133,8 +138,8 @@ func CreateAuthenticatedUserTokenEndpoint(c echo.Context, req CreateAuthenticate
 	token, err := createAuthenticatedUserToken(CreateAuthenticatedUserTokenServiceRequest{
 		Params: CreateAuthenticatedUserTokenParams{
 			UserId:              userId,
-			OrganizationId:      &organizationId,
-			ImpersonatingUserId: &impersonatingUserId,
+			OrganizationId:      organizationId,
+			ImpersonatingUserId: impersonatingUserIdPtr,
 		},
 		Tx:     tx,
 		Config: config,
@@ -223,7 +228,7 @@ func GetUsersEndpoint(c echo.Context, query GetUsersQuery) error {
 	for _, userDto := range response.Users {
 		userData = append(userData, UserDataWithMeta{
 			UserData: UserData{
-				Id:   strconv.FormatUint(uint64(userDto.User.ID), 10),
+				Id:   userDto.User.ID.String(),
 				Type: constants.ApiTypeUser,
 				Attributes: UserAttributes{
 					Name:  userDto.User.Name,

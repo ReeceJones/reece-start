@@ -1,10 +1,10 @@
 package authentication
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
+	"github.com/google/uuid"
 	"reece.start/internal/api"
 	"reece.start/internal/configuration"
 	"reece.start/internal/constants"
@@ -24,22 +24,23 @@ type JwtClaims struct {
 }
 
 type JwtOptions struct {
-	UserId              uint
-	OrganizationId      *uint
+	UserId              uuid.UUID
+	OrganizationId      *uuid.UUID
 	OrganizationRole    *constants.OrganizationRole
 	Scopes              *[]constants.UserScope
 	Role                *constants.UserRole
 	IsImpersonating     *bool
-	ImpersonatingUserId *string
+	ImpersonatingUserId *uuid.UUID
 	CustomExpiry        *time.Time
 }
 
 func CreateJWT(config *configuration.Config, options JwtOptions) (string, error) {
 	now := time.Now()
-	userIdString := fmt.Sprintf("%d", options.UserId)
+	userIdString := options.UserId.String()
 
 	activeOrganizationId := getActiveOrganizationIdFromOptions(options)
 	expiresAt := getExpiryFromOptions(config, options)
+	impersonatingUserId := getImpersonatingUserIdFromOptions(options)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JwtClaims{
 		UserId:              userIdString,
@@ -48,7 +49,7 @@ func CreateJWT(config *configuration.Config, options JwtOptions) (string, error)
 		Scopes:              options.Scopes,
 		Role:                options.Role,
 		IsImpersonating:     options.IsImpersonating,
-		ImpersonatingUserId: options.ImpersonatingUserId,
+		ImpersonatingUserId: impersonatingUserId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: expiresAt,
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -82,7 +83,7 @@ func ValidateJWT(config *configuration.Config, tokenString string) (*JwtClaims, 
 
 func getActiveOrganizationIdFromOptions(options JwtOptions) *string {
 	if options.OrganizationId != nil {
-		orgIdString := fmt.Sprintf("%d", *options.OrganizationId)
+		orgIdString := options.OrganizationId.String()
 		return &orgIdString
 	}
 	return nil
@@ -95,4 +96,12 @@ func getExpiryFromOptions(config *configuration.Config, options JwtOptions) *jwt
 
 	now := time.Now()
 	return jwt.NewNumericDate(now.Add(time.Duration(config.JwtExpirationTime) * time.Second))
+}
+
+func getImpersonatingUserIdFromOptions(options JwtOptions) *string {
+	if options.ImpersonatingUserId != nil {
+		impersonatingUserIdString := options.ImpersonatingUserId.String()
+		return &impersonatingUserIdString
+	}
+	return nil
 }

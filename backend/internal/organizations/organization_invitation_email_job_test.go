@@ -2,7 +2,6 @@ package organizations_test
 
 import (
 	"net/http"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,7 +32,7 @@ func TestOrganizationInvitationEmailJob(t *testing.T) {
 				"relationships": map[string]interface{}{
 					"organization": map[string]interface{}{
 						"data": map[string]interface{}{
-							"id":   strconv.FormatUint(uint64(org.ID), 10),
+							"id":   org.ID.String(),
 							"type": constants.ApiTypeOrganization,
 						},
 					},
@@ -80,7 +79,7 @@ func TestOrganizationInvitationEmailJob(t *testing.T) {
 				"relationships": map[string]interface{}{
 					"organization": map[string]interface{}{
 						"data": map[string]interface{}{
-							"id":   strconv.FormatUint(uint64(org.ID), 10),
+							"id":   org.ID.String(),
 							"type": constants.ApiTypeOrganization,
 						},
 					},
@@ -157,7 +156,7 @@ func TestOrganizationInvitationEmailJob(t *testing.T) {
 				"relationships": map[string]interface{}{
 					"organization": map[string]interface{}{
 						"data": map[string]interface{}{
-							"id":   strconv.FormatUint(uint64(org.ID), 10),
+							"id":   org.ID.String(),
 							"type": constants.ApiTypeOrganization,
 						},
 					},
@@ -204,7 +203,7 @@ func TestOrganizationInvitationEmailJob(t *testing.T) {
 					"relationships": map[string]interface{}{
 						"organization": map[string]interface{}{
 							"data": map[string]interface{}{
-								"id":   strconv.FormatUint(uint64(org.ID), 10),
+								"id":   org.ID.String(),
 								"type": constants.ApiTypeOrganization,
 							},
 						},

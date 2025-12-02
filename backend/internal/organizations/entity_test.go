@@ -1,7 +1,6 @@
 package organizations
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -13,10 +12,10 @@ import (
 
 func TestMapOrganizationToResponse(t *testing.T) {
 	t.Run("maps organization with all fields", func(t *testing.T) {
+		testOrgID := uuid.New()
 		organization := &models.Organization{
-			Model: gorm.Model{
-				ID: 123,
-			},
+			Model:               gorm.Model{},
+			ID:                  testOrgID,
 			Name:                "Test Organization",
 			Description:         "Test Description",
 			ContactEmail:        "contact@example.com",
@@ -46,7 +45,7 @@ func TestMapOrganizationToResponse(t *testing.T) {
 
 		result := mapOrganizationToResponse(dto)
 
-		assert.Equal(t, strconv.FormatUint(123, 10), result.Id)
+		assert.Equal(t, testOrgID.String(), result.Id)
 		assert.Equal(t, constants.ApiTypeOrganization, result.Type)
 		assert.Equal(t, "Test Organization", result.Attributes.Name)
 		assert.Equal(t, "Test Description", result.Attributes.Description)
@@ -67,10 +66,10 @@ func TestMapOrganizationToResponse(t *testing.T) {
 	})
 
 	t.Run("maps organization without optional fields", func(t *testing.T) {
+		testOrgID := uuid.New()
 		organization := &models.Organization{
-			Model: gorm.Model{
-				ID: 456,
-			},
+			Model:            gorm.Model{},
+			ID:               testOrgID,
 			Name:             "Another Organization",
 			Description:      "",
 			ContactEmail:     "",
@@ -95,7 +94,7 @@ func TestMapOrganizationToResponse(t *testing.T) {
 
 		result := mapOrganizationToResponse(dto)
 
-		assert.Equal(t, strconv.FormatUint(456, 10), result.Id)
+		assert.Equal(t, testOrgID.String(), result.Id)
 		assert.Equal(t, "Another Organization", result.Attributes.Name)
 		assert.Empty(t, result.Attributes.Description)
 		assert.Empty(t, result.Attributes.ContactEmail)
@@ -108,9 +107,12 @@ func TestMapOrganizationToResponse(t *testing.T) {
 
 func TestOrganizationsToResponse(t *testing.T) {
 	t.Run("maps multiple organizations", func(t *testing.T) {
+		org1ID := uuid.New()
+		org2ID := uuid.New()
 		org1 := &OrganizationDto{
 			Organization: &models.Organization{
-				Model: gorm.Model{ID: 1},
+				Model: gorm.Model{},
+				ID:    org1ID,
 				Name:  "Org 1",
 			},
 			LogoDistributionUrl: "https://example.com/logo1.png",
@@ -118,7 +120,8 @@ func TestOrganizationsToResponse(t *testing.T) {
 
 		org2 := &OrganizationDto{
 			Organization: &models.Organization{
-				Model: gorm.Model{ID: 2},
+				Model: gorm.Model{},
+				ID:    org2ID,
 				Name:  "Org 2",
 			},
 			LogoDistributionUrl: "https://example.com/logo2.png",
@@ -140,21 +143,27 @@ func TestOrganizationsToResponse(t *testing.T) {
 
 func TestMapMembershipToResponse(t *testing.T) {
 	t.Run("maps membership with all fields", func(t *testing.T) {
+		userID := uuid.New()
+		orgID := uuid.New()
+		membershipID := uuid.New()
 		user := &models.User{
-			Model: gorm.Model{ID: 100},
+			Model: gorm.Model{},
+			ID:    userID,
 			Name:  "Test User",
 			Email: "user@example.com",
 		}
 
 		organization := &models.Organization{
-			Model: gorm.Model{ID: 200},
+			Model: gorm.Model{},
+			ID:    orgID,
 			Name:  "Test Org",
 		}
 
 		membership := &models.OrganizationMembership{
-			Model:          gorm.Model{ID: 50},
-			UserID:         100,
-			OrganizationID: 200,
+			Model:          gorm.Model{},
+			ID:             membershipID,
+			UserID:         userID,
+			OrganizationID: orgID,
 			Role:           string(constants.OrganizationRoleAdmin),
 		}
 
@@ -166,28 +175,33 @@ func TestMapMembershipToResponse(t *testing.T) {
 
 		result := mapMembershipToResponse(dto)
 
-		assert.Equal(t, strconv.FormatUint(50, 10), result.Id)
+		assert.Equal(t, membershipID.String(), result.Id)
 		assert.Equal(t, constants.ApiTypeOrganizationMembership, result.Type)
 		assert.Equal(t, string(constants.OrganizationRoleAdmin), result.Attributes.Role)
-		assert.Equal(t, strconv.FormatUint(100, 10), result.Relationships.User.Data.Id)
+		assert.Equal(t, userID.String(), result.Relationships.User.Data.Id)
 		assert.Equal(t, constants.ApiTypeUser, result.Relationships.User.Data.Type)
-		assert.Equal(t, strconv.FormatUint(200, 10), result.Relationships.Organization.Data.Id)
+		assert.Equal(t, orgID.String(), result.Relationships.Organization.Data.Id)
 		assert.Equal(t, constants.ApiTypeOrganization, result.Relationships.Organization.Data.Type)
 	})
 
 	t.Run("maps membership with member role", func(t *testing.T) {
+		userID := uuid.New()
+		orgID := uuid.New()
 		user := &models.User{
-			Model: gorm.Model{ID: 101},
+			Model: gorm.Model{},
+			ID:    userID,
 		}
 
 		organization := &models.Organization{
-			Model: gorm.Model{ID: 201},
+			Model: gorm.Model{},
+			ID:    orgID,
 		}
 
 		membership := &models.OrganizationMembership{
-			Model:          gorm.Model{ID: 51},
-			UserID:         101,
-			OrganizationID: 201,
+			Model:          gorm.Model{},
+			ID:             uuid.New(),
+			UserID:         userID,
+			OrganizationID: orgID,
 			Role:           string(constants.OrganizationRoleMember),
 		}
 
@@ -205,20 +219,25 @@ func TestMapMembershipToResponse(t *testing.T) {
 
 func TestMapUserToIncludedData(t *testing.T) {
 	t.Run("maps user to included data", func(t *testing.T) {
+		userID := uuid.New()
+		orgID := uuid.New()
 		user := &models.User{
-			Model: gorm.Model{ID: 100},
+			Model: gorm.Model{},
+			ID:    userID,
 			Name:  "Test User",
 			Email: "user@example.com",
 		}
 
 		organization := &models.Organization{
-			Model: gorm.Model{ID: 200},
+			Model: gorm.Model{},
+			ID:    orgID,
 		}
 
 		membership := &models.OrganizationMembership{
-			Model:          gorm.Model{ID: 50},
-			UserID:         100,
-			OrganizationID: 200,
+			Model:          gorm.Model{},
+			ID:             uuid.New(),
+			UserID:         userID,
+			OrganizationID: orgID,
 		}
 
 		dto := &OrganizationMembershipDto{
@@ -230,7 +249,7 @@ func TestMapUserToIncludedData(t *testing.T) {
 
 		result := mapUserToIncludedData(dto)
 
-		assert.Equal(t, strconv.FormatUint(100, 10), result.Id)
+		assert.Equal(t, userID.String(), result.Id)
 		assert.Equal(t, constants.ApiTypeUser, result.Type)
 		assert.Equal(t, "Test User", result.Attributes.Name)
 		assert.Equal(t, "user@example.com", result.Attributes.Email)
@@ -240,10 +259,10 @@ func TestMapUserToIncludedData(t *testing.T) {
 
 func TestMapOrganizationToIncludedData(t *testing.T) {
 	t.Run("maps organization to included data", func(t *testing.T) {
+		orgID := uuid.New()
 		organization := &models.Organization{
-			Model: gorm.Model{
-				ID: 200,
-			},
+			Model:       gorm.Model{},
+			ID:          orgID,
 			Name:        "Test Org",
 			Description: "Test Description",
 		}
@@ -255,7 +274,7 @@ func TestMapOrganizationToIncludedData(t *testing.T) {
 
 		result := mapOrganizationToIncludedData(dto)
 
-		assert.Equal(t, strconv.FormatUint(200, 10), result.Id)
+		assert.Equal(t, orgID.String(), result.Id)
 		assert.Equal(t, constants.ApiTypeOrganization, result.Type)
 		assert.Equal(t, "Test Org", result.Attributes.Name)
 		assert.Equal(t, "Test Description", result.Attributes.Description)
@@ -265,8 +284,10 @@ func TestMapOrganizationToIncludedData(t *testing.T) {
 
 func TestMapInvitingUserToIncludedData(t *testing.T) {
 	t.Run("maps inviting user to included data", func(t *testing.T) {
+		userID := uuid.New()
 		user := &models.User{
-			Model: gorm.Model{ID: 300},
+			Model: gorm.Model{},
+			ID:    userID,
 			Name:  "Inviting User",
 			Email: "inviting@example.com",
 		}
@@ -278,7 +299,7 @@ func TestMapInvitingUserToIncludedData(t *testing.T) {
 
 		result := mapInvitingUserToIncludedData(dto)
 
-		assert.Equal(t, strconv.FormatUint(300, 10), result.Id)
+		assert.Equal(t, userID.String(), result.Id)
 		assert.Equal(t, constants.ApiTypeUser, result.Type)
 		assert.Equal(t, "Inviting User", result.Attributes.Name)
 		assert.Equal(t, "inviting@example.com", result.Attributes.Email)
@@ -288,31 +309,41 @@ func TestMapInvitingUserToIncludedData(t *testing.T) {
 
 func TestMapMembershipsToResponseWithIncluded(t *testing.T) {
 	t.Run("maps memberships with included users", func(t *testing.T) {
+		user1ID := uuid.New()
+		user2ID := uuid.New()
+		orgID := uuid.New()
+		membership1ID := uuid.New()
+		membership2ID := uuid.New()
 		user1 := &models.User{
-			Model: gorm.Model{ID: 100},
+			Model: gorm.Model{},
+			ID:    user1ID,
 			Name:  "User 1",
 		}
 
 		user2 := &models.User{
-			Model: gorm.Model{ID: 101},
+			Model: gorm.Model{},
+			ID:    user2ID,
 			Name:  "User 2",
 		}
 
 		organization := &models.Organization{
-			Model: gorm.Model{ID: 200},
+			Model: gorm.Model{},
+			ID:    orgID,
 		}
 
 		membership1 := &models.OrganizationMembership{
-			Model:          gorm.Model{ID: 50},
-			UserID:         100,
-			OrganizationID: 200,
+			Model:          gorm.Model{},
+			ID:             membership1ID,
+			UserID:         user1ID,
+			OrganizationID: orgID,
 			Role:           string(constants.OrganizationRoleAdmin),
 		}
 
 		membership2 := &models.OrganizationMembership{
-			Model:          gorm.Model{ID: 51},
-			UserID:         101,
-			OrganizationID: 200,
+			Model:          gorm.Model{},
+			ID:             membership2ID,
+			UserID:         user2ID,
+			OrganizationID: orgID,
 			Role:           string(constants.OrganizationRoleMember),
 		}
 
@@ -334,30 +365,36 @@ func TestMapMembershipsToResponseWithIncluded(t *testing.T) {
 
 		assert.Len(t, result.Data, 2)
 		assert.Len(t, result.Included, 2)
-		assert.Equal(t, strconv.FormatUint(50, 10), result.Data[0].Id)
-		assert.Equal(t, strconv.FormatUint(51, 10), result.Data[1].Id)
+		assert.Equal(t, membership1ID.String(), result.Data[0].Id)
+		assert.Equal(t, membership2ID.String(), result.Data[1].Id)
 	})
 
 	t.Run("deduplicates users in included section", func(t *testing.T) {
+		userID := uuid.New()
+		orgID := uuid.New()
 		user := &models.User{
-			Model: gorm.Model{ID: 100},
+			Model: gorm.Model{},
+			ID:    userID,
 			Name:  "Same User",
 		}
 
 		organization := &models.Organization{
-			Model: gorm.Model{ID: 200},
+			Model: gorm.Model{},
+			ID:    orgID,
 		}
 
 		membership1 := &models.OrganizationMembership{
-			Model:          gorm.Model{ID: 50},
-			UserID:         100,
-			OrganizationID: 200,
+			Model:          gorm.Model{},
+			ID:             uuid.New(),
+			UserID:         userID,
+			OrganizationID: orgID,
 		}
 
 		membership2 := &models.OrganizationMembership{
-			Model:          gorm.Model{ID: 51},
-			UserID:         100, // Same user
-			OrganizationID: 200,
+			Model:          gorm.Model{},
+			ID:             uuid.New(),
+			UserID:         userID, // Same user
+			OrganizationID: orgID,
 		}
 
 		dto1 := &OrganizationMembershipDto{
@@ -384,12 +421,14 @@ func TestMapMembershipsToResponseWithIncluded(t *testing.T) {
 func TestMapInvitationToResponse(t *testing.T) {
 	t.Run("maps invitation with all fields", func(t *testing.T) {
 		invitationID := uuid.New()
+		orgID := uuid.New()
+		invitingUserID := uuid.New()
 		invitation := &models.OrganizationInvitation{
-			Model:          gorm.Model{ID: 1},
+			Model:          gorm.Model{},
 			ID:             invitationID,
 			Email:          "invitee@example.com",
-			OrganizationID: 200,
-			InvitingUserID: 300,
+			OrganizationID: orgID,
+			InvitingUserID: invitingUserID,
 			Role:           string(constants.OrganizationRoleAdmin),
 			Status:         string(constants.OrganizationInvitationStatusPending),
 		}
@@ -405,16 +444,16 @@ func TestMapInvitationToResponse(t *testing.T) {
 		assert.Equal(t, "invitee@example.com", result.Attributes.Email)
 		assert.Equal(t, string(constants.OrganizationRoleAdmin), result.Attributes.Role)
 		assert.Equal(t, string(constants.OrganizationInvitationStatusPending), result.Attributes.Status)
-		assert.Equal(t, strconv.FormatUint(200, 10), result.Relationships.Organization.Data.Id)
+		assert.Equal(t, orgID.String(), result.Relationships.Organization.Data.Id)
 		assert.Equal(t, constants.ApiTypeOrganization, result.Relationships.Organization.Data.Type)
-		assert.Equal(t, strconv.FormatUint(300, 10), result.Relationships.InvitingUser.Data.Id)
+		assert.Equal(t, invitingUserID.String(), result.Relationships.InvitingUser.Data.Id)
 		assert.Equal(t, constants.ApiTypeUser, result.Relationships.InvitingUser.Data.Type)
 	})
 
 	t.Run("maps invitation with member role", func(t *testing.T) {
 		invitationID := uuid.New()
 		invitation := &models.OrganizationInvitation{
-			Model:  gorm.Model{ID: 2},
+			Model:  gorm.Model{},
 			ID:     invitationID,
 			Email:  "member@example.com",
 			Role:   string(constants.OrganizationRoleMember),
@@ -435,14 +474,14 @@ func TestMapInvitationToResponse(t *testing.T) {
 func TestMapInvitationsToResponse(t *testing.T) {
 	t.Run("maps multiple invitations", func(t *testing.T) {
 		invitation1 := &models.OrganizationInvitation{
-			Model:  gorm.Model{ID: 1},
+			Model:  gorm.Model{},
 			ID:     uuid.New(),
 			Email:  "invitee1@example.com",
 			Status: string(constants.OrganizationInvitationStatusPending),
 		}
 
 		invitation2 := &models.OrganizationInvitation{
-			Model:  gorm.Model{ID: 2},
+			Model:  gorm.Model{},
 			ID:     uuid.New(),
 			Email:  "invitee2@example.com",
 			Status: string(constants.OrganizationInvitationStatusPending),

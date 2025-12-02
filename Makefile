@@ -11,6 +11,7 @@ help: ## Show this help message
 	@echo "  make backend-test             - Run backend tests"
 	@echo "  make backend-test-verbose     - Run backend tests with verbose output"
 	@echo "  make backend-test-coverage    - Run backend tests with coverage"
+	@echo "  make backend-tidy             - Tidy the backend dependencies"
 	@echo ""
 	@echo "Frontend:"
 	@echo "  make frontend-dev             - Run a dev frontend server"
@@ -41,6 +42,9 @@ backend-build:
 
 backend-format:
 	cd backend; go fmt ./...
+
+backend-tidy:
+	cd backend; go mod tidy
 
 backend-test:
 	cd backend; TEST=true go test ./...

@@ -2,7 +2,6 @@ package users_test
 
 import (
 	"net/http"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -183,7 +182,7 @@ func TestUpdateUserEndpoint(t *testing.T) {
 	// Make authenticated request
 	rec := tc.MakeAuthenticatedRequest(
 		http.MethodPatch,
-		"/users/"+strconv.FormatUint(uint64(user.ID), 10),
+		"/users/"+user.ID.String(),
 		reqBody,
 		token,
 	)

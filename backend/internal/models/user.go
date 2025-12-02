@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -18,8 +19,9 @@ type UserTokenRevocation struct {
 
 type User struct {
 	gorm.Model
-	Name               string `gorm:"not null"`
-	Email              string `gorm:"index:idx_email,unique;not null"`
+	ID                 uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
+	Name               string    `gorm:"not null"`
+	Email              string    `gorm:"index:idx_email,unique;not null"`
 	HashedPassword     []byte
 	LogoFileStorageKey string
 

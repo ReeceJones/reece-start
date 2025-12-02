@@ -290,7 +290,7 @@ func (m *MockHTTPTransport) handleStripeRequest(req *http.Request) (*http.Respon
 			"id":     subscriptionID,
 			"status": "active",
 			"metadata": map[string]interface{}{
-				"organization_id": "1",
+				"organization_id": uuid.New().String(),
 			},
 			"billing_cycle_anchor": time.Now().Unix(),
 			"items": map[string]interface{}{

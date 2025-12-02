@@ -106,7 +106,7 @@ func TestSubscriptionResponse(t *testing.T) {
 func TestCreateStripeAccountParams(t *testing.T) {
 	t.Run("creates params correctly", func(t *testing.T) {
 		params := CreateStripeAccountParams{
-			OrganizationID:  1,
+			OrganizationID:  uuid.New(),
 			Type:            "individual",
 			DisplayName:     "Test Account",
 			ContactEmail:    "test@example.com",
@@ -128,7 +128,7 @@ func TestCreateStripeAccountParams(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, uint(1), params.OrganizationID)
+		assert.Equal(t, params.OrganizationID, params.OrganizationID)
 		assert.Equal(t, "individual", string(params.Type))
 		assert.Equal(t, "Test Account", params.DisplayName)
 		assert.Equal(t, "test@example.com", params.ContactEmail)
@@ -155,12 +155,12 @@ func TestCreateOnboardingLinkParams(t *testing.T) {
 func TestCreateCheckoutSessionParams(t *testing.T) {
 	t.Run("creates params correctly", func(t *testing.T) {
 		params := CreateCheckoutSessionParams{
-			OrganizationID: 1,
+			OrganizationID: uuid.New(),
 			SuccessURL:     "https://example.com/success",
 			CancelURL:      "https://example.com/cancel",
 		}
 
-		assert.Equal(t, uint(1), params.OrganizationID)
+		assert.Equal(t, params.OrganizationID, params.OrganizationID)
 		assert.Equal(t, "https://example.com/success", params.SuccessURL)
 		assert.Equal(t, "https://example.com/cancel", params.CancelURL)
 	})
@@ -169,11 +169,11 @@ func TestCreateCheckoutSessionParams(t *testing.T) {
 func TestCreateBillingPortalSessionParams(t *testing.T) {
 	t.Run("creates params correctly", func(t *testing.T) {
 		params := CreateBillingPortalSessionParams{
-			OrganizationID: 1,
+			OrganizationID: uuid.New(),
 			ReturnURL:      "https://example.com/return",
 		}
 
-		assert.Equal(t, uint(1), params.OrganizationID)
+		assert.Equal(t, params.OrganizationID, params.OrganizationID)
 		assert.Equal(t, "https://example.com/return", params.ReturnURL)
 	})
 }

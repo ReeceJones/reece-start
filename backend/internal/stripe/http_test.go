@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 	"time"
 
@@ -46,7 +45,7 @@ func TestCreateCheckoutSessionEndpoint(t *testing.T) {
 		// Make request
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodPost,
-			"/organizations/"+strconv.FormatUint(uint64(org.ID), 10)+"/checkout-session",
+			"/organizations/"+org.ID.String()+"/checkout-session",
 			reqBody,
 			token,
 		)
@@ -89,7 +88,7 @@ func TestCreateCheckoutSessionEndpoint(t *testing.T) {
 		// Make request
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodPost,
-			"/organizations/"+strconv.FormatUint(uint64(org.ID), 10)+"/checkout-session",
+			"/organizations/"+org.ID.String()+"/checkout-session",
 			reqBody,
 			token,
 		)
@@ -119,7 +118,7 @@ func TestCreateCheckoutSessionEndpoint(t *testing.T) {
 		// Try to access org1 with token2 (should fail)
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodPost,
-			"/organizations/"+strconv.FormatUint(uint64(org1.ID), 10)+"/checkout-session",
+			"/organizations/"+org1.ID.String()+"/checkout-session",
 			reqBody,
 			token2,
 		)
@@ -152,7 +151,7 @@ func TestCreateBillingPortalSessionEndpoint(t *testing.T) {
 		// Make request
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodPost,
-			"/organizations/"+strconv.FormatUint(uint64(org.ID), 10)+"/billing-portal-session",
+			"/organizations/"+org.ID.String()+"/billing-portal-session",
 			reqBody,
 			token,
 		)
@@ -194,7 +193,7 @@ func TestCreateBillingPortalSessionEndpoint(t *testing.T) {
 		// Make request
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodPost,
-			"/organizations/"+strconv.FormatUint(uint64(org.ID), 10)+"/billing-portal-session",
+			"/organizations/"+org.ID.String()+"/billing-portal-session",
 			reqBody,
 			token,
 		)
@@ -223,7 +222,7 @@ func TestCreateBillingPortalSessionEndpoint(t *testing.T) {
 		// Try to access org1 with token2 (should fail)
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodPost,
-			"/organizations/"+strconv.FormatUint(uint64(org1.ID), 10)+"/billing-portal-session",
+			"/organizations/"+org1.ID.String()+"/billing-portal-session",
 			reqBody,
 			token2,
 		)
@@ -258,7 +257,7 @@ func TestGetSubscriptionEndpoint(t *testing.T) {
 		// Make request
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodGet,
-			"/organizations/"+strconv.FormatUint(uint64(org.ID), 10)+"/subscription",
+			"/organizations/"+org.ID.String()+"/subscription",
 			nil,
 			token,
 		)
@@ -292,7 +291,7 @@ func TestGetSubscriptionEndpoint(t *testing.T) {
 		// Make request
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodGet,
-			"/organizations/"+strconv.FormatUint(uint64(org.ID), 10)+"/subscription",
+			"/organizations/"+org.ID.String()+"/subscription",
 			nil,
 			token,
 		)
@@ -324,7 +323,7 @@ func TestGetSubscriptionEndpoint(t *testing.T) {
 		// Try to access org1 with token2 (should fail)
 		rec := tc.MakeAuthenticatedRequest(
 			http.MethodGet,
-			"/organizations/"+strconv.FormatUint(uint64(org1.ID), 10)+"/subscription",
+			"/organizations/"+org1.ID.String()+"/subscription",
 			nil,
 			token2,
 		)
@@ -452,14 +451,14 @@ func TestStripeThinWebhookEndpoint(t *testing.T) {
 }
 
 // Helper function to create token with organization context
-func createTokenWithOrganizationContext(t *testing.T, tc *test.TestContext, initialToken string, orgID uint) string {
+func createTokenWithOrganizationContext(t *testing.T, tc *test.TestContext, initialToken string, orgID uuid.UUID) string {
 	tokenReqBody := map[string]interface{}{
 		"data": map[string]interface{}{
 			"type": constants.ApiTypeToken,
 			"relationships": map[string]interface{}{
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(orgID), 10),
+						"id":   orgID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},

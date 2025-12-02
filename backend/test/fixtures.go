@@ -25,7 +25,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 	"testing"
 	"time"
 
@@ -102,7 +101,7 @@ func CreateTestUserWithOptions(t *testing.T, tc *TestContext, opts TestUserOptio
 
 	data := response["data"].(map[string]interface{})
 	userIDStr := data["id"].(string)
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	userID, err := uuid.Parse(userIDStr)
 	require.NoError(t, err)
 
 	meta := data["meta"].(map[string]interface{})
@@ -110,7 +109,7 @@ func CreateTestUserWithOptions(t *testing.T, tc *TestContext, opts TestUserOptio
 
 	// Fetch the user from DB to return the full model
 	var user models.User
-	err = tc.DB.First(&user, uint(userID)).Error
+	err = tc.DB.First(&user, userID).Error
 	require.NoError(t, err)
 
 	return &user, opts.Password, token
@@ -183,19 +182,19 @@ func CreateTestOrganizationWithOptions(t *testing.T, tc *TestContext, token stri
 
 	data := response["data"].(map[string]interface{})
 	orgIDStr := data["id"].(string)
-	orgID, err := strconv.ParseUint(orgIDStr, 10, 32)
+	orgID, err := uuid.Parse(orgIDStr)
 	require.NoError(t, err)
 
 	// Fetch the organization from DB to return the full model
 	var org models.Organization
-	err = tc.DB.First(&org, uint(orgID)).Error
+	err = tc.DB.First(&org, orgID).Error
 	require.NoError(t, err)
 
 	return &org
 }
 
 // CreateTestOrganizationMembership creates a test organization membership via the API and returns it
-func CreateTestOrganizationMembership(t *testing.T, tc *TestContext, userID, orgID uint, role constants.OrganizationRole, adminToken string) *models.OrganizationMembership {
+func CreateTestOrganizationMembership(t *testing.T, tc *TestContext, userID, orgID uuid.UUID, role constants.OrganizationRole, adminToken string) *models.OrganizationMembership {
 	reqBody := map[string]interface{}{
 		"data": map[string]interface{}{
 			"type": constants.ApiTypeOrganizationMembership,
@@ -205,13 +204,13 @@ func CreateTestOrganizationMembership(t *testing.T, tc *TestContext, userID, org
 			"relationships": map[string]interface{}{
 				"user": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(userID), 10),
+						"id":   userID.String(),
 						"type": constants.ApiTypeUser,
 					},
 				},
 				"organization": map[string]interface{}{
 					"data": map[string]interface{}{
-						"id":   strconv.FormatUint(uint64(orgID), 10),
+						"id":   orgID.String(),
 						"type": constants.ApiTypeOrganization,
 					},
 				},
@@ -227,12 +226,12 @@ func CreateTestOrganizationMembership(t *testing.T, tc *TestContext, userID, org
 
 	data := response["data"].(map[string]interface{})
 	membershipIDStr := data["id"].(string)
-	membershipID, err := strconv.ParseUint(membershipIDStr, 10, 32)
+	membershipID, err := uuid.Parse(membershipIDStr)
 	require.NoError(t, err)
 
 	// Fetch the membership from DB to return the full model
 	var membership models.OrganizationMembership
-	err = tc.DB.First(&membership, uint(membershipID)).Error
+	err = tc.DB.First(&membership, membershipID).Error
 	require.NoError(t, err)
 
 	return &membership

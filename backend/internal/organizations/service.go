@@ -87,7 +87,7 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 		slog.Info("Detected logo mime type", "mimeType", mimeType)
 
-		objectName := fmt.Sprintf("%d", organization.ID)
+		objectName := organization.ID.String()
 
 		// upload the image to minio
 		_, err = request.MinioClient.PutObject(context.Background(), string(constants.StorageBucketOrganizationLogos), objectName, bytes.NewReader(decodedImage), int64(len(decodedImage)), minio.PutObjectOptions{
@@ -166,12 +166,12 @@ func createOrganization(request CreateOrganizationServiceRequest) (*Organization
 
 	// Log organization created event to PostHog
 	posthogClient.Capture(
-		fmt.Sprintf("%d", params.UserID),
+		params.UserID.String(),
 		"organization created",
 		map[string]any{
-			"organization_id": organization.ID,
+			"organization_id": organization.ID.String(),
 			"name":            organization.Name,
-			"user_id":         params.UserID,
+			"user_id":         params.UserID.String(),
 			"entity_type":     params.EntityType,
 			"country":         params.Address.Country,
 			"currency":        organization.Currency,
@@ -286,7 +286,7 @@ func updateOrganization(request UpdateOrganizationServiceRequest) (*Organization
 
 		slog.Info("Detected logo mime type", "mimeType", mimeType)
 
-		objectName := fmt.Sprintf("%d", organization.ID)
+		objectName := organization.ID.String()
 
 		// upload the image to minio
 		_, err = minioClient.PutObject(context.Background(), string(constants.StorageBucketOrganizationLogos), objectName, bytes.NewReader(decodedImage), int64(len(decodedImage)), minio.PutObjectOptions{
@@ -845,11 +845,11 @@ func createStripeOnboardingLink(request CreateStripeOnboardingLinkServiceRequest
 	}
 
 	if organization.Stripe.AccountID == "" {
-		return nil, fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
+		return nil, fmt.Errorf("organization %s does not have a Stripe account", organization.ID.String())
 	}
 
-	refreshUrl := fmt.Sprintf("%s/app/%d/stripe-onboarding", config.FrontendUrl, params.OrganizationID)
-	returnUrl := fmt.Sprintf("%s/app/%d", config.FrontendUrl, params.OrganizationID)
+	refreshUrl := fmt.Sprintf("%s/app/%s/stripe-onboarding", config.FrontendUrl, params.OrganizationID.String())
+	returnUrl := fmt.Sprintf("%s/app/%s", config.FrontendUrl, params.OrganizationID.String())
 
 	link, err := stripe.CreateOnboardingLink(stripe.CreateOnboardingLinkServiceRequest{
 		Context:      context,
@@ -877,7 +877,7 @@ func createStripeDashboardLink(request CreateStripeDashboardLinkServiceRequest) 
 	}
 
 	if organization.Stripe.AccountID == "" {
-		return "", fmt.Errorf("organization %d does not have a Stripe account", organization.ID)
+		return "", fmt.Errorf("organization %s does not have a Stripe account", organization.ID.String())
 	}
 
 	// For Standard Connect accounts, construct the dashboard URL directly

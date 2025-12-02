@@ -6,13 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -50,10 +50,10 @@ func createUser(request CreateUserServiceRequest) (*UserDto, error) {
 
 	// Log user created event to PostHog
 	posthogClient.Capture(
-		fmt.Sprintf("%d", user.ID),
+		user.ID.String(),
 		"user created",
 		map[string]any{
-			"user_id":       user.ID,
+			"user_id":       user.ID.String(),
 			"email":         user.Email,
 			"name":          user.Name,
 			"signup_method": "email",
@@ -92,7 +92,7 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 	var selectMembershipRole SelectMembershipRole = SelectMembershipRole{}
 	scopes := make([]constants.UserScope, 0)
 
-	if request.Params.OrganizationId != nil && *request.Params.OrganizationId != 0 {
+	if request.Params.OrganizationId != nil && *request.Params.OrganizationId != uuid.Nil {
 		err := tx.Model(&models.OrganizationMembership{}).Where("user_id = ? AND organization_id = ?", request.Params.UserId, request.Params.OrganizationId).Select("role").First(&selectMembershipRole).Error
 		if err != nil {
 			return "", err
@@ -110,10 +110,10 @@ func createAuthenticatedUserToken(request CreateAuthenticatedUserTokenServiceReq
 	userRole := constants.UserRole(user.Role)
 
 	isImpersonating := false
-	var impersonatingUserId *string
-	if request.Params.ImpersonatingUserId != nil && *request.Params.ImpersonatingUserId != 0 {
+	var impersonatingUserId *uuid.UUID
+	if request.Params.ImpersonatingUserId != nil && *request.Params.ImpersonatingUserId != uuid.Nil {
 		isImpersonating = true
-		impersonatingUserId = &[]string{fmt.Sprintf("%d", *request.Params.ImpersonatingUserId)}[0]
+		impersonatingUserId = request.Params.ImpersonatingUserId
 	}
 
 	jwtOptions := authentication.JwtOptions{
@@ -258,7 +258,7 @@ func updateUser(request UpdateUserServiceRequest) (*UserDto, error) {
 
 		slog.Info("Detected logo mime type", "mimeType", mimeType)
 
-		objectName := fmt.Sprintf("%d", user.ID)
+		objectName := user.ID.String()
 
 		// upload the image to minio
 		_, err = minioClient.PutObject(context.Background(), string(constants.StorageBucketUserLogos), objectName, bytes.NewReader(decodedImage), int64(len(decodedImage)), minio.PutObjectOptions{
@@ -564,10 +564,10 @@ func googleOAuthCallback(request GoogleOAuthCallbackServiceRequest) (*UserDto, e
 
 			// Log user created event to PostHog (OAuth signup)
 			posthogClient.Capture(
-				fmt.Sprintf("%d", user.ID),
+				user.ID.String(),
 				"user created",
 				map[string]any{
-					"user_id":       user.ID,
+					"user_id":       user.ID.String(),
 					"email":         user.Email,
 					"name":          user.Name,
 					"signup_method": "oauth_google",

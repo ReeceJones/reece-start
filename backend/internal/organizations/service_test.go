@@ -74,7 +74,7 @@ func TestCreateOrganization(t *testing.T) {
 		assert.NotNil(t, result.Organization)
 		assert.Equal(t, "Test Organization", result.Organization.Name)
 		assert.Equal(t, "Test Description", result.Organization.Description)
-		assert.Equal(t, user.ID, result.Organization.ID) // Organization ID should be set
+		assert.NotEqual(t, uuid.Nil, result.Organization.ID) // Organization ID should be set
 
 		// Verify membership was created
 		var membership models.OrganizationMembership
@@ -178,7 +178,7 @@ func TestGetOrganizationByID(t *testing.T) {
 		defer tx.Rollback()
 
 		_, err := getOrganizationByID(GetOrganizationByIDServiceRequest{
-			OrganizationID: 99999,
+			OrganizationID: uuid.New(),
 			Tx:             tx,
 			MinioClient:    minioClient,
 		})
@@ -420,7 +420,7 @@ func TestGetOrganizationMembershipByID(t *testing.T) {
 		defer tx.Rollback()
 
 		_, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
-			MembershipID: 99999,
+			MembershipID: uuid.New(),
 			Tx:           tx,
 			MinioClient:  minioClient,
 		})

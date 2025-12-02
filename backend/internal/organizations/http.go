@@ -3,7 +3,6 @@ package organizations
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -141,7 +140,7 @@ func UpdateOrganizationEndpoint(c echo.Context, req UpdateOrganizationRequest) e
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 		organization, err := updateOrganization(UpdateOrganizationServiceRequest{
 			Params: UpdateOrganizationParams{
-				OrganizationID: uint(paramOrgID),
+				OrganizationID: paramOrgID,
 				Name:           req.Data.Attributes.Name,
 				Description:    req.Data.Attributes.Description,
 				Logo:           req.Data.Attributes.Logo,
@@ -184,7 +183,7 @@ func DeleteOrganizationEndpoint(c echo.Context) error {
 	db := middleware.GetDB(c)
 
 	err = deleteOrganization(DeleteOrganizationServiceRequest{
-		OrganizationID: uint(paramOrgID),
+		OrganizationID: paramOrgID,
 		Tx:             db,
 	})
 
@@ -230,7 +229,7 @@ func GetOrganizationMembershipEndpoint(c echo.Context) error {
 
 	// First get the membership to check the organization
 	membership, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
-		MembershipID: uint(paramMembershipID),
+		MembershipID: paramMembershipID,
 		Tx:           db,
 		MinioClient:  minioClient,
 	})
@@ -316,7 +315,7 @@ func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganization
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 		// First get the membership to check the organization
 		membership, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
-			MembershipID: uint(paramMembershipID),
+			MembershipID: paramMembershipID,
 			Tx:           tx,
 			MinioClient:  nil, // Not needed for update operation
 		})
@@ -334,7 +333,7 @@ func UpdateOrganizationMembershipEndpoint(c echo.Context, req UpdateOrganization
 
 		updatedMembership, err := updateOrganizationMembership(UpdateOrganizationMembershipServiceRequest{
 			Params: UpdateOrganizationMembershipParams{
-				MembershipID: uint(paramMembershipID),
+				MembershipID: paramMembershipID,
 				Role:         req.Data.Attributes.Role,
 			},
 			Tx: tx,
@@ -368,7 +367,7 @@ func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
 
 	// First get the membership to check the organization
 	membership, err := getOrganizationMembershipByID(GetOrganizationMembershipByIDServiceRequest{
-		MembershipID: uint(paramMembershipID),
+		MembershipID: paramMembershipID,
 		Tx:           db,
 		MinioClient:  nil, // Not needed for delete operation
 	})
@@ -385,7 +384,7 @@ func DeleteOrganizationMembershipEndpoint(c echo.Context) error {
 	}
 
 	err = deleteOrganizationMembership(DeleteOrganizationMembershipServiceRequest{
-		MembershipID: uint(paramMembershipID),
+		MembershipID: paramMembershipID,
 		Tx:           db,
 	})
 
@@ -415,7 +414,7 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 
 	err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 		if err := access.HasOrganizationAccess(c, access.HasOrganizationAccessParams{
-			OrganizationID: uint(paramOrgID),
+			OrganizationID: paramOrgID,
 			Scopes:         []constants.UserScope{constants.UserScopeOrganizationInvitationsCreate},
 		}); err != nil {
 			return err
@@ -425,7 +424,7 @@ func InviteToOrganizationEndpoint(c echo.Context, req InviteToOrganizationReques
 			Params: CreateOrganizationInvitationParams{
 				Email:          req.Data.Attributes.Email,
 				Role:           req.Data.Attributes.Role,
-				OrganizationID: uint(paramOrgID),
+				OrganizationID: paramOrgID,
 				InvitingUserID: userID,
 			},
 			Tx:          tx,
@@ -746,7 +745,7 @@ func CreateStripeDashboardLinkEndpoint(c echo.Context) error {
 func mapOrganizationToResponse(params *OrganizationDto) OrganizationDataWithMeta {
 	return OrganizationDataWithMeta{
 		OrganizationData: OrganizationData{
-			Id:   strconv.FormatUint(uint64(params.Organization.ID), 10),
+			Id:   params.Organization.ID.String(),
 			Type: constants.ApiTypeOrganization,
 			Attributes: OrganizationAttributes{
 				CommonOrganizationAttributes: CommonOrganizationAttributes{
@@ -781,7 +780,7 @@ func organizationsToResponse(organizations []*OrganizationDto) GetOrganizationsR
 
 func mapMembershipToResponse(membershipDto *OrganizationMembershipDto) OrganizationMembershipData {
 	return OrganizationMembershipData{
-		Id:   strconv.FormatUint(uint64(membershipDto.Membership.ID), 10),
+		Id:   membershipDto.Membership.ID.String(),
 		Type: constants.ApiTypeOrganizationMembership,
 		Attributes: OrganizationMembershipAttributes{
 			Role: membershipDto.Membership.Role,
@@ -789,13 +788,13 @@ func mapMembershipToResponse(membershipDto *OrganizationMembershipDto) Organizat
 		Relationships: OrganizationMembershipRelationships{
 			User: UserRelationshipData{
 				Data: UserRelationshipDataObject{
-					Id:   strconv.FormatUint(uint64(membershipDto.User.ID), 10),
+					Id:   membershipDto.User.ID.String(),
 					Type: constants.ApiTypeUser,
 				},
 			},
 			Organization: OrganizationRelationshipData{
 				Data: OrganizationRelationshipDataObject{
-					Id:   strconv.FormatUint(uint64(membershipDto.Organization.ID), 10),
+					Id:   membershipDto.Organization.ID.String(),
 					Type: constants.ApiTypeOrganization,
 				},
 			},
@@ -805,7 +804,7 @@ func mapMembershipToResponse(membershipDto *OrganizationMembershipDto) Organizat
 
 func mapUserToIncludedData(membershipDto *OrganizationMembershipDto) UserIncludedData {
 	return UserIncludedData{
-		Id:   strconv.FormatUint(uint64(membershipDto.User.ID), 10),
+		Id:   membershipDto.User.ID.String(),
 		Type: constants.ApiTypeUser,
 		Attributes: UserIncludedAttributes{
 			Name:  membershipDto.User.Name,
@@ -819,7 +818,7 @@ func mapUserToIncludedData(membershipDto *OrganizationMembershipDto) UserInclude
 
 func mapOrganizationToIncludedData(organizationDto *OrganizationDto) OrganizationIncludedData {
 	return OrganizationIncludedData{
-		Id:   strconv.FormatUint(uint64(organizationDto.Organization.ID), 10),
+		Id:   organizationDto.Organization.ID.String(),
 		Type: constants.ApiTypeOrganization,
 		Attributes: OrganizationIncludedAttributes{
 			Name:        organizationDto.Organization.Name,
@@ -833,7 +832,7 @@ func mapOrganizationToIncludedData(organizationDto *OrganizationDto) Organizatio
 
 func mapInvitingUserToIncludedData(invitingUserDto *InvitingUserDto) UserIncludedData {
 	return UserIncludedData{
-		Id:   strconv.FormatUint(uint64(invitingUserDto.User.ID), 10),
+		Id:   invitingUserDto.User.ID.String(),
 		Type: constants.ApiTypeUser,
 		Attributes: UserIncludedAttributes{
 			Name:  invitingUserDto.User.Name,
@@ -854,7 +853,7 @@ func mapMembershipsToResponseWithIncluded(membershipDtos []*OrganizationMembersh
 		data = append(data, mapMembershipToResponse(membershipDto))
 
 		// Add user to included section if not already added
-		userID := strconv.FormatUint(uint64(membershipDto.User.ID), 10)
+		userID := membershipDto.User.ID.String()
 		if !userMap[userID] {
 			userIncluded := mapUserToIncludedData(membershipDto)
 			included = append(included, userIncluded)
@@ -880,13 +879,13 @@ func mapInvitationToResponse(invitationDto *OrganizationInvitationDto) Organizat
 		Relationships: OrganizationInvitationRelationships{
 			Organization: OrganizationRelationshipData{
 				Data: OrganizationRelationshipDataObject{
-					Id:   strconv.FormatUint(uint64(invitationDto.Invitation.OrganizationID), 10),
+					Id:   invitationDto.Invitation.OrganizationID.String(),
 					Type: constants.ApiTypeOrganization,
 				},
 			},
 			InvitingUser: UserRelationshipData{
 				Data: UserRelationshipDataObject{
-					Id:   strconv.FormatUint(uint64(invitationDto.Invitation.InvitingUserID), 10),
+					Id:   invitationDto.Invitation.InvitingUserID.String(),
 					Type: constants.ApiTypeUser,
 				},
 			},

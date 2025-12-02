@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 	"time"
 
@@ -88,7 +87,7 @@ func TestSnapshotWebhookProcessingJob(t *testing.T) {
 			ID:     subscriptionID,
 			Status: stripeGo.SubscriptionStatusActive,
 			Metadata: map[string]string{
-				"organization_id": strconv.FormatUint(uint64(org.ID), 10),
+				"organization_id": org.ID.String(),
 			},
 			BillingCycleAnchor: time.Now().Unix(),
 			Items: &stripeGo.SubscriptionItemList{
