@@ -21,7 +21,7 @@
 				{:else}
 					<User class="size-5" />
 				{/if}
-				{user.data.attributes.name || $t('profileTitle')}
+				{user.data.attributes.name || $t('nav.profile')}
 			</div>
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
@@ -31,13 +31,13 @@
 				<li>
 					<a href={profileHref}>
 						<Settings class="size-4" />
-						{$t('settings')}
+						{$t('nav.settings')}
 					</a>
 				</li>
 				<li>
 					<button class="flex items-center gap-2 text-error" type="submit" form="signout-form">
 						<LogOut class="size-4" />
-						{$t('logout')}
+						{$t('nav.logout')}
 					</button>
 				</li>
 				{#if isImpersonatingUser}
@@ -48,7 +48,7 @@
 							form="stop-impersonation-form"
 						>
 							<EyeOff class="size-4" />
-							{$t('stopImpersonation')}
+							{$t('nav.stopImpersonation')}
 						</button>
 					</li>
 				{/if}

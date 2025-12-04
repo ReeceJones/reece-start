@@ -1,5 +1,5 @@
 import { derived, writable } from 'svelte/store';
-import { translations } from './translations';
+import { translations, type TranslationKey } from './translations';
 
 const DEFAULT_LOCALE = 'en';
 
@@ -66,6 +66,6 @@ function translate(
 export const t = derived(
 	locale,
 	($locale) =>
-		(key: string, vars: Record<string, string> = {}) =>
+		(key: TranslationKey, vars: Record<string, string> = {}) =>
 			translate($locale as keyof typeof translations, key, vars)
 );

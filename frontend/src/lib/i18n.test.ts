@@ -74,6 +74,7 @@ describe('i18n', () => {
 		it('should return key when translation is missing', () => {
 			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 			const translate = get(t);
+			// @ts-expect-error - testing invalid key
 			const result = translate('nonExistentKey');
 			expect(result).toBe('nonExistentKey');
 			expect(consoleSpy).toHaveBeenCalledWith('Translation key not found: nonExistentKey');
@@ -166,6 +167,7 @@ describe('i18n', () => {
 		it('should handle empty key', () => {
 			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 			const translate = get(t);
+			// @ts-expect-error - testing invalid key
 			const result = translate('');
 			expect(result).toBe('');
 			consoleSpy.mockRestore();

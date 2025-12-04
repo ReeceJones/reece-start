@@ -19,7 +19,7 @@
 				{:else}
 					<Building2 class="size-5" />
 				{/if}
-				{organization.data.attributes.name || $t('organization')}
+				{organization.data.attributes.name || $t('nav.organization')}
 			</div>
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
@@ -29,41 +29,41 @@
 				<li>
 					<a href="/app/{organization.data.id}/settings">
 						<Settings class="size-4" />
-						{$t('settings')}
+						{$t('nav.settings')}
 					</a>
 				</li>
 				<li>
 					<a href="/app">
 						<ArrowLeftRight class="size-4" />
-						{$t('switchOrganization')}
+						{$t('nav.switchOrganization')}
 					</a>
 				</li>
 			</ul>
 		</div>
 	</li>
-	<li class="menu-title">{$t('application')}</li>
+	<li class="menu-title">{$t('nav.application')}</li>
 	<li>
 		<a href="/app/{organization.data.id}">
 			<House class="size-4" />
-			{$t('dashboard')}
+			{$t('nav.dashboard')}
 		</a>
 	</li>
 	<li>
 		<a href="/app/{organization.data.id}/foo">
 			<Folder class="size-4" />
-			{$t('foo')}
+			{$t('nav.foo')}
 		</a>
 	</li>
 	<li>
 		<a href="/app/{organization.data.id}/bar">
 			<DollarSign class="size-4" />
-			{$t('bar')}
+			{$t('nav.bar')}
 		</a>
 	</li>
 	<li>
 		<a href="/app/{organization.data.id}/settings">
 			<Settings class="size-4" />
-			{$t('settings')}
+			{$t('nav.settings')}
 		</a>
 	</li>
 </ul>

@@ -72,6 +72,19 @@ export const translations = {
 			}
 		},
 
+		nav: {
+			application: 'Application',
+			dashboard: 'Dashboard',
+			foo: 'Foo',
+			bar: 'Bar',
+			settings: 'Settings',
+			switchOrganization: 'Switch Organization',
+			organization: 'Organization',
+			profile: 'Profile',
+			logout: 'Logout',
+			stopImpersonation: 'Stop Impersonation'
+		},
+
 		// Settings
 		settings: {
 			title: 'Settings',
@@ -685,3 +698,15 @@ export const translations = {
 		}
 	}
 } as const;
+
+// https://stackoverflow.com/questions/65332597/typescript-is-there-a-recursive-keyofa
+export type RecursiveKeyOf<TObj extends object> = {
+	[TKey in keyof TObj & (string | number)]: TObj[TKey] extends unknown[]
+		? `${TKey}`
+		: TObj[TKey] extends object
+			? `${TKey}.${RecursiveKeyOf<TObj[TKey]>}`
+			: `${TKey}`;
+}[keyof TObj & (string | number)];
+
+// Use english translations as the base type for translation keys
+export type TranslationKey = RecursiveKeyOf<typeof translations.en>;
