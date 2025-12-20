@@ -1,41 +1,19 @@
 {
-    # Enable automatic HTTPS in production
-    auto_https off  # Railway handles HTTPS termination
+    auto_https off  # this caddy instance sits behind other proxies which handle tls
 }
 
-:4040 {
-    # API routing with path rewrite
-    handle_path /api {
-        request_body {
-            max_size 64MB
-        }
-        
-        reverse_proxy {env.API_URL} {
-            header_up Host {env.API_HOST}
-            header_up X-Real-IP {remote_host}   
-        }
+:{$PORT} {
+    request_body {
+        max_size 64MB
     }
 
-    handle_path /api/* {
-        request_body {
-            max_size 64MB
-        }
-
-        reverse_proxy {env.API_URL} {
-            header_up Host {env.API_HOST}
-            header_up X-Real-IP {remote_host}
-        }
+    # API routing
+    handle_path /api* {
+        reverse_proxy {env.API_URL}
     }
 
     # Frontend routing
     route /* {
-        request_body {
-            max_size 64MB
-        }
-        
-        reverse_proxy {env.FRONTEND_URL} {
-            header_up Host {env.FRONTEND_HOST}
-            header_up X-Real-IP {remote_host}
-        }
+        reverse_proxy {env.FRONTEND_URL}
     }
-} 
+}
