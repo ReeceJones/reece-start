@@ -43,7 +43,7 @@ export const actions = {
 		const redirectUrl = searchParams.get('redirect') ?? '/app';
 		const isSignInDisabled = env.PUBLIC_DISABLE_SIGNIN === 'true';
 
-		if (!isSignInDisabled) {
+		if (isSignInDisabled) {
 			return fail(403, { success: false, message: 'Sign in is disabled' });
 		}
 

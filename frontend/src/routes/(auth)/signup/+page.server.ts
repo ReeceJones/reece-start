@@ -21,7 +21,7 @@ export const actions = {
 		const searchParams = new URLSearchParams(request.url.slice(request.url.indexOf('?')));
 		const redirectUrl = searchParams.get('redirect') ?? '/app';
 
-		if (!isSignInDisabled) {
+		if (isSignInDisabled) {
 			return fail(403, { success: false, message: 'Sign in is disabled' });
 		}
 
