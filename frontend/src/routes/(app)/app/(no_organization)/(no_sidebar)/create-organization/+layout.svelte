@@ -24,7 +24,7 @@
 	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 	import { t, locale } from '$lib/i18n';
 
-	const { children }: LayoutProps = $props();
+	const { children, data }: LayoutProps = $props();
 
 	const steps = [
 		{
@@ -64,10 +64,10 @@
 		addressCity: '',
 		addressStateOrProvince: '',
 		addressZip: '',
-		addressCountry: '',
+		addressCountry: 'US',
 		addressLine1: '',
 		addressLine2: '',
-		contactEmail: '',
+		contactEmail: data.user.data.attributes.email,
 		contactPhone: '',
 		contactPhoneCountry: 'US'
 	});
@@ -105,7 +105,7 @@
 	{$t('onboarding.back')}
 </a>
 
-<Card class="mx-auto max-w-2xl space-y-6">
+<Card class="mx-auto mb-10 max-w-2xl space-y-6">
 	<CardBody>
 		<div class="space-y-2">
 			<CardTitle>
