@@ -1,19 +1,20 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
 	import type { PageProps } from './$types';
-	import { enhance, applyAction } from '$app/forms';
-	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
-	import clsx from 'clsx/lite';
-	import { invalidateAll } from '$app/navigation';
-	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
-	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
-	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
+	import { enhance } from '$app/forms';
+	import { Save } from 'lucide-svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Field from '$lib/components/ui/field';
+	import { t } from '$lib/i18n';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import FormActionStatus from '$lib/components/Form/FormActionStatus.svelte';
+	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
 
 	let { data, form }: PageProps = $props();
 
 	let submitting = $state(false);
-	let email = $state(data.user.data.attributes.email);
-	let userProfile = $state(data.user.data);
+	let email = $derived(data.user.data.attributes.email);
+	let userProfile = $derived(data.user.data);
 	let password = $state('');
 	let confirmPassword = $state('');
 
@@ -30,94 +31,96 @@
 	});
 </script>
 
-<SettingsCard>
-	<SettingsCardTitle>{$t('settings.security')}</SettingsCardTitle>
-	<form
-		method="post"
-		use:enhance={() => {
-			submitting = true;
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('settings.security')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<form
+			method="post"
+			use:enhance={() => {
+				submitting = true;
 
-			return ({ result }) => {
-				invalidateAll();
-				applyAction(result);
-				submitting = false;
-			};
-		}}
-		enctype="multipart/form-data"
-	>
-		<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
+				return ({ update }) => {
+					update({ reset: false });
+					submitting = false;
+				};
+			}}
+			enctype="multipart/form-data"
+			class="space-y-4 lg:max-w-sm"
+		>
+			<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
 
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend">{$t('settings.fields.email.label')}</legend>
-			<input
-				type="email"
-				name="email"
-				required
-				class="input"
-				placeholder={$t('settings.fields.email.placeholder')}
-				bind:value={email}
-			/>
-			<p class="fieldset-label">
-				{$t('settings.fields.email.description')}
-			</p>
-		</fieldset>
-
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend">{$t('settings.fields.updatePassword.label')}</legend>
-			<input
-				type="password"
-				name="password"
-				class="input"
-				placeholder={$t('settings.fields.updatePassword.placeholder')}
-				bind:value={password}
-			/>
-			<p class="fieldset-label">{$t('settings.fields.updatePassword.description')}</p>
-			{#if password.length > 0 && password.length < 8}
-				<p class="fieldset-label text-error">
-					{$t('settings.fields.updatePassword.passwordTooShort')}
-				</p>
-			{/if}
-		</fieldset>
-
-		{#if password !== ''}
-			<fieldset class="fieldset">
-				<legend class="fieldset-legend">{$t('settings.fields.confirmPassword.label')}</legend>
-				<input
-					type="password"
-					name="confirmPassword"
-					class={clsx('input', password !== confirmPassword && 'input-error')}
-					placeholder={$t('settings.fields.confirmPassword.placeholder')}
-					bind:value={confirmPassword}
+			<Field.Field>
+				<Field.Label for="email">{$t('settings.fields.email.label')}</Field.Label>
+				<Input
+					type="email"
+					id="email"
+					name="email"
+					required
+					class="input"
+					placeholder={$t('settings.fields.email.placeholder')}
+					bind:value={email}
 				/>
-				{#if password !== confirmPassword}
-					<p class={clsx('fieldset-label', 'text-error')}>
-						{$t('settings.fields.confirmPassword.passwordDoesNotMatch')}
-					</p>
-				{/if}
-			</fieldset>
-		{/if}
+				<Field.Description>{$t('settings.fields.email.description')}</Field.Description>
+			</Field.Field>
 
-		{#if form?.success}
-			<div role="alert" class="mt-3 alert alert-success">
-				<CircleCheck />
-				<span>{$t('settings.success.profileUpdated')}</span>
-			</div>
-		{:else if form?.success === false}
-			<div role="alert" class="mt-3 alert alert-error">
-				<CircleX />
-				<span>{form.message ?? $t('settings.success.profileUpdateError')}</span>
-			</div>
-		{/if}
-
-		<SettingsCardActions>
-			<button type="submit" class="btn btn-primary" disabled={!canSubmit || submitting}>
-				{#if submitting}
-					<span class="loading loading-spinner"></span>
-				{:else}
-					<Save />
+			<Field.Field>
+				<Field.Label for="password">{$t('settings.fields.updatePassword.label')}</Field.Label>
+				<Input
+					type="password"
+					id="password"
+					name="password"
+					class="input"
+					placeholder={$t('settings.fields.updatePassword.placeholder')}
+					bind:value={password}
+				/>
+				<Field.Description>{$t('settings.fields.updatePassword.description')}</Field.Description>
+				{#if password.length > 0 && password.length < 8}
+					<Field.Description class="text-error">
+						{$t('settings.fields.updatePassword.passwordTooShort')}
+					</Field.Description>
 				{/if}
-				<span>{$t('save')}</span>
-			</button>
-		</SettingsCardActions>
-	</form>
-</SettingsCard>
+			</Field.Field>
+
+			{#if password !== ''}
+				<Field.Field>
+					<Field.Label for="confirmPassword"
+						>{$t('settings.fields.confirmPassword.label')}</Field.Label
+					>
+					<Input
+						type="password"
+						id="confirmPassword"
+						name="confirmPassword"
+						class="input"
+						aria-invalid={password !== confirmPassword && confirmPassword !== ''}
+						placeholder={$t('settings.fields.confirmPassword.placeholder')}
+						bind:value={confirmPassword}
+					/>
+					{#if password !== confirmPassword && confirmPassword !== ''}
+						<Field.Description class="text-error">
+							{$t('settings.fields.confirmPassword.passwordDoesNotMatch')}
+						</Field.Description>
+					{/if}
+				</Field.Field>
+			{/if}
+
+			<FormActionStatus
+				{form}
+				success={$t('settings.success.profileUpdated')}
+				failure={form?.message ?? $t('settings.success.profileUpdateError')}
+			/>
+
+			<Card.Action>
+				<Button type="submit" disabled={!canSubmit || submitting}>
+					<LoadingIcon loading={submitting}>
+						{#snippet icon()}
+							<Save />
+						{/snippet}
+					</LoadingIcon>
+					<span>{$t('save')}</span>
+				</Button>
+			</Card.Action>
+		</form>
+	</Card.Content>
+</Card.Root>

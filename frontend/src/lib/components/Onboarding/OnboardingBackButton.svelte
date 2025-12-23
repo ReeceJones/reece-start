@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { ArrowLeft } from 'lucide-svelte';
-	import { fade } from 'svelte/transition';
-	import clsx from 'clsx/lite';
 	import { t } from '$lib/i18n';
+	import { Button } from '$lib/components/ui/button';
 
 	const {
 		step,
@@ -15,7 +14,7 @@
 	} = $props();
 </script>
 
-<a class={clsx('btn btn-outline', disabled && 'pointer-events-none')} href={step.path} in:fade>
-	<ArrowLeft class="size-4" />
-	{$t('back')}
-</a>
+<Button href={step.path} variant="outline" {disabled}>
+	<ArrowLeft />
+	<span>{$t('back')}</span>
+</Button>

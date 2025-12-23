@@ -1,21 +1,24 @@
 <script lang="ts">
-	import { ArrowLeft, CircleCheck, CircleX, Save, Trash, User } from 'lucide-svelte';
+	import { ArrowLeft, Save, Trash, User } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { API_TYPES } from '$lib/schemas/api';
 	import { enhance } from '$app/forms';
-	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
-	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
+	import * as Card from '$lib/components/ui/card';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
 	import { t } from '$lib/i18n';
+	import { Button } from '$lib/components/ui/button';
+	import * as Field from '$lib/components/ui/field';
+	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
+	import * as Select from '$lib/components/ui/select';
+	import FormActionStatus from '$lib/components/Form/FormActionStatus.svelte';
 
 	const { data, form }: PageProps = $props();
 
 	let submittingSave = $state(false);
 	let submittingDelete = $state(false);
 	const submitting = $derived(submittingSave || submittingDelete);
-	let role = $state(data.organizationMembership.data.attributes.role);
+	let role = $derived(data.organizationMembership.data.attributes.role);
 
 	const canUpdateMembership = $derived(hasScope(UserScope.OrganizationMembershipsUpdate));
 	const canDeleteMembership = $derived(hasScope(UserScope.OrganizationMembershipsDelete));
@@ -26,26 +29,28 @@
 </script>
 
 <div class="space-y-10">
-	<button class="btn btn-ghost" onclick={() => history.back()}>
+	<Button variant="ghost" onclick={() => history.back()}>
 		<ArrowLeft class="size-4" />
 		{$t('back')}
-	</button>
+	</Button>
 
-	<SettingsCard>
-		<SettingsCardTitle>{$t('settings.organization.members.memberInformation')}</SettingsCardTitle>
-		<div class="space-y-2">
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>{$t('settings.organization.members.memberInformation')}</Card.Title>
+		</Card.Header>
+		<Card.Content class="space-y-2">
 			<div class="flex gap-3">
 				{#if user.meta.logoDistributionUrl}
 					<img
 						src={user.meta.logoDistributionUrl}
 						alt={user.attributes.name}
-						class="size-20 rounded-box"
+						class="size-20 rounded-lg"
 					/>
 				{:else}
-					<User class="size-20 rounded-box bg-base-300" />
+					<User class="size-20 rounded-lg bg-neutral-200" />
 				{/if}
 				<div class="flex flex-col">
-					<CardTitle>{user.attributes.name}</CardTitle>
+					<Card.Title>{user.attributes.name}</Card.Title>
 					<a href={`mailto:${user.attributes.email}`} class="link text-sm text-gray-500">
 						{user.attributes.email}
 					</a>
@@ -53,7 +58,7 @@
 			</div>
 
 			<form
-				class="space-y-2"
+				class="space-y-2 lg:max-w-sm"
 				method="post"
 				action="?/update"
 				enctype="multipart/form-data"
@@ -61,53 +66,53 @@
 					submittingSave = true;
 
 					return ({ update }) => {
-						update();
+						update({ reset: false });
 						submittingSave = false;
 					};
 				}}
 			>
-				<fieldset class="fieldset">
-					<legend class="fieldset-legend">{$t('settings.organization.members.role.label')}</legend>
-					<select
-						class="select-bordered select"
-						name="role"
-						bind:value={role}
-						disabled={!canUpdateMembership}
+				<Field.Field>
+					<Field.Label for="member-role"
+						>{$t('settings.organization.members.role.label')}</Field.Label
 					>
-						<option value="admin">{$t('settings.organization.members.role.admin')}</option>
-						<option value="member">{$t('settings.organization.members.role.member')}</option>
-					</select>
-				</fieldset>
+					<Select.Root name="role" type="single" bind:value={role} disabled={!canUpdateMembership}>
+						<Select.Trigger id="member-role">
+							{$t(`settings.organization.members.role.${role}`)}
+						</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="admin"
+								>{$t('settings.organization.members.role.admin')}</Select.Item
+							>
+							<Select.Item value="member"
+								>{$t('settings.organization.members.role.member')}</Select.Item
+							>
+						</Select.Content>
+					</Select.Root>
+				</Field.Field>
 
-				{#if form?.success}
-					<div role="alert" class="mt-3 alert alert-success">
-						<CircleCheck />
-						<span>{$t('settings.organization.members.success.memberUpdated')}</span>
-					</div>
-				{:else if form?.success === false}
-					<div role="alert" class="mt-3 alert alert-error">
-						<CircleX />
-						<span
-							>{form.message ?? $t('settings.organization.members.success.memberUpdateError')}</span
-						>
-					</div>
-				{/if}
+				<FormActionStatus
+					{form}
+					success={$t('settings.organization.members.success.memberUpdated')}
+					failure={$t('settings.organization.members.success.memberUpdateError')}
+				/>
 
-				<button class="btn btn-primary" disabled={!canSubmit || submitting || !canUpdateMembership}>
-					{#if submittingSave}
-						<span class="loading loading-spinner"></span>
-					{:else}
-						<Save class="size-4" />
-					{/if}
+				<Button type="submit" disabled={!canSubmit || submitting || !canUpdateMembership}>
+					<LoadingIcon loading={submitting}>
+						{#snippet icon()}
+							<Save class="size-4" />
+						{/snippet}
+					</LoadingIcon>
 					{$t('save')}
-				</button>
+				</Button>
 			</form>
-		</div>
-	</SettingsCard>
+		</Card.Content>
+	</Card.Root>
 
-	<SettingsCard>
-		<SettingsCardTitle>{$t('settings.organization.members.dangerZone')}</SettingsCardTitle>
-		<div>
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>{$t('settings.organization.members.dangerZone')}</Card.Title>
+		</Card.Header>
+		<Card.Content>
 			<form
 				method="post"
 				action="?/delete"
@@ -115,20 +120,22 @@
 					submittingDelete = true;
 
 					return ({ update }) => {
-						update();
+						update({ reset: false });
 						submittingDelete = false;
 					};
 				}}
 			>
-				<button class="btn btn-outline btn-error" disabled={submitting || !canDeleteMembership}>
-					{#if submittingDelete}
-						<span class="loading loading-spinner"></span>
-					{:else}
-						<Trash class="size-4" />
-					{/if}
-					{$t('settings.organization.members.removeMember')}
-				</button>
+				<Card.Action>
+					<Button type="submit" variant="destructive" disabled={submitting || !canDeleteMembership}>
+						<LoadingIcon loading={submitting}>
+							{#snippet icon()}
+								<Trash class="size-4" />
+							{/snippet}
+						</LoadingIcon>
+						{$t('settings.organization.members.removeMember')}
+					</Button>
+				</Card.Action>
 			</form>
-		</div>
-	</SettingsCard>
+		</Card.Content>
+	</Card.Root>
 </div>

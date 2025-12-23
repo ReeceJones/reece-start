@@ -333,7 +333,6 @@ type GetOrganizationsByUserIDServiceRequest struct {
 
 type GetOrganizationByIDServiceRequest struct {
 	OrganizationID uuid.UUID
-	UserID         uuid.UUID
 	Tx             *gorm.DB
 	MinioClient    *minio.Client
 }

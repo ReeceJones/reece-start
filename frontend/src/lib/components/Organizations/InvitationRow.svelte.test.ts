@@ -61,7 +61,7 @@ describe('InvitationRow', () => {
 
 	describe('rendering', () => {
 		it('should render the invitation row', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -72,7 +72,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should display the invitation email as a mailto link', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -83,7 +83,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should render the copy invitation link button', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -93,7 +93,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should render the delete button', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -105,7 +105,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should have correct form action for delete', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -115,7 +115,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should have hidden input with invitation ID', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -131,7 +131,7 @@ describe('InvitationRow', () => {
 			const copyToClipboardSpy = vi
 				.spyOn(clipboard, 'copyToClipboard')
 				.mockResolvedValue(undefined);
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const user = userEvent.setup();
 			render(InvitationRow, {
 				props: { invitation: mockInvitation }
@@ -146,7 +146,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should show toast notification when link is copied', async () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const user = userEvent.setup();
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
@@ -162,7 +162,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should show Check icon when link is copied', async () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const user = userEvent.setup();
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
@@ -180,7 +180,7 @@ describe('InvitationRow', () => {
 
 	describe('delete invitation', () => {
 		it('should disable delete button when user does not have delete scope', () => {
-			setScopes([]);
+			setScopes(() => []);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -191,7 +191,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should enable delete button when user has delete scope', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -204,7 +204,7 @@ describe('InvitationRow', () => {
 
 	describe('permissions', () => {
 		it('should show delete button enabled when user has OrganizationInvitationsDelete scope', () => {
-			setScopes([UserScope.OrganizationInvitationsDelete]);
+			setScopes(() => [UserScope.OrganizationInvitationsDelete]);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});
@@ -215,7 +215,7 @@ describe('InvitationRow', () => {
 		});
 
 		it('should show delete button disabled when user does not have OrganizationInvitationsDelete scope', () => {
-			setScopes([UserScope.OrganizationInvitationsList]);
+			setScopes(() => [UserScope.OrganizationInvitationsList]);
 			const { container } = render(InvitationRow, {
 				props: { invitation: mockInvitation }
 			});

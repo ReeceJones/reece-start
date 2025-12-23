@@ -6,7 +6,7 @@ import { setScopes } from '$lib/auth';
 
 describe('IndexNav', () => {
 	beforeEach(() => {
-		setScopes([]);
+		setScopes(() => []);
 	});
 
 	afterEach(() => {
@@ -44,21 +44,21 @@ describe('IndexNav', () => {
 
 	describe('admin section', () => {
 		it('should not render admin section when user is not admin', () => {
-			setScopes([]);
+			setScopes(() => []);
 			render(IndexNav);
 			const adminSection = screen.queryByText('Admin');
 			expect(adminSection).toBeNull();
 		});
 
 		it('should render admin section when user is admin', () => {
-			setScopes([UserScope.Admin]);
+			setScopes(() => [UserScope.Admin]);
 			render(IndexNav);
 			const adminSection = screen.getByText('Admin');
 			expect(adminSection).toBeTruthy();
 		});
 
 		it('should render users link in admin section when user is admin', () => {
-			setScopes([UserScope.Admin]);
+			setScopes(() => [UserScope.Admin]);
 			render(IndexNav);
 			const usersLink = screen.getByRole('link', { name: /users/i });
 			expect(usersLink).toBeTruthy();
@@ -66,7 +66,7 @@ describe('IndexNav', () => {
 		});
 
 		it('should render debug link in admin section when user is admin', () => {
-			setScopes([UserScope.Admin]);
+			setScopes(() => [UserScope.Admin]);
 			render(IndexNav);
 			const debugLink = screen.getByRole('link', { name: /debug/i });
 			expect(debugLink).toBeTruthy();
@@ -74,7 +74,7 @@ describe('IndexNav', () => {
 		});
 
 		it('should render Shield icon in admin section', () => {
-			setScopes([UserScope.Admin]);
+			setScopes(() => [UserScope.Admin]);
 			render(IndexNav);
 			const adminSection = screen.getByText('Admin');
 			const summary = adminSection.closest('summary');
@@ -83,7 +83,7 @@ describe('IndexNav', () => {
 		});
 
 		it('should render Users icon in users link', () => {
-			setScopes([UserScope.Admin]);
+			setScopes(() => [UserScope.Admin]);
 			render(IndexNav);
 			const usersLink = screen.getByRole('link', { name: /users/i });
 			const icon = usersLink.querySelector('svg');
@@ -91,7 +91,7 @@ describe('IndexNav', () => {
 		});
 
 		it('should render Bug icon in debug link', () => {
-			setScopes([UserScope.Admin]);
+			setScopes(() => [UserScope.Admin]);
 			render(IndexNav);
 			const debugLink = screen.getByRole('link', { name: /debug/i });
 			const icon = debugLink.querySelector('svg');

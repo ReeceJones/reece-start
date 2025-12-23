@@ -1,70 +1,92 @@
 <script lang="ts">
-	import { EyeOff, LogOut, Settings, User } from 'lucide-svelte';
+	import { ChevronsUpDown, EyeOff, LogOut, Settings, User } from 'lucide-svelte';
 	import { getSelfUserResponseSchema } from '$lib/schemas/user';
 	import type { z } from 'zod';
 	import { page } from '$app/state';
 	import { getIsImpersonatingUser } from '$lib/auth';
 	import { t } from '$lib/i18n';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 
 	const { user }: { user: z.infer<typeof getSelfUserResponseSchema> } = $props();
 	const organizationId = $derived(page.params.organizationId);
 	const profileHref = $derived(organizationId ? `/app/${organizationId}/profile` : '/app/profile');
 	const isImpersonatingUser = $derived(getIsImpersonatingUser());
+
+	let signoutForm: HTMLFormElement;
+	let stopImpersonationForm: HTMLFormElement;
+
+	function handleSignOut() {
+		signoutForm?.requestSubmit();
+	}
+
+	function handleStopImpersonation() {
+		stopImpersonationForm?.requestSubmit();
+	}
 </script>
 
-<ul class="menu menu-vertical w-full">
-	<li class="w-full">
-		<div class="dropdown dropdown-start dropdown-top w-full p-0">
-			<div tabindex="0" role="button" class="flex w-full gap-2 px-3 py-1.5">
-				{#if user.data.meta.logoDistributionUrl}
-					<img src={user.data.meta.logoDistributionUrl} alt="User logo" class="size-6 rounded-sm" />
-				{:else}
-					<User class="size-5" />
-				{/if}
-				{user.data.attributes.name || $t('nav.profile')}
-			</div>
-			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-			<ul
-				tabindex="0"
-				class="dropdown-content menu z-1 ml-0 w-52 -translate-y-1.5 rounded-box bg-base-100 p-2 shadow-sm"
-			>
-				<li>
-					<a href={profileHref}>
-						<Settings class="size-4" />
-						{$t('nav.settings')}
-					</a>
-				</li>
-				<li>
-					<button class="flex items-center gap-2 text-error" type="submit" form="signout-form">
-						<LogOut class="size-4" />
-						{$t('nav.logout')}
-					</button>
-				</li>
+<Sidebar.Menu class="w-full">
+	<Sidebar.MenuItem class="w-full">
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger>
+				{#snippet child({ props })}
+					<Sidebar.MenuButton
+						{...props}
+						class="w-full py-6 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+					>
+						{#if user.data.meta.logoDistributionUrl}
+							<img
+								src={user.data.meta.logoDistributionUrl}
+								alt="User logo"
+								class="size-8 rounded-md"
+							/>
+						{:else}
+							<div
+								class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent"
+							>
+								<User class="size-6" />
+							</div>
+						{/if}
+						<div class="flex flex-col items-start">
+							<span>{user.data.attributes.name || $t('nav.profile')}</span>
+							<span class="text-xs text-sidebar-foreground/70">{user.data.attributes.email}</span>
+						</div>
+						<ChevronsUpDown class="ms-auto" />
+					</Sidebar.MenuButton>
+				{/snippet}
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content side="top" class="w-(--bits-dropdown-menu-anchor-width)">
+				<DropdownMenu.Item>
+					{#snippet child({ props })}
+						<a href={profileHref} {...props}>
+							<Settings class="size-4" />
+							{$t('nav.settings')}
+						</a>
+					{/snippet}
+				</DropdownMenu.Item>
 				{#if isImpersonatingUser}
-					<li>
-						<button
-							class="flex items-center gap-2 text-error"
-							type="submit"
-							form="stop-impersonation-form"
-						>
-							<EyeOff class="size-4" />
-							{$t('nav.stopImpersonation')}
-						</button>
-					</li>
+					<DropdownMenu.Item onSelect={handleStopImpersonation} variant="destructive">
+						<EyeOff class="size-4" />
+						{$t('nav.stopImpersonation')}
+					</DropdownMenu.Item>
 				{/if}
-			</ul>
-			<form
-				action="/app?/signout"
-				method="POST"
-				enctype="multipart/form-data"
-				id="signout-form"
-			></form>
-			<form
-				action="/app?/stopImpersonation"
-				method="POST"
-				enctype="multipart/form-data"
-				id="stop-impersonation-form"
-			></form>
-		</div>
-	</li>
-</ul>
+				<DropdownMenu.Item onSelect={handleSignOut} variant="destructive">
+					<LogOut class="size-4" />
+					{$t('nav.logout')}
+				</DropdownMenu.Item>
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
+		<form
+			bind:this={signoutForm}
+			action="/app?/signout"
+			method="POST"
+			enctype="multipart/form-data"
+		></form>
+		<form
+			bind:this={stopImpersonationForm}
+			action="/app?/stopImpersonation"
+			method="POST"
+			enctype="multipart/form-data"
+		></form>
+	</Sidebar.MenuItem>
+</Sidebar.Menu>

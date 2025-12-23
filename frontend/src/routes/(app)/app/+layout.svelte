@@ -4,10 +4,10 @@
 
 	const { children, data } = $props();
 
-	const { userScopes, isImpersonatingUser } = data;
+	const { userScopes, isImpersonatingUser } = $derived(data);
 
-	setScopes(userScopes);
-	setIsImpersonatingUser(isImpersonatingUser);
+	setScopes(() => userScopes);
+	setIsImpersonatingUser(() => isImpersonatingUser);
 </script>
 
 <svelte:head>

@@ -2,10 +2,10 @@
 	import { t } from '$lib/i18n';
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
-	import Card from '$lib/components/Card/Card.svelte';
-	import CardBody from '$lib/components/Card/CardBody.svelte';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Alert from '$lib/components/ui/alert';
 	import { CircleX } from 'lucide-svelte';
+	import { Spinner } from '$lib/components/ui/spinner';
 
 	let formEl: HTMLFormElement;
 	let error = $state('');
@@ -19,19 +19,23 @@
 </script>
 
 <div class="mx-auto max-w-80">
-	<Card>
-		<CardBody>
-			<CardTitle>{$t('payments.redirectingToStripe')}</CardTitle>
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>{$t('payments.redirectingToStripe')}</Card.Title>
+		</Card.Header>
+		<Card.Content>
 			{#if loading}
-				<span class="loading mx-auto loading-lg loading-spinner"></span>
+				<Spinner class="mx-auto size-6" />
 			{:else if error}
-				<div class="alert alert-error">
+				<Alert.Root variant="destructive">
 					<CircleX />
-					<span>{error}</span>
-				</div>
+					<Alert.Description>
+						{error}
+					</Alert.Description>
+				</Alert.Root>
 			{/if}
-		</CardBody>
-	</Card>
+		</Card.Content>
+	</Card.Root>
 	<form
 		method="post"
 		class="hidden"

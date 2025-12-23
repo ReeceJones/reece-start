@@ -3,10 +3,9 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
-	import Card from '$lib/components/Card/Card.svelte';
-	import CardBody from '$lib/components/Card/CardBody.svelte';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
-	import CardActions from '$lib/components/Card/CardActions.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { Spinner } from '$lib/components/ui/spinner';
 
 	let loading = $state(true);
 	let error = $state('');
@@ -70,23 +69,25 @@
 </form>
 
 <main class="mx-auto my-8 max-w-80">
-	<Card>
-		<CardBody>
+	<Card.Root>
+		<Card.Content>
 			{#if loading}
-				<div class="text-center">
-					<span class="loading loading-lg loading-spinner"></span>
-					<h2 class="mt-4">{$t('oauth.completingSignIn')}</h2>
-					<p class="text-gray-500">{$t('oauth.pleaseWait')}</p>
+				<div class="flex flex-col items-center justify-center gap-4 text-center">
+					<Spinner class="size-8" />
+					<Card.Title class="mt-4">{$t('oauth.completingSignIn')}</Card.Title>
+					<Card.Description>{$t('oauth.pleaseWait')}</Card.Description>
 				</div>
 			{:else if error}
-				<div class="text-center">
-					<CardTitle class="text-error">{$t('oauth.authenticationError')}</CardTitle>
-					<p class="mb-4 text-gray-500">{error}</p>
-					<CardActions>
-						<a href="/signin" class="btn w-full btn-primary">{$t('oauth.tryAgain')}</a>
-					</CardActions>
+				<div class="flex flex-col items-center gap-4 text-center">
+					<Card.Title class="text-destructive">{$t('oauth.authenticationError')}</Card.Title>
+					<Card.Description class="mb-4">{error}</Card.Description>
+					<Card.Footer class="w-full">
+						<Button href="/signin" class="w-full" variant="default">
+							{$t('oauth.tryAgain')}
+						</Button>
+					</Card.Footer>
 				</div>
 			{/if}
-		</CardBody>
-	</Card>
+		</Card.Content>
+	</Card.Root>
 </main>

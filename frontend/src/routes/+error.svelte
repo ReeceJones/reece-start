@@ -1,10 +1,9 @@
 <script lang="ts">
-	import Card from '$lib/components/Card/Card.svelte';
-	import CardBody from '$lib/components/Card/CardBody.svelte';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
-	import CardActions from '$lib/components/Card/CardActions.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Alert from '$lib/components/ui/alert';
 	import { House, RefreshCw, TriangleAlert } from 'lucide-svelte';
 	import { page } from '$app/state';
+	import { Button, buttonVariants } from '$lib/components/ui/button';
 
 	const status = $derived(page.status);
 	const error = $derived(page.error);
@@ -36,35 +35,42 @@
 	});
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-base-100 p-4">
-	<Card class="w-full max-w-md">
-		<CardBody>
-			<div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-error/10">
-				<TriangleAlert class="size-8 text-error" />
+<div class="bg-base-100 flex min-h-screen items-center justify-center p-4">
+	<Card.Root class="w-full max-w-md">
+		<Card.Header>
+			<div class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full">
+				<TriangleAlert class="text-error size-8" />
 			</div>
-			<CardTitle class="text-2xl">{errorTitle}</CardTitle>
-			<p class="mt-2 mb-6 text-base-content/70">{errorDescription}</p>
-			{#if errorMessage && errorMessage !== errorDescription}
-				<div class="mb-6 alert justify-start alert-error text-left">
-					<TriangleAlert class="size-5 shrink-0" />
-					<span class="text-sm">{errorMessage}</span>
-				</div>
-			{/if}
-			<CardActions class="justify-center gap-3">
-				<a href="/" class="btn btn-primary">
+			<Card.Title>{errorTitle}</Card.Title>
+			<Card.Description>{errorDescription}</Card.Description>
+		</Card.Header>
+		{#if errorMessage && errorMessage !== errorDescription && status !== 404}
+			<Card.Content>
+				<Alert.Root variant="destructive">
+					<Alert.Description class="overflow-scroll font-semibold">
+						{errorMessage}</Alert.Description
+					>
+				</Alert.Root>
+			</Card.Content>
+		{/if}
+		<Card.Footer>
+			<Card.Action>
+				<a href="/" class={buttonVariants()}>
 					<House class="size-4" />
 					Go Home
 				</a>
-				<button
-					class="btn btn-ghost"
-					onclick={() => {
-						window.location.reload();
-					}}
-				>
-					<RefreshCw class="size-4" />
-					Reload Page
-				</button>
-			</CardActions>
-		</CardBody>
-	</Card>
+				{#if status !== 404}
+					<Button
+						variant="ghost"
+						onclick={() => {
+							window.location.reload();
+						}}
+					>
+						<RefreshCw class="size-4" />
+						Reload Page
+					</Button>
+				{/if}
+			</Card.Action>
+		</Card.Footer>
+	</Card.Root>
 </div>

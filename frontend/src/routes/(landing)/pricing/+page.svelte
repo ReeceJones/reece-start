@@ -1,6 +1,9 @@
 <script>
 	import { CircleCheck, CreditCard, DoorOpen, Star, Zap } from 'lucide-svelte';
 	import { t } from '$lib/i18n';
+	import { buttonVariants } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import * as Accordion from '$lib/components/ui/accordion';
 </script>
 
 <svelte:head>
@@ -12,19 +15,19 @@
 <div class="container mx-auto px-4">
 	<div class="mx-auto max-w-4xl py-20 text-center">
 		<h1 class="mb-6 text-3xl font-bold md:text-4xl">{$t('pricing.hero.title')}</h1>
-		<p class="mx-auto max-w-2xl text-xl leading-relaxed text-base-content/70">
+		<p class="text-base-content/70 mx-auto max-w-2xl text-xl leading-relaxed">
 			{$t('pricing.hero.subtitle')}
 		</p>
 	</div>
 </div>
 
 <!-- Pricing Cards Section -->
-<section class="bg-base-200 py-20">
+<section class="py-20">
 	<div class="container mx-auto px-4">
 		<div class="mx-auto grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2">
 			<!-- Free Tier -->
-			<div class="card border-2 border-transparent bg-base-100 shadow-xl">
-				<div class="card-body p-8">
+			<Card.Root class="shadow-none">
+				<Card.Content class="p-8">
 					<div class="mb-6">
 						<div class="mb-4 flex items-center gap-3">
 							<div class="rounded-lg bg-primary/10 p-2">
@@ -71,23 +74,30 @@
 						</li>
 					</ul>
 
-					<a href="/signup" class="btn w-full font-medium btn-outline btn-lg">
+					<a
+						href="/signup"
+						class={buttonVariants({
+							variant: 'secondary',
+							size: 'lg',
+							class: 'w-full text-base'
+						})}
+					>
 						<DoorOpen class="size-5" />
 						{$t('pricing.free.cta')}
 					</a>
-				</div>
-			</div>
+				</Card.Content>
+			</Card.Root>
 
 			<!-- Pro Tier -->
-			<div class="card relative border-2 border-accent bg-base-100 shadow-xl">
+			<Card.Root class="relative border-2 border-accent">
 				<!-- Popular Badge -->
 				<div class="absolute -top-4 left-1/2 -translate-x-1/2 transform">
-					<div class="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-content">
+					<div class="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground">
 						{$t('pricing.pro.badge')}
 					</div>
 				</div>
 
-				<div class="card-body p-8">
+				<Card.Content class="p-8">
 					<div class="mb-6">
 						<div class="mb-4 flex items-center gap-3">
 							<div class="rounded-lg bg-accent/10 p-2">
@@ -138,103 +148,116 @@
 						</li>
 					</ul>
 
-					<a href="/signup" class="btn w-full font-medium btn-lg btn-accent">
+					<a
+						href="/signup"
+						class={buttonVariants({
+							variant: 'accent',
+							size: 'lg',
+							class: 'w-full text-base'
+						})}
+					>
 						<CreditCard class="size-5" />
 						{$t('pricing.pro.cta')}
 					</a>
-				</div>
-			</div>
+				</Card.Content>
+			</Card.Root>
 		</div>
 	</div>
 </section>
 
 <!-- FAQ Section -->
-<section class="bg-base-100 py-20">
+<section class="bg-neutral-100 py-20">
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-3xl">
 			<h2 class="mb-12 text-center text-3xl font-bold">{$t('pricing.faq.title')}</h2>
 
-			<div class="join-vertical join w-full">
-				<div class="collapse-plus collapse join-item border-b border-base-300">
-					<input type="radio" name="pricing-accordion" />
-					<div class="collapse-title text-lg font-medium">
+			<Accordion.Root type="single">
+				<Accordion.Item value="changePlans">
+					<Accordion.Trigger class="text-lg font-medium">
 						{$t('pricing.faq.changePlans.question')}
-					</div>
-					<div class="collapse-content">
+					</Accordion.Trigger>
+					<Accordion.Content>
 						<p class="text-base-content/70">
 							{$t('pricing.faq.changePlans.answer')}
 						</p>
-					</div>
-				</div>
+					</Accordion.Content>
+				</Accordion.Item>
 
-				<div class="collapse-plus collapse join-item border-b border-base-300">
-					<input type="radio" name="pricing-accordion" />
-					<div class="collapse-title text-lg font-medium">
+				<Accordion.Item value="freeTrial">
+					<Accordion.Trigger class="text-lg font-medium">
 						{$t('pricing.faq.freeTrial.question')}
-					</div>
-					<div class="collapse-content">
+					</Accordion.Trigger>
+					<Accordion.Content>
 						<p class="text-base-content/70">
 							{$t('pricing.faq.freeTrial.answer')}
 						</p>
-					</div>
-				</div>
+					</Accordion.Content>
+				</Accordion.Item>
 
-				<div class="collapse-plus collapse join-item border-b border-base-300">
-					<input type="radio" name="pricing-accordion" />
-					<div class="collapse-title text-lg font-medium">
+				<Accordion.Item value="paymentMethods">
+					<Accordion.Trigger class="text-lg font-medium">
 						{$t('pricing.faq.paymentMethods.question')}
-					</div>
-					<div class="collapse-content">
+					</Accordion.Trigger>
+					<Accordion.Content>
 						<p class="text-base-content/70">
 							{$t('pricing.faq.paymentMethods.answer')}
 						</p>
-					</div>
-				</div>
+					</Accordion.Content>
+				</Accordion.Item>
 
-				<div class="collapse-plus collapse join-item border-b border-base-300">
-					<input type="radio" name="pricing-accordion" />
-					<div class="collapse-title text-lg font-medium">
+				<Accordion.Item value="cancelSubscription">
+					<Accordion.Trigger class="text-lg font-medium">
 						{$t('pricing.faq.cancelSubscription.question')}
-					</div>
-					<div class="collapse-content">
+					</Accordion.Trigger>
+					<Accordion.Content>
 						<p class="text-base-content/70">
 							{$t('pricing.faq.cancelSubscription.answer')}
 						</p>
-					</div>
-				</div>
+					</Accordion.Content>
+				</Accordion.Item>
 
-				<div class="collapse-plus collapse join-item border-b border-base-300">
-					<input type="radio" name="pricing-accordion" />
-					<div class="collapse-title text-lg font-medium">
+				<Accordion.Item value="annualDiscount">
+					<Accordion.Trigger class="text-lg font-medium">
 						{$t('pricing.faq.annualDiscount.question')}
-					</div>
-					<div class="collapse-content">
+					</Accordion.Trigger>
+					<Accordion.Content>
 						<p class="text-base-content/70">
 							{$t('pricing.faq.annualDiscount.answer')}
 						</p>
-					</div>
-				</div>
-			</div>
+					</Accordion.Content>
+				</Accordion.Item>
+			</Accordion.Root>
 		</div>
 	</div>
 </section>
 
 <!-- CTA Section -->
-<section class="bg-neutral py-20">
+<section class="py-20">
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-2xl text-center">
-			<h2 class="mb-6 text-3xl font-bold text-neutral-content">{$t('pricing.cta.title')}</h2>
-			<p class="mb-8 text-lg leading-relaxed text-neutral-content/90">
+			<h2 class="text-neutral-content mb-6 text-3xl font-bold">{$t('pricing.cta.title')}</h2>
+			<p class="text-neutral-content/90 mb-8 text-lg leading-relaxed">
 				{$t('pricing.cta.subtitle')}
 			</p>
 			<div class="flex flex-col gap-4 sm:flex-row sm:justify-center">
-				<a href="/signup" class="btn font-medium btn-lg btn-accent">
+				<a
+					href="/signup"
+					class={buttonVariants({
+						variant: 'accent',
+						size: 'lg',
+						class: 'font-medium'
+					})}
+				>
 					<DoorOpen class="size-5" />
 					{$t('pricing.cta.startFree')}
 				</a>
 				<a
 					href="/faq"
-					class="btn text-neutral-content outline-neutral-content btn-outline btn-lg btn-neutral"
+					class={buttonVariants({
+						variant: 'outline',
+						size: 'lg',
+						class: 'text-neutral-content outline-neutral-content'
+					})}
 				>
 					{$t('pricing.cta.learnMore')}
 				</a>

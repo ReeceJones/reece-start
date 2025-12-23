@@ -116,29 +116,15 @@ export const organizationFormSchema = z
 
 export type OrganizationFormData = z.infer<typeof organizationFormSchema>;
 
+export const updateOrganizationFormSchema = organizationFormSchema.partial();
+
+export type UpdateOrganizationFormData = z.infer<typeof updateOrganizationFormSchema>;
+
 export const createOrganizationFormSchema = organizationFormSchema.extend({
 	entityType: z.string()
 });
 
 export type CreateOrganizationFormData = z.infer<typeof createOrganizationFormSchema>;
-
-export function getFormDataFromOrganization(organization: Organization): OrganizationFormData {
-	return {
-		name: organization.data.attributes.name,
-		description: organization.data.attributes.description || '',
-		logo: undefined,
-		contactEmail: organization.data.attributes.contactEmail,
-		contactPhone: organization.data.attributes.contactPhone,
-		contactPhoneCountry: organization.data.attributes.contactPhoneCountry,
-		addressLine1: organization.data.attributes.address.line1,
-		addressLine2: organization.data.attributes.address.line2,
-		addressCity: organization.data.attributes.address.city,
-		addressStateOrProvince: organization.data.attributes.address.stateOrProvince,
-		addressZip: organization.data.attributes.address.zip,
-		addressCountry: organization.data.attributes.address.country,
-		locale: organization.data.attributes.locale
-	};
-}
 
 // Stripe dashboard link schema
 export const createStripeDashboardLinkResponseSchema = z.object({

@@ -5,6 +5,8 @@
 	import StateOptions from '../StateOptions.svelte';
 	import { State } from 'country-state-city';
 	import { t } from '$lib/i18n';
+	import * as Field from '$lib/components/ui/field';
+	import { Input } from '$lib/components/ui/input';
 
 	const {
 		hidden,
@@ -13,83 +15,91 @@
 </script>
 
 <OnboardingStepContainer {hidden}>
-	<fieldset class="fieldset">
-		<legend class="fieldset-legend">{$t('onboarding.addressStep.country')}</legend>
+	<Field.Field>
+		<Field.Label for="addressCountry">{$t('onboarding.addressStep.country')}</Field.Label>
 		<select
+			id="addressCountry"
 			name="addressCountry"
-			class="select"
+			required
+			class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-base shadow-xs ring-offset-background transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
 			bind:value={onboardingState.addressCountry}
-			placeholder={$t('onboarding.addressStep.selectCountry')}
 		>
 			<CountryOptions />
 		</select>
-		<p class="fieldset-label">{$t('onboarding.addressStep.selectCountry')}</p>
-	</fieldset>
+		<Field.Description>{$t('onboarding.addressStep.selectCountry')}</Field.Description>
+	</Field.Field>
 
-	<fieldset class="fieldset">
-		<legend class="fieldset-legend">{$t('onboarding.addressStep.address')}</legend>
-		<input
+	<Field.Field>
+		<Field.Label for="addressLine1">{$t('onboarding.addressStep.address')}</Field.Label>
+		<Input
 			type="text"
+			id="addressLine1"
 			name="addressLine1"
+			required
 			class="input"
 			placeholder={$t('onboarding.addressStep.address')}
 			bind:value={onboardingState.addressLine1}
 		/>
-		<p class="fieldset-label">{$t('onboarding.addressStep.enterStreetAddress')}</p>
-	</fieldset>
+		<Field.Description>{$t('onboarding.addressStep.enterStreetAddress')}</Field.Description>
+	</Field.Field>
 
-	<fieldset class="fieldset">
-		<legend class="fieldset-legend">{$t('onboarding.addressStep.addressLine2')}</legend>
-		<input
+	<Field.Field>
+		<Field.Label for="addressLine2">{$t('onboarding.addressStep.addressLine2')}</Field.Label>
+		<Input
 			type="text"
+			id="addressLine2"
 			name="addressLine2"
 			class="input"
 			placeholder={$t('onboarding.addressStep.addressLine2')}
 			bind:value={onboardingState.addressLine2}
 		/>
-		<p class="fieldset-label">
+		<Field.Description>
 			{$t('onboarding.addressStep.addressLine2Description')}
-		</p>
-	</fieldset>
+		</Field.Description>
+	</Field.Field>
 
-	<fieldset class="fieldset">
-		<legend class="fieldset-legend">{$t('onboarding.addressStep.city')}</legend>
-		<input
+	<Field.Field>
+		<Field.Label for="addressCity">{$t('onboarding.addressStep.city')}</Field.Label>
+		<Input
 			type="text"
+			id="addressCity"
 			name="addressCity"
+			required
 			class="input"
 			placeholder={$t('onboarding.addressStep.city')}
 			bind:value={onboardingState.addressCity}
 		/>
-		<p class="fieldset-label">{$t('onboarding.addressStep.enterCity')}</p>
-	</fieldset>
+		<Field.Description>{$t('onboarding.addressStep.enterCity')}</Field.Description>
+	</Field.Field>
 
 	{#if onboardingState.addressCountry && State.getStatesOfCountry(onboardingState.addressCountry).length > 0}
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend">{$t('onboarding.addressStep.state')}</legend>
+		<Field.Field>
+			<Field.Label for="addressStateOrProvince">{$t('onboarding.addressStep.state')}</Field.Label>
 			<select
+				id="addressStateOrProvince"
 				name="addressStateOrProvince"
-				class="select"
+				class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-base shadow-xs ring-offset-background transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
 				bind:value={onboardingState.addressStateOrProvince}
-				placeholder={$t('onboarding.addressStep.selectStateOrProvince')}
 			>
 				{#if onboardingState.addressCountry}
 					<StateOptions countryCode={onboardingState.addressCountry} />
 				{/if}
 			</select>
-			<p class="fieldset-label">{$t('onboarding.addressStep.selectStateOrProvince')}</p>
-		</fieldset>
+			<Field.Description>{$t('onboarding.addressStep.selectStateOrProvince')}</Field.Description>
+		</Field.Field>
 	{/if}
 
-	<fieldset class="fieldset">
-		<legend class="fieldset-legend">{$t('onboarding.addressStep.zip')}</legend>
-		<input
+	<Field.Field>
+		<Field.Label for="addressZip">{$t('onboarding.addressStep.zip')}</Field.Label>
+		<Input
 			type="text"
+			id="addressZip"
 			name="addressZip"
+			required
 			class="input"
 			placeholder={$t('onboarding.addressStep.zip')}
 			bind:value={onboardingState.addressZip}
 		/>
-		<p class="fieldset-label">{$t('onboarding.addressStep.enterZip')}</p>
-	</fieldset>
+		<Field.Description>{$t('onboarding.addressStep.enterZip')}</Field.Description>
+	</Field.Field>
 </OnboardingStepContainer>

@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { CircleCheck, SquarePen, User } from 'lucide-svelte';
-	import clsx, { type ClassValue } from 'clsx/lite';
 	import type { PageProps } from './$types';
 	import InviteMember from '$lib/components/Organizations/InviteMember.svelte';
-	import type { OrganizationMembershipRole } from '$lib/schemas/organization-membership';
-	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
-	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Alert from '$lib/components/ui/alert';
+	import * as Table from '$lib/components/ui/table';
+	import { Button } from '$lib/components/ui/button';
+	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar';
 	import InvitationRow from '$lib/components/Organizations/InvitationRow.svelte';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import { t } from '$lib/i18n';
+	import RoleBadge from '$lib/components/Organizations/RoleBadge.svelte';
 
 	const { data, params }: PageProps = $props();
 	let invitedMemberEmail = $state('');
@@ -23,129 +25,120 @@
 			)
 		}));
 	});
-
-	function getBadgeColorForRole(role: OrganizationMembershipRole): ClassValue {
-		switch (role) {
-			case 'admin':
-				return 'badge-primary';
-			case 'member':
-				return 'badge-neutral';
-			default:
-				return 'badge-neutral';
-		}
-	}
 </script>
 
-<SettingsCard>
-	<SettingsCardTitle>{$t('settings.organization.members.title')}</SettingsCardTitle>
-	<InviteMember
-		organizationId={params.organizationId}
-		onMemberInvited={(email) => (invitedMemberEmail = email)}
-	/>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('settings.organization.members.title')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<InviteMember
+			organizationId={params.organizationId}
+			onMemberInvited={(email) => (invitedMemberEmail = email)}
+		/>
 
-	{#if invitedMemberEmail}
-		<div class="my-1 alert alert-success">
-			<CircleCheck class="size-4" />
-			<span>
-				{$t('members.invitationSent')}
-				<strong
-					><a href={`mailto:${invitedMemberEmail}`} class="link">{invitedMemberEmail}</a></strong
-				>
-				{$t('members.withInstructionsToJoin')}
-			</span>
-		</div>
-	{/if}
+		{#if invitedMemberEmail}
+			<Alert.Root variant="success" class="my-1">
+				<CircleCheck class="size-4" />
+				<span>
+					{$t('members.invitationSent')}
+					<strong
+						><a href={`mailto:${invitedMemberEmail}`} class="link">{invitedMemberEmail}</a></strong
+					>
+					{$t('members.withInstructionsToJoin')}
+				</span>
+			</Alert.Root>
+		{/if}
 
-	<div class="overflow-auto">
-		<table class="table">
-			<thead>
-				<tr>
-					<th>{$t('members.name')}</th>
-					<th>{$t('members.role')}</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
+		<Table.Root class="table">
+			<Table.Header>
+				<Table.Row>
+					<Table.Head>{$t('members.name')}</Table.Head>
+					<Table.Head>{$t('members.role')}</Table.Head>
+					<Table.Head></Table.Head>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
 				{#if memberships.length === 0}
-					<tr>
-						<td colspan="3" class="text-center">{$t('members.noMembershipsFound')}</td>
-					</tr>
+					<Table.Row>
+						<Table.Cell colspan={3} class="text-center"
+							>{$t('members.noMembershipsFound')}</Table.Cell
+						>
+					</Table.Row>
 				{/if}
 				{#each memberships as membership (membership.membership.id)}
-					<tr class="hover:bg-base-300">
-						<td class="flex items-center gap-3">
-							{#if membership.user?.meta.logoDistributionUrl}
-								<img
-									src={membership.user?.meta.logoDistributionUrl}
-									alt={membership.user?.attributes.name}
-									class="size-10 rounded-box"
-								/>
-							{:else}
-								<User class="size-10 rounded-box bg-base-300" />
-							{/if}
+					<Table.Row class="hover:bg-base-300">
+						<Table.Cell class="flex items-center gap-3">
+							<Avatar class="size-10">
+								{#if membership.user?.meta.logoDistributionUrl}
+									<AvatarImage
+										src={membership.user?.meta.logoDistributionUrl}
+										alt={membership.user?.attributes.name}
+									/>
+								{/if}
+								<AvatarFallback>
+									<User class="size-6" />
+								</AvatarFallback>
+							</Avatar>
 							<div class="flex flex-col">
 								<div class="font-semibold">{membership.user?.attributes.name}</div>
 								<a
 									href={`mailto:${membership.user?.attributes.email}`}
-									class="link text-sm text-gray-500"
+									class="text-sm text-gray-500 hover:underline"
 								>
 									{membership.user?.attributes.email}
 								</a>
 							</div>
-						</td>
-						<td>
-							<div
-								class={clsx('badge', getBadgeColorForRole(membership.membership.attributes.role))}
-							>
-								{membership.membership.attributes.role.charAt(0).toUpperCase() +
-									membership.membership.attributes.role.slice(1)}
-							</div>
-						</td>
-						<td>
+						</Table.Cell>
+						<Table.Cell>
+							<RoleBadge role={membership.membership.attributes.role} />
+						</Table.Cell>
+						<Table.Cell>
 							<div class="flex items-center justify-end">
-								<a
-									class={clsx(
-										'btn btn-square btn-ghost btn-sm',
-										!canUpdateMembership &&
-											'pointer-events-none cursor-default text-base-content/50'
-									)}
+								<Button
+									variant="ghost"
+									size="icon-sm"
 									href={canUpdateMembership
 										? `/app/${params.organizationId}/settings/members/${membership.membership.id}`
 										: undefined}
-									aria-disabled={!canUpdateMembership}
+									disabled={!canUpdateMembership}
 								>
 									<SquarePen class="size-4" />
-								</a>
+								</Button>
 							</div>
-						</td>
-					</tr>
+						</Table.Cell>
+					</Table.Row>
 				{/each}
-			</tbody>
-		</table>
-	</div>
-</SettingsCard>
+			</Table.Body>
+		</Table.Root>
+	</Card.Content>
+</Card.Root>
 
-<SettingsCard>
-	<SettingsCardTitle>{$t('members.pendingInvitations')}</SettingsCardTitle>
-	<div class="overflow-auto">
-		<table class="table">
-			<thead>
-				<tr>
-					<th>{$t('members.email')}</th>
-					<th></th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('members.pendingInvitations')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<Table.Root class="table">
+			<Table.Header>
+				<Table.Row>
+					<Table.Head>{$t('members.email')}</Table.Head>
+					<Table.Head></Table.Head>
+					<Table.Head></Table.Head>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
 				{#if data.invitations.data.length === 0}
-					<tr>
-						<td colspan="2" class="text-center">{$t('members.noInvitationsFound')}</td>
-					</tr>
+					<Table.Row>
+						<Table.Cell colspan={3} class="text-center"
+							>{$t('members.noInvitationsFound')}</Table.Cell
+						>
+					</Table.Row>
 				{/if}
 				{#each data.invitations.data as invitation (invitation.id)}
 					<InvitationRow {invitation} />
 				{/each}
-			</tbody>
-		</table>
-	</div>
-</SettingsCard>
+			</Table.Body>
+		</Table.Root>
+	</Card.Content>
+</Card.Root>

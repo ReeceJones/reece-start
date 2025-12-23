@@ -5,10 +5,10 @@
 	import { Check, CircleX, X } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { enhance } from '$app/forms';
-	import Card from '$lib/components/Card/Card.svelte';
-	import CardBody from '$lib/components/Card/CardBody.svelte';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import * as Card from '$lib/components/ui/card';
 	import { t } from '$lib/i18n';
+	import { Button } from '$lib/components/ui/button';
+	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
 
 	const { data, form }: PageProps = $props();
 	const organization = $derived(
@@ -30,27 +30,28 @@
 	let submitting = $state(false);
 </script>
 
-<Card class="mx-auto max-w-[600px]">
-	<CardBody>
-		{#if status === 'pending'}
+<Card.Root class="mx-auto max-w-[600px]">
+	{#if status === 'pending'}
+		<Card.Header>
+			<div class="flex flex-col items-center justify-center gap-1">
+				<Card.Title class="text-center">
+					{$t('noOrganization.invitation.invitedBy', {
+						inviterName: invitingUser?.attributes.name || '',
+						organizationName: organization?.attributes.name || ''
+					})}
+				</Card.Title>
+				<Card.Description class="text-center">
+					{$t('noOrganization.invitation.invitationDescription')}
+				</Card.Description>
+			</div>
+		</Card.Header>
+		<Card.Content>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<div class="flex flex-col items-center justify-center gap-1">
-					<CardTitle class="text-center">
-						{$t('noOrganization.invitation.invitedBy', {
-							inviterName: invitingUser?.attributes.name || '',
-							organizationName: organization?.attributes.name || ''
-						})}
-					</CardTitle>
-					<p class="text-center text-gray-500">
-						{$t('noOrganization.invitation.invitationDescription')}
-					</p>
-				</div>
-
 				{#if organization?.meta.logoDistributionUrl}
 					<img
 						src={organization?.meta.logoDistributionUrl}
 						alt={organization?.attributes.name}
-						class="size-32 rounded-box"
+						class="size-32 rounded-lg"
 					/>
 				{/if}
 
@@ -67,10 +68,14 @@
 							};
 						}}
 					>
-						<button class="btn btn-md btn-neutral" disabled={submitting}>
-							<X class="size-4" />
+						<Button type="submit" variant="secondary" disabled={submitting}>
+							<LoadingIcon loading={submitting}>
+								{#snippet icon()}
+									<X class="size-4" />
+								{/snippet}
+							</LoadingIcon>
 							{$t('noOrganization.invitation.decline')}
-						</button>
+						</Button>
 					</form>
 					<form
 						method="POST"
@@ -84,10 +89,14 @@
 							};
 						}}
 					>
-						<button class="btn btn-md btn-primary" disabled={submitting}>
-							<Check class="size-4" />
+						<Button type="submit" disabled={submitting}>
+							<LoadingIcon loading={submitting}>
+								{#snippet icon()}
+									<Check class="size-4" />
+								{/snippet}
+							</LoadingIcon>
 							{$t('noOrganization.invitation.accept')}
-						</button>
+						</Button>
 					</form>
 				</div>
 				{#if form && !form?.success}
@@ -97,34 +106,44 @@
 					</div>
 				{/if}
 			</div>
-		{:else if status === 'accepted'}
+		</Card.Content>
+	{:else if status === 'accepted'}
+		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">{$t('noOrganization.invitation.accepted.title')}</CardTitle>
-				<p class="text-center text-gray-500">
+				<Card.Title class="text-center">{$t('noOrganization.invitation.accepted.title')}</Card.Title
+				>
+				<Card.Description class="text-center">
 					{$t('noOrganization.invitation.accepted.description')}
-				</p>
+				</Card.Description>
 			</div>
-		{:else if status === 'declined'}
+		</Card.Header>
+	{:else if status === 'declined'}
+		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">{$t('noOrganization.invitation.declined.title')}</CardTitle>
-				<p class="text-center text-gray-500">
+				<Card.Title class="text-center">{$t('noOrganization.invitation.declined.title')}</Card.Title
+				>
+				<Card.Description class="text-center">
 					{$t('noOrganization.invitation.declined.description')}
-				</p>
+				</Card.Description>
 			</div>
-		{:else if status === 'expired'}
+		</Card.Header>
+	{:else if status === 'expired'}
+		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">{$t('noOrganization.invitation.expired.title')}</CardTitle>
-				<p class="text-center text-gray-500">
+				<Card.Title class="text-center">{$t('noOrganization.invitation.expired.title')}</Card.Title>
+				<Card.Description class="text-center">
 					{$t('noOrganization.invitation.expired.description')}
-				</p>
+				</Card.Description>
 			</div>
-		{:else if status === 'revoked'}
+		</Card.Header>
+	{:else if status === 'revoked'}
+		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<CardTitle class="text-center">{$t('noOrganization.invitation.revoked.title')}</CardTitle>
-				<p class="text-center text-gray-500">
+				<Card.Title class="text-center">{$t('noOrganization.invitation.revoked.title')}</Card.Title>
+				<Card.Description class="text-center">
 					{$t('noOrganization.invitation.revoked.description')}
-				</p>
+				</Card.Description>
 			</div>
-		{/if}
-	</CardBody>
-</Card>
+		</Card.Header>
+	{/if}
+</Card.Root>

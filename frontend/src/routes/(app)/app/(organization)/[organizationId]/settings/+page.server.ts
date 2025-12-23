@@ -5,7 +5,7 @@ import { authenticate } from '$lib/server/auth';
 import {
 	updateOrganizationRequestSchema,
 	organizationResponseSchema,
-	organizationFormSchema
+	updateOrganizationFormSchema
 } from '$lib/schemas/organization';
 import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
@@ -15,7 +15,7 @@ export const load = async () => {
 
 export const actions = {
 	default: async ({ request, fetch, params }) => {
-		const formData = await parseFormData(request, organizationFormSchema);
+		const formData = await parseFormData(request, updateOrganizationFormSchema);
 
 		if (!isParseSuccess(formData)) {
 			return formData;

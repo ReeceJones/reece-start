@@ -9,10 +9,13 @@
 	} from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
-	import Card from '$lib/components/Card/Card.svelte';
-	import CardBody from '$lib/components/Card/CardBody.svelte';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Table from '$lib/components/ui/table';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Link } from '$lib/components/ui/link';
 	import { t } from '$lib/i18n';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
 
 	const defaultSearch = $derived(page.url.searchParams.get('search') ?? '');
 
@@ -36,114 +39,116 @@
 	}
 </script>
 
-<Card>
-	<CardBody>
-		<CardTitle>{$t('noOrganization.admin.users.title')}</CardTitle>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('noOrganization.admin.users.title')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
 		<form class="flex gap-2" method="GET" id="search-form">
 			<input type="hidden" name="page[cursor]" value={users.links.next ?? ''} id="page-cursor" />
 
-			<input
-				type="text"
-				class="input-bordered input max-w-96 flex-1"
+			<Input
+				type="search"
+				class="max-w-96 flex-1"
 				placeholder={$t('noOrganization.admin.users.searchPlaceholder')}
 				name="search"
 				defaultValue={defaultSearch}
 			/>
-			<button class="btn btn-primary">
+			<Button type="submit">
 				<Search class="size-4" />
 				{$t('noOrganization.admin.users.search')}
-			</button>
+			</Button>
 		</form>
 		<div>
-			<table class="table">
-				<thead>
-					<tr>
-						<th>{$t('noOrganization.admin.users.name')}</th>
-						<th>{$t('noOrganization.admin.users.email')}</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
+			<Table.Root>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head>{$t('noOrganization.admin.users.name')}</Table.Head>
+						<Table.Head>{$t('noOrganization.admin.users.email')}</Table.Head>
+						<Table.Head class="text-right"></Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
 					{#each users.data as user (user.id)}
-						<tr>
-							<td>
+						<Table.Row>
+							<Table.Cell>
 								<div class="flex items-start gap-3">
 									{#if user.meta.logoDistributionUrl}
 										<img
 											src={user.meta.logoDistributionUrl}
 											alt={user.attributes.name}
-											class="size-8 rounded-box"
+											class="size-8 rounded-md"
 										/>
 									{:else}
-										<User class="size-8 rounded-box bg-base-300" />
+										<div class="flex size-8 items-center justify-center rounded-md bg-muted">
+											<User class="size-4" />
+										</div>
 									{/if}
 									<span class="font-semibold">
 										{user.attributes.name}
 									</span>
 								</div>
-							</td>
-							<td>
-								<a href={`mailto:${user.attributes.email}`} class="link">
+							</Table.Cell>
+							<Table.Cell>
+								<Link href={`mailto:${user.attributes.email}`}>
 									{user.attributes.email}
-								</a>
-							</td>
-							<td class="flex justify-end">
-								<div class="dropdown dropdown-end">
-									<div tabindex="0" role="button" class="btn btn-square btn-ghost btn-sm">
-										<EllipsisVertical class="size-4" />
-									</div>
-									<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-									<ul
-										tabindex="0"
-										class="dropdown-content menu z-1 w-52 rounded-box bg-base-100 p-2 shadow-sm"
-									>
-										<li>
-											<button
-												onclick={(e) => {
-													e.preventDefault();
-													// get the child form and submit it
-													const form = document.getElementById(
-														`impersonate-form-${user.id}`
-													) as HTMLFormElement;
-													form.submit();
-												}}
-											>
-												<HatGlasses class="size-4" />
-												{$t('noOrganization.admin.users.impersonate')}
-											</button>
+								</Link>
+							</Table.Cell>
+							<Table.Cell class="text-right">
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger>
+										{#snippet child({ props })}
+											<Button variant="ghost" size="sm" {...props}>
+												<EllipsisVertical class="size-4" />
+											</Button>
+										{/snippet}
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content align="end" class="w-52">
+										<DropdownMenu.Item
+											onSelect={(e) => {
+												e.preventDefault();
+												// get the child form and submit it
+												const form = document.getElementById(
+													`impersonate-form-${user.id}`
+												) as HTMLFormElement;
+												form.submit();
+											}}
+										>
+											<HatGlasses class="size-4" />
+											{$t('noOrganization.admin.users.impersonate')}
+										</DropdownMenu.Item>
 
-											<form
-												method="POST"
-												action="?/impersonate"
-												id={`impersonate-form-${user.id}`}
-												hidden
-											>
-												<input type="hidden" name="impersonatedUserId" value={user.id} />
-											</form>
-										</li>
-									</ul>
-								</div>
-							</td>
-						</tr>
+										<form
+											method="POST"
+											action="?/impersonate"
+											id={`impersonate-form-${user.id}`}
+											hidden
+										>
+											<input type="hidden" name="impersonatedUserId" value={user.id} />
+										</form>
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</Table.Cell>
+						</Table.Row>
 					{/each}
-				</tbody>
-			</table>
+				</Table.Body>
+			</Table.Root>
 			{#if users.links.prev || users.links.next}
 				<div class="mt-4 flex justify-center gap-2">
 					{#if users.links.prev}
-						<button class="btn btn-ghost btn-sm btn-neutral" onclick={loadPreviousPage}>
+						<Button size="sm" variant="ghost" onclick={loadPreviousPage}>
 							<ChevronLeft class="size-4" />
 							{$t('noOrganization.admin.users.previous')}
-						</button>
+						</Button>
 					{/if}
 					{#if users.links.next}
-						<button class="btn btn-ghost btn-sm btn-neutral" onclick={loadNextPage}>
+						<Button size="sm" variant="ghost" onclick={loadNextPage}>
 							{$t('noOrganization.admin.users.next')}
 							<ChevronRight class="size-4" />
-						</button>
+						</Button>
 					{/if}
 				</div>
 			{/if}
 		</div>
-	</CardBody>
-</Card>
+	</Card.Content>
+</Card.Root>

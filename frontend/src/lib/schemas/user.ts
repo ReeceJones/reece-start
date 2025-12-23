@@ -19,7 +19,7 @@ export const userDataSchema = z.object({
 		logoDistributionUrl: z.string().optional(),
 		tokenRevocation: z
 			.object({
-				lastIssuedAt: z.number().optional(),
+				lastIssuedAt: z.string().optional(),
 				canRefresh: z.boolean().optional()
 			})
 			.optional()

@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import { API_TYPES } from './api';
 import { organizationMembershipRole } from './organization-membership';
-import { organizationDataSchema } from './organization';
-import { userDataSchema } from './user';
 
 const organizationInvitationStatus = z.enum([
 	'pending',
@@ -77,7 +75,30 @@ export const deleteInvitationFormSchema = z.object({
 });
 
 const organizationInvitationIncludedSchema = z.array(
-	z.union([organizationDataSchema, userDataSchema])
+	z.discriminatedUnion('type', [
+		z.object({
+			id: z.string(),
+			type: z.literal(API_TYPES.organization),
+			attributes: z.object({
+				name: z.string(),
+				description: z.string().optional()
+			}),
+			meta: z.object({
+				logoDistributionUrl: z.string().optional()
+			})
+		}),
+		z.object({
+			id: z.string(),
+			type: z.literal(API_TYPES.user),
+			attributes: z.object({
+				name: z.string(),
+				email: z.string()
+			}),
+			meta: z.object({
+				logoDistributionUrl: z.string().optional()
+			})
+		})
+	])
 );
 
 export const getOrganizationInvitationResponseSchema = z.object({

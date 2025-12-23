@@ -1,191 +1,123 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { enhance, applyAction } from '$app/forms';
-	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
-	import { invalidateAll } from '$app/navigation';
-	import LogoCrop from '$lib/components/Logo/LogoCrop.svelte';
-	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
-	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
-	import {
-		getFormDataFromOrganization,
-		type OrganizationFormData
-	} from '$lib/schemas/organization';
-	import deepEqual from 'deep-equal';
+	import { enhance } from '$app/forms';
+	import { Save, Building2 } from 'lucide-svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Field from '$lib/components/ui/field';
+	import { t } from '$lib/i18n';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import LogoInput from '$lib/components/Logo/LogoInput.svelte';
+	import LogoPreview from '$lib/components/Logo/LogoPreview.svelte';
+	import FormActionStatus from '$lib/components/Form/FormActionStatus.svelte';
+	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
-	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
-	import { t } from '$lib/i18n';
 
-	const { data, form }: PageProps = $props();
-
-	let logoInput: HTMLInputElement | null = null;
-	let logoCropModal: HTMLDialogElement | null = null;
+	let { data, form }: PageProps = $props();
 
 	let submitting = $state(false);
-	let uncroppedLogo = $state<FileList | null | undefined>(undefined);
-	let formData: OrganizationFormData = $state(getFormDataFromOrganization(data.organization));
+	let logo = $state<FileList | null | undefined>(undefined);
+	let name = $derived(data.organization.data.attributes.name);
+	let description = $derived(data.organization.data.attributes.description);
 
-	// Simple derived state that just returns the appropriate URL
-	const logoPreview = $derived(
-		formData.logo && formData.logo.length > 0
-			? URL.createObjectURL(formData.logo[0])
-			: data.organization.data.meta.logoDistributionUrl
+	const isDirty = $derived(
+		logo != null ||
+			name !== data.organization.data.attributes.name ||
+			description !== data.organization.data.attributes.description
 	);
-	const isDirty = $derived(!deepEqual(formData, getFormDataFromOrganization(data.organization)));
-	const isValid = $derived(!!formData.name);
+	const isValid = $derived(!!name);
 	const canUpdate = $derived(hasScope(UserScope.OrganizationUpdate));
 	const canSubmit = $derived(isDirty && isValid && canUpdate && !submitting);
-
-	function resetLogoUpload() {
-		formData.logo = undefined;
-		uncroppedLogo = undefined;
-		// reset the logo input
-		if (logoInput) {
-			// Completely reset the value of the input
-			logoInput.value = '';
-			logoInput.files = null;
-		}
-	}
 </script>
 
-<SettingsCard>
-	<SettingsCardTitle>{$t('settings.organization.general.title')}</SettingsCardTitle>
-	<form
-		method="post"
-		use:enhance={() => {
-			submitting = true;
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('settings.organization.general.title')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<form
+			method="post"
+			use:enhance={() => {
+				submitting = true;
 
-			return ({ result }) => {
-				invalidateAll();
-				applyAction(result);
-				submitting = false;
-			};
-		}}
-		enctype="multipart/form-data"
-	>
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend">{$t('settings.organization.general.logo.label')}</legend>
-			{#if logoPreview}
-				<img src={logoPreview} alt="Organization logo" class="aspect-square w-48 rounded-box" />
-			{:else}
-				<div class="flex aspect-square w-48 items-center justify-center rounded-box bg-base-300">
-					<span class="text-base-content/50"
-						>{$t('settings.organization.general.logo.noLogoUploaded')}</span
-					>
-				</div>
-			{/if}
-			<input
-				type="file"
-				name="logo"
-				class="file-input"
-				accept="image/*"
-				multiple={false}
-				bind:this={logoInput}
-				onchange={(e: Event) => {
-					const target = e.target as HTMLInputElement;
-					uncroppedLogo = target.files;
-					if (logoCropModal) {
-						logoCropModal.showModal();
-					}
-				}}
-				disabled={!canUpdate}
-			/>
-			<p class="fieldset-label">{$t('settings.organization.general.logo.description')}</p>
-		</fieldset>
+				return ({ update }) => {
+					update({ reset: false });
+					submitting = false;
+				};
+			}}
+			enctype="multipart/form-data"
+			class="space-y-4 lg:max-w-sm"
+		>
+			<input type="hidden" tabindex="-1" name="organizationId" value={data.organization.data.id} />
 
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend">{$t('settings.organization.general.name.label')}</legend>
-			<input
-				type="text"
-				name="name"
-				required
-				class="input"
-				placeholder={$t('settings.organization.general.name.placeholder')}
-				bind:value={formData.name}
-				disabled={!canUpdate}
-			/>
-			<p class="fieldset-label">{$t('settings.organization.general.name.description')}</p>
-		</fieldset>
-
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend"
-				>{$t('settings.organization.general.description.label')}</legend
-			>
-			<textarea
-				name="description"
-				class="textarea"
-				placeholder={$t('settings.organization.general.description.placeholder')}
-				bind:value={formData.description}
-				maxlength={255}
-				disabled={!canUpdate}
-			></textarea>
-			<p class="fieldset-label">{$t('settings.organization.general.description.description')}</p>
-		</fieldset>
-
-		{#if form?.success}
-			<div role="alert" class="mt-3 alert alert-success">
-				<CircleCheck />
-				<span>{$t('settings.organization.general.success.organizationUpdated')}</span>
-			</div>
-		{:else if form?.success === false}
-			<div role="alert" class="mt-3 alert alert-error">
-				<CircleX />
-				<span
-					>{form.message ??
-						$t('settings.organization.general.success.organizationUpdateError')}</span
+			<Field.Field>
+				<Field.Label for="logo">{$t('settings.organization.general.logo.label')}</Field.Label>
+				<LogoPreview
+					logoFile={logo}
+					logoUrl={data.organization.data.meta.logoDistributionUrl}
+					alt="Organization logo"
 				>
-			</div>
-		{/if}
+					{#snippet fallback()}
+						<Building2 class="size-32 text-neutral-600" />
+					{/snippet}
+				</LogoPreview>
+				<LogoInput id="logo" name="logo" bind:logo disabled={!canUpdate} />
+				<Field.Description>{$t('settings.organization.general.logo.description')}</Field.Description
+				>
+			</Field.Field>
 
-		<SettingsCardActions>
-			<button type="submit" class="btn btn-primary" disabled={!canSubmit}>
-				{#if submitting}
-					<span class="loading loading-spinner"></span>
-				{:else}
-					<Save />
-				{/if}
-				<span>{$t('save')}</span>
-			</button>
-		</SettingsCardActions>
-	</form>
-
-	<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
-		<div class="modal-box">
-			<h3 class="text-lg font-bold">{$t('settings.organization.general.logo.updateLogo')}</h3>
-			<p class="py-4">{$t('settings.organization.general.logo.updateLogoDescription')}</p>
-			{#if uncroppedLogo && uncroppedLogo.length > 0}
-				<LogoCrop
-					imageFile={uncroppedLogo[0]}
-					onCancel={() => {
-						resetLogoUpload();
-						if (logoCropModal) {
-							logoCropModal.close();
-						}
-					}}
-					onSave={(file) => {
-						console.log('Cropped file received:', file);
-						console.log('File size:', file.size);
-						console.log('File type:', file.type);
-
-						const dt = new DataTransfer();
-						dt.items.add(file);
-						formData.logo = dt.files;
-						uncroppedLogo = undefined;
-
-						// set the value of the input to the new cropped image
-						if (logoInput) {
-							logoInput.files = dt.files;
-						}
-
-						if (logoCropModal) {
-							logoCropModal.close();
-						}
-					}}
+			<Field.Field>
+				<Field.Label for="name">{$t('settings.organization.general.name.label')}</Field.Label>
+				<Input
+					type="text"
+					id="name"
+					name="name"
+					required
+					class="input"
+					placeholder={$t('settings.organization.general.name.placeholder')}
+					bind:value={name}
+					disabled={!canUpdate}
 				/>
-			{/if}
-		</div>
-		<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
-			<button>{$t('close')}</button>
+				<Field.Description>{$t('settings.organization.general.name.description')}</Field.Description
+				>
+			</Field.Field>
+
+			<Field.Field>
+				<Field.Label for="description"
+					>{$t('settings.organization.general.description.label')}</Field.Label
+				>
+				<textarea
+					id="description"
+					name="description"
+					class="textarea min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-base shadow-xs ring-offset-background transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
+					placeholder={$t('settings.organization.general.description.placeholder')}
+					bind:value={description}
+					maxlength={255}
+					disabled={!canUpdate}
+				></textarea>
+				<Field.Description
+					>{$t('settings.organization.general.description.description')}</Field.Description
+				>
+			</Field.Field>
+
+			<FormActionStatus
+				{form}
+				success={$t('settings.organization.general.success.organizationUpdated')}
+				failure={form?.message ??
+					$t('settings.organization.general.success.organizationUpdateError')}
+			/>
+
+			<Card.Action>
+				<Button type="submit" disabled={!canSubmit || submitting}>
+					<LoadingIcon loading={submitting}>
+						{#snippet icon()}
+							<Save />
+						{/snippet}
+					</LoadingIcon>
+					<span>{$t('save')}</span>
+				</Button>
+			</Card.Action>
 		</form>
-	</dialog>
-</SettingsCard>
+	</Card.Content>
+</Card.Root>

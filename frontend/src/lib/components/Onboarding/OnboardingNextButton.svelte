@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { ArrowRight } from 'lucide-svelte';
-	import { fade } from 'svelte/transition';
-	import clsx from 'clsx/lite';
 	import { t } from '$lib/i18n';
+	import { Button } from '$lib/components/ui/button';
 
 	const {
 		step,
@@ -15,7 +14,7 @@
 	} = $props();
 </script>
 
-<a class={clsx('btn btn-neutral', disabled && 'pointer-events-none')} href={step.path} in:fade>
-	<ArrowRight class="size-4" />
-	{$t('next')}
-</a>
+<Button href={step.path} variant="default" {disabled}>
+	<span>{$t('next')}</span>
+	<ArrowRight />
+</Button>

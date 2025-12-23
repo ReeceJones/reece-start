@@ -1,6 +1,7 @@
 <script>
 	import { CircleCheck, Code, BookOpenIcon } from 'lucide-svelte';
 	import { t } from '$lib/i18n';
+	import { buttonVariants } from '$lib/components/ui/button';
 </script>
 
 <svelte:head>
@@ -17,11 +18,14 @@
 				{@html $t('landing.hero.title')}
 			</h1>
 			<div class="flex flex-wrap gap-4">
-				<a href="https://github.com/ReeceJones/reece-start" class="btn font-medium btn-neutral">
+				<a
+					href="https://github.com/ReeceJones/reece-start"
+					class={buttonVariants({ variant: 'default' })}
+				>
 					<Code class="size-4" />
 					{$t('landing.hero.getCode')}
 				</a>
-				<a href="#features" class="btn font-medium btn-outline btn-neutral">
+				<a href="/faq" class={buttonVariants({ variant: 'outline' })}>
 					<BookOpenIcon class="size-4" />
 					{$t('landing.hero.faq')}
 				</a>
@@ -29,7 +33,7 @@
 		</div>
 
 		<!-- Simple feature highlights -->
-		<div class="text-sm text-base-content/70">
+		<div class="text-base-content/70 text-sm">
 			<div class="flex flex-col gap-x-8 gap-y-3">
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
@@ -61,7 +65,7 @@
 				</div>
 				<div class="flex items-center gap-2">
 					&hellip;
-					<span class="text-base-content/70">{$t('landing.hero.features.andMore')}</span>
+					<span class="text-primary/70">{$t('landing.hero.features.andMore')}</span>
 				</div>
 			</div>
 		</div>

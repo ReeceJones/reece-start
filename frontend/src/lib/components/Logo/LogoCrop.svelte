@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import type { CropperCanvas, CropperImage, CropperSelection } from 'cropperjs';
+	import { Button } from '../ui/button';
 
 	let {
 		imageFile,
@@ -229,9 +230,8 @@
 	</div>
 
 	<div class="flex justify-end gap-2">
-		<button class="btn btn-outline" type="button" onclick={() => onCancel()}>Cancel</button>
-		<button
-			class="btn btn-primary"
+		<Button variant="outline" type="button" onclick={() => onCancel()}>Cancel</Button>
+		<Button
 			type="button"
 			onclick={async () => {
 				// get the cropped image
@@ -265,7 +265,7 @@
 			}}
 		>
 			Save
-		</button>
+		</Button>
 	</div>
 
 	<!-- Render the canvas element returned by the cropper -->

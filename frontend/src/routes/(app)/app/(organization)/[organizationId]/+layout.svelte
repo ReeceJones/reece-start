@@ -3,26 +3,31 @@
 	import OrganizationNav from '$lib/components/Nav/OrganizationNav.svelte';
 	import { setScopes } from '$lib/auth.js';
 	import OnboardingStripeAlert from '$lib/components/Onboarding/OnboardingStripeAlert.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
 	const { children, data } = $props();
 
-	const { user, organization, userScopes } = data;
+	const { user, organization, userScopes } = $derived(data);
 
 	// Give the javascript client access to the scopes stored in the token cookie
-	setScopes(userScopes);
+	setScopes(() => userScopes);
 </script>
 
-<div class="flex h-screen max-w-screen flex-row gap-4">
-	<div class="flex h-full w-56 flex-col justify-between border-r border-base-300 bg-base-200">
-		<div>
-			<OrganizationNav {organization} />
-		</div>
-		<div>
-			<UserNav {user} />
-		</div>
-	</div>
-	<main class="container mx-auto mt-4 mr-4 flex-1">
+<Sidebar.Provider>
+	<Sidebar.Root>
+		<Sidebar.Content>
+			<Sidebar.Group>
+				<OrganizationNav {organization} />
+			</Sidebar.Group>
+		</Sidebar.Content>
+		<Sidebar.Footer>
+			<Sidebar.Group>
+				<UserNav {user} />
+			</Sidebar.Group>
+		</Sidebar.Footer>
+	</Sidebar.Root>
+	<main class="container mx-auto mt-4 flex-1 px-4">
 		<OnboardingStripeAlert {organization} />
 		{@render children?.()}
 	</main>
-</div>
+</Sidebar.Provider>

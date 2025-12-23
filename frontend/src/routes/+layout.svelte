@@ -4,6 +4,7 @@
 	import { initializeLocale } from '$lib/i18n';
 	import type { LayoutData } from './$types';
 	import type { Snippet } from 'svelte';
+	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
@@ -16,5 +17,7 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
+
+<Toaster />
 
 {@render children?.()}

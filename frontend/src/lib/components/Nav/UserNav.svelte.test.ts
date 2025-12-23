@@ -40,7 +40,7 @@ describe('UserNav', () => {
 	};
 
 	beforeEach(() => {
-		setIsImpersonatingUser(false);
+		setIsImpersonatingUser(() => false);
 	});
 
 	afterEach(() => {
@@ -157,7 +157,7 @@ describe('UserNav', () => {
 		});
 
 		it('should render stop impersonation form when impersonating', () => {
-			setIsImpersonatingUser(true);
+			setIsImpersonatingUser(() => true);
 			const { container } = render(UserNav, {
 				props: { user: mockUser }
 			});
@@ -168,7 +168,7 @@ describe('UserNav', () => {
 		});
 
 		it('should not render stop impersonation form when not impersonating', () => {
-			setIsImpersonatingUser(false);
+			setIsImpersonatingUser(() => false);
 			const { container } = render(UserNav, {
 				props: { user: mockUser }
 			});
@@ -180,7 +180,7 @@ describe('UserNav', () => {
 
 	describe('impersonation', () => {
 		it('should not show stop impersonation button when not impersonating', () => {
-			setIsImpersonatingUser(false);
+			setIsImpersonatingUser(() => false);
 			render(UserNav, {
 				props: { user: mockUser }
 			});
@@ -191,7 +191,7 @@ describe('UserNav', () => {
 		});
 
 		it('should show stop impersonation button when impersonating', () => {
-			setIsImpersonatingUser(true);
+			setIsImpersonatingUser(() => true);
 			render(UserNav, {
 				props: { user: mockUser }
 			});
@@ -202,7 +202,7 @@ describe('UserNav', () => {
 		});
 
 		it('should render EyeOff icon in stop impersonation button', () => {
-			setIsImpersonatingUser(true);
+			setIsImpersonatingUser(() => true);
 			render(UserNav, {
 				props: { user: mockUser }
 			});

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getScopes } from '$lib/auth';
-	import Card from '$lib/components/Card/Card.svelte';
-	import CardBody from '$lib/components/Card/CardBody.svelte';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Select from '$lib/components/ui/select';
+	import * as Alert from '$lib/components/ui/alert';
 	import { t, locale, locales } from '$lib/i18n';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
@@ -10,31 +10,51 @@
 	const scopes = $derived(getScopes());
 	let submitting = $state(false);
 	let error = $state('');
-	// eslint-disable-next-line svelte/prefer-writable-derived
+
 	let selectedLocale = $state($locale);
+	let formElement: HTMLFormElement;
+	let previousLocale = $state($locale);
 
 	// Sync selectedLocale with locale store
 	$effect(() => {
 		selectedLocale = $locale;
+		previousLocale = $locale;
+	});
+
+	// Auto-submit form when locale changes (but not on initial mount or store sync)
+	$effect(() => {
+		if (!formElement || selectedLocale === previousLocale) {
+			return;
+		}
+		// Only submit if the change is user-initiated (selectedLocale differs from store)
+		if (selectedLocale !== $locale) {
+			previousLocale = selectedLocale;
+			formElement.requestSubmit();
+		}
 	});
 </script>
 
 <div class="grid grid-cols-3 gap-6">
-	<Card>
-		<CardBody>
-			<CardTitle>{$t('noOrganization.admin.debug.userScopes')}</CardTitle>
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>{$t('noOrganization.admin.debug.userScopes')}</Card.Title>
+		</Card.Header>
+		<Card.Content>
 			<ul class="list-inside list-disc">
 				{#each scopes as scope (scope)}
 					<li class="font-mono">{scope}</li>
 				{/each}
 			</ul>
-		</CardBody>
-	</Card>
+		</Card.Content>
+	</Card.Root>
 
-	<Card>
-		<CardBody>
-			<CardTitle>Locale</CardTitle>
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>Locale</Card.Title>
+		</Card.Header>
+		<Card.Content>
 			<form
+				bind:this={formElement}
 				method="post"
 				action="/locale?/setLocale"
 				use:enhance={() => {
@@ -53,28 +73,22 @@
 					};
 				}}
 			>
-				<select
-					name="locale"
-					class="select-bordered select w-full"
-					bind:value={selectedLocale}
-					onchange={(e) => {
-						const form = e.currentTarget.form;
-						if (form) {
-							form.requestSubmit();
-						}
-					}}
-					disabled={submitting}
-				>
-					{#each locales as localeOption (localeOption)}
-						<option value={localeOption}>{localeOption}</option>
-					{/each}
-				</select>
+				<Select.Root name="locale" type="single" bind:value={selectedLocale} disabled={submitting}>
+					<Select.Trigger class="w-full">
+						{selectedLocale}
+					</Select.Trigger>
+					<Select.Content>
+						{#each locales as localeOption (localeOption)}
+							<Select.Item value={localeOption}>{localeOption}</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
 				{#if error}
-					<div role="alert" class="mt-2 alert alert-error">
-						<span>{error}</span>
-					</div>
+					<Alert.Root variant="destructive" class="mt-2">
+						<Alert.Description>{error}</Alert.Description>
+					</Alert.Root>
 				{/if}
 			</form>
-		</CardBody>
-	</Card>
+		</Card.Content>
+	</Card.Root>
 </div>

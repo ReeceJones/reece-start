@@ -1,100 +1,137 @@
 <script lang="ts">
-	import { DoorOpen, Rocket, Menu, X } from 'lucide-svelte';
+	import { DoorOpen, Rocket, Menu, XIcon } from 'lucide-svelte';
+	import * as NavigationMenu from '$lib/components/ui/navigation-menu';
+	import * as Sheet from '$lib/components/ui/sheet';
+	import { Button } from '$lib/components/ui/button';
 	import { t } from '$lib/i18n';
 	import { env } from '$env/dynamic/public';
+	import { cn } from '$lib/utils';
+	import { buttonVariants } from '../ui/button';
 
 	const { isLoggedIn }: { isLoggedIn: boolean } = $props();
 
-	let isMobileMenuOpen = $state(false);
 	const isSignInDisabled = $derived(env.PUBLIC_DISABLE_SIGNIN === 'true');
-
-	function toggleMobileMenu() {
-		isMobileMenuOpen = !isMobileMenuOpen;
-	}
-
-	function closeMobileMenu() {
-		isMobileMenuOpen = false;
-	}
 </script>
 
-<div class="navbar">
+<div class="container mx-auto mt-1 flex">
 	<div class="flex-1">
-		<a class="btn text-lg tracking-tight btn-ghost" href="/">
-			<Rocket class="size-6" />
-			reece-start
-		</a>
+		<NavigationMenu.Root>
+			<NavigationMenu.List>
+				<NavigationMenu.Item>
+					<a
+						class={cn(
+							buttonVariants({
+								variant: 'ghost',
+								size: 'lg'
+							}),
+							'text-lg tracking-tight'
+						)}
+						href="/"
+					>
+						<Rocket class="size-6" />
+						reece-start
+					</a>
+				</NavigationMenu.Item>
+			</NavigationMenu.List>
+		</NavigationMenu.Root>
 	</div>
 
 	<!-- Desktop Navigation -->
-	<div class="hidden lg:flex lg:flex-none lg:items-center lg:gap-2">
-		<a href="/faq" class="btn font-medium btn-ghost">{$t('footer.faq')}</a>
-		<a href="/pricing" class="btn font-medium btn-ghost">{$t('footer.pricing')}</a>
-		{#if isLoggedIn}
-			<a href="/app" class="btn font-medium btn-neutral">
-				<DoorOpen class="size-5" />
-				{$t('dashboard')}
-			</a>
-		{:else if !isSignInDisabled}
-			<a href="/signin" class="btn font-medium btn-outline btn-neutral"> {$t('signIn')} </a>
-			<a href="/signup" class="btn font-medium btn-neutral"> {$t('getStarted')} </a>
-		{/if}
-	</div>
+	<NavigationMenu.Root class="hidden lg:flex">
+		<NavigationMenu.List>
+			<NavigationMenu.Item>
+				<a
+					href="/faq"
+					class={buttonVariants({
+						variant: 'ghost'
+					})}>{$t('footer.faq')}</a
+				>
+			</NavigationMenu.Item>
+			<NavigationMenu.Item>
+				<a
+					href="/pricing"
+					class={buttonVariants({
+						variant: 'ghost'
+					})}>{$t('footer.pricing')}</a
+				>
+			</NavigationMenu.Item>
 
-	<!-- Mobile Hamburger Menu -->
-	<div class="lg:hidden">
-		<button class="btn btn-ghost btn-sm" aria-label="Toggle mobile menu" onclick={toggleMobileMenu}>
-			{#if isMobileMenuOpen}
-				<X class="size-6" />
-			{:else}
-				<Menu class="size-6" />
-			{/if}
-		</button>
-	</div>
-</div>
-
-<!-- Mobile Menu Dropdown -->
-{#if isMobileMenuOpen}
-	<div class="border-t border-base-300 bg-base-100 shadow-lg lg:hidden">
-		<div class="space-y-3 px-4 py-6">
-			<a
-				href="/faq"
-				class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
-				onclick={closeMobileMenu}
-			>
-				{$t('footer.faq')}
-			</a>
-			<a
-				href="/pricing"
-				class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
-				onclick={closeMobileMenu}
-			>
-				{$t('footer.pricing')}
-			</a>
 			{#if isLoggedIn}
 				<a
 					href="/app"
-					class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
-					onclick={closeMobileMenu}
+					class={buttonVariants({
+						variant: 'default'
+					})}
 				>
-					<DoorOpen class="mr-2 inline size-5" />
+					<DoorOpen class="size-5" />
 					{$t('dashboard')}
 				</a>
-			{:else}
+			{:else if !isSignInDisabled}
 				<a
 					href="/signin"
-					class="block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-base-200"
-					onclick={closeMobileMenu}
+					class={buttonVariants({
+						variant: 'outline'
+					})}
 				>
 					{$t('signIn')}
 				</a>
-				<a
-					href="/signup"
-					class="hover:bg-neutral-focus block rounded-lg bg-neutral px-3 py-2 text-base font-medium text-neutral-content transition-colors"
-					onclick={closeMobileMenu}
-				>
-					{$t('getStarted')}
-				</a>
+				<a href="/signup" class={buttonVariants({ variant: 'default' })}> {$t('getStarted')} </a>
 			{/if}
-		</div>
+		</NavigationMenu.List>
+	</NavigationMenu.Root>
+
+	<!-- Mobile Hamburger Menu -->
+	<div class="lg:hidden">
+		<Sheet.Root>
+			<Sheet.Trigger>
+				<Button variant="ghost" aria-label="Toggle mobile menu">
+					<Menu class="size-6" />
+				</Button>
+			</Sheet.Trigger>
+			<Sheet.Content showClose={false}>
+				<div class="space-y-3 px-4 py-6">
+					<a
+						href="/faq"
+						class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
+					>
+						{$t('footer.faq')}
+					</a>
+					<a
+						href="/pricing"
+						class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
+					>
+						{$t('footer.pricing')}
+					</a>
+					{#if isLoggedIn}
+						<a
+							href="/app"
+							class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
+						>
+							<DoorOpen class="mr-2 inline size-5" />
+							{$t('dashboard')}
+						</a>
+					{:else}
+						<a
+							href="/signin"
+							class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
+						>
+							{$t('signIn')}
+						</a>
+						<a
+							href="/signup"
+							class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
+						>
+							{$t('getStarted')}
+						</a>
+					{/if}
+					<Sheet.Close class="w-full">
+						<Button variant="secondary" class="w-full justify-end text-lg">
+							<XIcon class="size-6" />
+							Close
+						</Button>
+					</Sheet.Close>
+				</div>
+			</Sheet.Content>
+		</Sheet.Root>
 	</div>
-{/if}
+</div>

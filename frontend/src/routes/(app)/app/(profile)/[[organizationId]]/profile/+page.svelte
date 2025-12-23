@@ -1,31 +1,26 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { enhance, applyAction } from '$app/forms';
-	import { CircleCheck, CircleX, Save } from 'lucide-svelte';
-	import { invalidateAll } from '$app/navigation';
-	import LogoCrop from '$lib/components/Logo/LogoCrop.svelte';
-	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
-	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
-	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
+	import { enhance } from '$app/forms';
+	import { Save, User } from 'lucide-svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Field from '$lib/components/ui/field';
 	import { t } from '$lib/i18n';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import LogoInput from '$lib/components/Logo/LogoInput.svelte';
+	import LogoPreview from '$lib/components/Logo/LogoPreview.svelte';
+	import FormActionStatus from '$lib/components/Form/FormActionStatus.svelte';
+	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
 
 	let { data, form }: PageProps = $props();
 
 	let submitting = $state(false);
-	let name = $state(data.user.data.attributes.name);
-	let email = $state(data.user.data.attributes.email);
-	let userProfile = $state(data.user.data);
+	let name = $derived(data.user.data.attributes.name);
+	let email = $derived(data.user.data.attributes.email);
+	let userProfile = $derived(data.user.data);
 	let password = $state('');
 	let confirmPassword = $state('');
-	let logoInput: HTMLInputElement | null = null;
 	let logo = $state<FileList | null | undefined>(undefined);
-	let uncroppedLogo = $state<FileList | null | undefined>(undefined);
-	let logoCropModal: HTMLDialogElement | null = null;
-
-	// Simple derived state that just returns the appropriate URL
-	const logoPreview = $derived(
-		logo && logo.length > 0 ? URL.createObjectURL(logo[0]) : data.user.data.meta.logoDistributionUrl
-	);
 
 	let canSubmit = $derived.by(() => {
 		if (!name || !email) {
@@ -42,131 +37,73 @@
 
 		return true;
 	});
-
-	function resetLogoUpload() {
-		logo = undefined;
-		uncroppedLogo = undefined;
-		// reset the logo input
-		if (logoInput) {
-			// Completely reset the value of the input
-			logoInput.value = '';
-			logoInput.files = null;
-		}
-	}
 </script>
 
-<SettingsCard>
-	<SettingsCardTitle>{$t('profile.title')}</SettingsCardTitle>
-	<form
-		method="post"
-		use:enhance={() => {
-			submitting = true;
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('profile.title')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<form
+			method="post"
+			use:enhance={() => {
+				submitting = true;
 
-			return ({ result }) => {
-				invalidateAll();
-				applyAction(result);
-				submitting = false;
-			};
-		}}
-		enctype="multipart/form-data"
-	>
-		<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
+				return ({ update }) => {
+					update({ reset: false });
+					submitting = false;
+				};
+			}}
+			enctype="multipart/form-data"
+			class="space-y-4 lg:max-w-sm"
+		>
+			<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
 
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend">{$t('profile.profilePicture')}</legend>
-			<img src={logoPreview} alt="User profile logo" class="aspect-square w-48 rounded-box" />
-			<input
-				type="file"
-				name="logo"
-				class="file-input"
-				accept="image/*"
-				multiple={false}
-				bind:this={logoInput}
-				onchange={(e: Event) => {
-					const target = e.target as HTMLInputElement;
-					uncroppedLogo = target.files;
-					if (logoCropModal) {
-						logoCropModal.showModal();
-					}
-				}}
-			/>
-			<p class="fieldset-label">{$t('profile.uploadProfilePicture')}</p>
-		</fieldset>
+			<Field.Field>
+				<Field.Label for="logo">{$t('profile.profilePicture')}</Field.Label>
+				<LogoPreview
+					logoFile={logo}
+					logoUrl={data.user.data.meta.logoDistributionUrl}
+					alt="User logo"
+				>
+					{#snippet fallback()}
+						<User class="size-32 text-neutral-600" />
+					{/snippet}
+				</LogoPreview>
+				<LogoInput id="logo" name="logo" bind:logo />
+				<Field.Description>{$t('profile.uploadProfilePicture')}</Field.Description>
+			</Field.Field>
 
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend">{$t('profile.name')}</legend>
-			<input
-				type="text"
-				name="name"
-				required
-				class="input"
-				placeholder={$t('profile.namePlaceholder')}
-				bind:value={name}
-			/>
-			<p class="fieldset-label">{$t('profile.nameDescription')}</p>
-		</fieldset>
-
-		{#if form?.success}
-			<div role="alert" class="mt-3 alert alert-success">
-				<CircleCheck />
-				<span>{$t('profile.profileUpdated')}</span>
-			</div>
-		{:else if form?.success === false}
-			<div role="alert" class="mt-3 alert alert-error">
-				<CircleX />
-				<span>{form.message ?? $t('profile.profileUpdateError')}</span>
-			</div>
-		{/if}
-
-		<SettingsCardActions>
-			<button type="submit" class="btn btn-primary" disabled={!canSubmit || submitting}>
-				{#if submitting}
-					<span class="loading loading-spinner"></span>
-				{:else}
-					<Save />
-				{/if}
-				<span>{$t('save')}</span>
-			</button>
-		</SettingsCardActions>
-	</form>
-
-	<dialog id="logo-crop-modal" class="modal" bind:this={logoCropModal}>
-		<div class="modal-box">
-			<h3 class="text-lg font-bold">{$t('profile.updateImage')}</h3>
-			<p class="py-4">{$t('profile.editImageDescription')}</p>
-			{#if uncroppedLogo && uncroppedLogo.length > 0}
-				<LogoCrop
-					imageFile={uncroppedLogo[0]}
-					onCancel={() => {
-						resetLogoUpload();
-						if (logoCropModal) {
-							logoCropModal.close();
-						}
-					}}
-					onSave={(file) => {
-						console.log('Cropped file received:', file);
-						console.log('File size:', file.size);
-						console.log('File type:', file.type);
-
-						const dt = new DataTransfer();
-						dt.items.add(file);
-						logo = dt.files;
-						uncroppedLogo = undefined;
-
-						// set the value of the input to the new cropped image
-						if (logoInput) {
-							logoInput.files = dt.files;
-						}
-
-						if (logoCropModal) {
-							logoCropModal.close();
-						}
-					}}
+			<Field.Field>
+				<Field.Label for="name">{$t('profile.name')}</Field.Label>
+				<Input
+					type="text"
+					id="name"
+					name="name"
+					required
+					class="input"
+					placeholder={$t('profile.namePlaceholder')}
+					bind:value={name}
 				/>
-			{/if}
-		</div>
-		<form method="dialog" class="modal-backdrop" onsubmit={() => resetLogoUpload()}>
-			<button>{$t('close')}</button>
+				<Field.Description>{$t('profile.nameDescription')}</Field.Description>
+			</Field.Field>
+
+			<FormActionStatus
+				{form}
+				success={$t('profile.profileUpdated')}
+				failure={$t('profile.profileUpdateError')}
+			/>
+
+			<Card.Action>
+				<Button type="submit" disabled={!canSubmit || submitting}>
+					<LoadingIcon loading={submitting}>
+						{#snippet icon()}
+							<Save />
+						{/snippet}
+					</LoadingIcon>
+					<span>{$t('save')}</span>
+				</Button>
+			</Card.Action>
 		</form>
-	</dialog>
-</SettingsCard>
+	</Card.Content>
+</Card.Root>

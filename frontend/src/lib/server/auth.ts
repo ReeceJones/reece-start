@@ -87,7 +87,7 @@ export async function getUserAndValidateToken() {
 	// If the token is older than the last issued at time, refresh the token
 	if (
 		user.data.meta.tokenRevocation?.lastIssuedAt &&
-		iat > user.data.meta.tokenRevocation?.lastIssuedAt
+		iat > new Date(user.data.meta.tokenRevocation.lastIssuedAt).getTime() / 1000
 	) {
 		console.log('Token expired, refreshing');
 		// If the token cannot be refreshed, sign the user out and redirect to the signin page

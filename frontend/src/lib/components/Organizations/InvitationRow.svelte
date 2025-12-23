@@ -4,9 +4,12 @@
 	import { UserScope } from '$lib/schemas/jwt';
 	import type { OrganizationInvitation } from '$lib/schemas/organization-invitation';
 	import { Check, Copy, Trash } from 'lucide-svelte';
-	import { slide } from 'svelte/transition';
 	import { t } from '$lib/i18n';
 	import { copyToClipboard } from '$lib/clipboard';
+	import * as Table from '$lib/components/ui/table';
+	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import { toast } from 'svelte-sonner';
+	import LoadingIcon from '../Icons/LoadingIcon.svelte';
 
 	const { invitation }: { invitation: OrganizationInvitation } = $props();
 
@@ -16,24 +19,16 @@
 	let copied = $state(false);
 </script>
 
-{#if copied}
-	<div class="toast" transition:slide>
-		<div class="alert">
-			<Check class="size-4" />
-			<span>{$t('invitationLinkCopied')}</span>
-		</div>
-	</div>
-{/if}
-
-<tr class="hover:bg-base-300">
-	<td
-		><a href={`mailto:${invitation.attributes.email}`} class="link">
+<Table.Row class="hover:bg-base-300">
+	<Table.Cell
+		><a href={`mailto:${invitation.attributes.email}`} class={buttonVariants({ variant: 'link' })}>
 			{invitation.attributes.email}
 		</a>
-	</td>
-	<td>
-		<button
-			class="btn btn-ghost btn-sm"
+	</Table.Cell>
+	<Table.Cell>
+		<Button
+			variant="ghost"
+			size="sm"
 			onclick={async () => {
 				const origin = window.location.origin;
 				await copyToClipboard(`${origin}/app/invitations/${invitation.id}`);
@@ -41,6 +36,7 @@
 				setTimeout(() => {
 					copied = false;
 				}, 5000);
+				toast.success($t('invitationLinkCopied'));
 			}}
 		>
 			{#if copied}
@@ -49,9 +45,9 @@
 				<Copy class="size-4 transition-all" />
 			{/if}
 			<span> {$t('copyInvitationLink')} </span>
-		</button>
-	</td>
-	<td>
+		</Button>
+	</Table.Cell>
+	<Table.Cell>
 		<div class="flex items-center justify-end">
 			<form
 				method="POST"
@@ -67,17 +63,19 @@
 				}}
 			>
 				<input type="hidden" name="invitationId" value={invitation.id} />
-				<button
-					class="btn btn-square btn-ghost btn-sm btn-error"
+				<Button
+					variant="ghost-destructive"
+					size="icon-sm"
+					type="submit"
 					disabled={submitting || !canDeleteInvitation}
 				>
-					{#if submitting}
-						<span class="loading size-4 loading-spinner"></span>
-					{:else}
-						<Trash class="size-4" />
-					{/if}
-				</button>
+					<LoadingIcon loading={submitting}>
+						{#snippet icon()}
+							<Trash class="size-4" />
+						{/snippet}
+					</LoadingIcon>
+				</Button>
 			</form>
 		</div>
-	</td>
-</tr>
+	</Table.Cell>
+</Table.Row>

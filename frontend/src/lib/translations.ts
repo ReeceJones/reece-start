@@ -449,8 +449,11 @@ export const translations = {
 			title: 'Select Organization',
 			organizations: 'Organizations',
 			selectOrganization: 'Select an organization to continue to the app.',
-			noOrganizations:
-				'You are not a member of any organizations. Create or join an organization to get started.',
+			noOrganizations: {
+				title: 'No organizations',
+				description:
+					"You aren't a member of any organizations. Get started by creating or joining your first organization."
+			},
 			createOrganization: 'Create Organization',
 			noDescription: 'No description',
 			invitation: {
@@ -549,8 +552,7 @@ export const translations = {
 			},
 			header: {
 				title: 'Frequently Asked Questions',
-				subtitle:
-					'Everything you need to know about the technology choices, architecture decisions, and how to get started.'
+				subtitle: 'Have questions? We have answers.'
 			},
 			questions: {
 				whySvelte: {

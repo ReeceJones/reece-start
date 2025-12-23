@@ -1,7 +1,6 @@
 <script lang="ts">
-	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
-	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
-	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Alert from '$lib/components/ui/alert';
 	import { post } from '$lib';
 	import {
 		createCheckoutSessionRequestSchema,
@@ -107,171 +106,175 @@
 	}
 </script>
 
-<SettingsCard>
-	<SettingsCardTitle>{$t('billing.title')}</SettingsCardTitle>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('billing.title')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<div class="space-y-6">
+			<!-- Current Plan Display -->
+			<div
+				class={`rounded-box p-6 ${isProPlan ? 'bg-base-200' : 'border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-secondary/10'}`}
+			>
+				<div class="flex items-start justify-between">
+					<div class="flex-1">
+						<div class="flex items-center gap-2">
+							<h3 class="text-2xl font-bold">
+								{#if isProPlan}
+									<span class="flex items-center gap-2">
+										<Sparkles class="size-6 text-primary" />
+										{$t('billing.proPlan')}
+									</span>
+								{:else}
+									{$t('billing.freePlan')}
+								{/if}
+							</h3>
+						</div>
 
-	<div class="space-y-6">
-		<!-- Current Plan Display -->
-		<div
-			class={`rounded-box p-6 ${isProPlan ? 'bg-base-200' : 'border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-secondary/10'}`}
-		>
-			<div class="flex items-start justify-between">
-				<div class="flex-1">
-					<div class="flex items-center gap-2">
-						<h3 class="text-2xl font-bold">
-							{#if isProPlan}
-								<span class="flex items-center gap-2">
-									<Sparkles class="size-6 text-primary" />
-									{$t('billing.proPlan')}
-								</span>
-							{:else}
-								{$t('billing.freePlan')}
-							{/if}
-						</h3>
+						{#if isProPlan}
+							<p class="text-base-content/70 mt-2">
+								{$t('billing.proDescription')}
+							</p>
+						{:else}
+							<p class="text-base-content/70 mt-2">
+								{$t('billing.freeDescription')}
+							</p>
+						{/if}
+
+						{#if isFreePlan && canManageBilling}
+							<div class="mt-4 flex flex-wrap items-center gap-3">
+								<button
+									class="btn btn-lg btn-primary gap-2 shadow-lg"
+									onclick={upgradeToPro}
+									disabled={loading}
+								>
+									{#if loading}
+										<span class="loading loading-spinner"></span>
+									{:else}
+										<Sparkles class="size-5" />
+									{/if}
+									{$t('billing.upgradeToPro')}
+								</button>
+								<span class="text-base-content/60 text-sm font-medium"
+									>{$t('billing.getStartedInMinutes')}</span
+								>
+							</div>
+						{/if}
 					</div>
 
 					{#if isProPlan}
-						<p class="mt-2 text-base-content/70">
-							{$t('billing.proDescription')}
-						</p>
-					{:else}
-						<p class="mt-2 text-base-content/70">
-							{$t('billing.freeDescription')}
-						</p>
-					{/if}
-
-					{#if isFreePlan && canManageBilling}
-						<div class="mt-4 flex flex-wrap items-center gap-3">
-							<button
-								class="btn gap-2 shadow-lg btn-lg btn-primary"
-								onclick={upgradeToPro}
-								disabled={loading}
-							>
-								{#if loading}
-									<span class="loading loading-spinner"></span>
-								{:else}
-									<Sparkles class="size-5" />
-								{/if}
-								{$t('billing.upgradeToPro')}
-							</button>
-							<span class="text-sm font-medium text-base-content/60"
-								>{$t('billing.getStartedInMinutes')}</span
-							>
+						<div class="badge badge-lg badge-primary gap-2">
+							<CheckCircle2 class="size-4" />
+							{$t('billing.active')}
 						</div>
 					{/if}
 				</div>
 
-				{#if isProPlan}
-					<div class="badge gap-2 badge-lg badge-primary">
-						<CheckCircle2 class="size-4" />
-						{$t('billing.active')}
+				{#if isProPlan && data.subscription.data.attributes.billingPeriodEnd}
+					<div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div>
+							<p class="text-base-content/60 text-sm">{$t('billing.billingAmount')}</p>
+							<p class="text-lg font-semibold">
+								{formattedBillingAmount()}{$t('billing.perMonth')}
+							</p>
+						</div>
+						<div>
+							<p class="text-base-content/60 text-sm">{$t('billing.nextBillingDate')}</p>
+							<p class="text-lg font-semibold">
+								{formatDate(data.subscription.data.attributes.billingPeriodEnd)}
+							</p>
+						</div>
 					</div>
 				{/if}
 			</div>
 
-			{#if isProPlan && data.subscription.data.attributes.billingPeriodEnd}
-				<div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<div>
-						<p class="text-sm text-base-content/60">{$t('billing.billingAmount')}</p>
-						<p class="text-lg font-semibold">{formattedBillingAmount()}{$t('billing.perMonth')}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/60">{$t('billing.nextBillingDate')}</p>
-						<p class="text-lg font-semibold">
-							{formatDate(data.subscription.data.attributes.billingPeriodEnd)}
-						</p>
-					</div>
+			<!-- Plan Features Comparison -->
+			<div class="grid gap-4 md:grid-cols-2">
+				<!-- Free Plan Card -->
+				<div class="rounded-box border-base-300 bg-base-100 border p-6">
+					<h4 class="text-lg font-semibold">{$t('billing.freePlan')}</h4>
+					<p class="mt-2 text-3xl font-bold">
+						$0<span class="text-base font-normal">{$t('billing.perMonth')}</span>
+					</p>
+					<ul class="mt-4 space-y-2">
+						<li class="flex items-start gap-2">
+							<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
+							<span class="text-sm">{$t('billing.basicFeatures')}</span>
+						</li>
+						<li class="flex items-start gap-2">
+							<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
+							<span class="text-sm">{$t('billing.standardSupport')}</span>
+						</li>
+						<li class="flex items-start gap-2">
+							<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
+							<span class="text-sm">{$t('billing.communityAccess')}</span>
+						</li>
+					</ul>
 				</div>
+
+				<!-- Pro Plan Card -->
+				<div
+					class={`rounded-box border-2 border-primary p-6 shadow-lg transition-all ${isFreePlan ? 'bg-gradient-to-br from-primary/5 to-secondary/5' : 'bg-base-100 ring-2 ring-primary'}`}
+				>
+					<div class="flex items-center justify-between">
+						<h4 class="text-lg font-semibold">{$t('billing.proPlan')}</h4>
+						<div class="flex items-center gap-2">
+							{#if isProPlan}
+								<span class="badge badge-sm badge-primary">{$t('billing.current')}</span>
+							{:else}
+								<span class="badge badge-sm badge-accent">{$t('billing.recommended')}</span>
+							{/if}
+							<Sparkles class="size-5 text-primary" />
+						</div>
+					</div>
+					<p class="mt-2 text-3xl font-bold">
+						$29<span class="text-base font-normal">{$t('billing.perMonth')}</span>
+					</p>
+					<ul class="mt-4 space-y-2">
+						<li class="flex items-start gap-2">
+							<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
+							<span class="text-sm">{$t('billing.allFreeFeatures')}</span>
+						</li>
+						<li class="flex items-start gap-2">
+							<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
+							<span class="text-sm">{$t('billing.advancedFeatures')}</span>
+						</li>
+						<li class="flex items-start gap-2">
+							<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
+							<span class="text-sm">{$t('billing.prioritySupport')}</span>
+						</li>
+						<li class="flex items-start gap-2">
+							<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
+							<span class="text-sm">{$t('billing.customIntegrations')}</span>
+						</li>
+					</ul>
+
+					{#if isFreePlan && canManageBilling}
+						<button
+							class="btn btn-block btn-primary mt-4 gap-2"
+							onclick={upgradeToPro}
+							disabled={loading}
+						>
+							{#if loading}
+								<span class="loading loading-spinner"></span>
+							{:else}
+								<Sparkles class="size-4" />
+							{/if}
+							{$t('billing.getPro')}
+						</button>
+					{/if}
+				</div>
+			</div>
+
+			{#if error}
+				<Alert.Root variant="destructive">
+					<span>{error}</span>
+				</Alert.Root>
 			{/if}
 		</div>
-
-		<!-- Plan Features Comparison -->
-		<div class="grid gap-4 md:grid-cols-2">
-			<!-- Free Plan Card -->
-			<div class="rounded-box border border-base-300 bg-base-100 p-6">
-				<h4 class="text-lg font-semibold">{$t('billing.freePlan')}</h4>
-				<p class="mt-2 text-3xl font-bold">
-					$0<span class="text-base font-normal">{$t('billing.perMonth')}</span>
-				</p>
-				<ul class="mt-4 space-y-2">
-					<li class="flex items-start gap-2">
-						<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
-						<span class="text-sm">{$t('billing.basicFeatures')}</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
-						<span class="text-sm">{$t('billing.standardSupport')}</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
-						<span class="text-sm">{$t('billing.communityAccess')}</span>
-					</li>
-				</ul>
-			</div>
-
-			<!-- Pro Plan Card -->
-			<div
-				class={`rounded-box border-2 border-primary p-6 shadow-lg transition-all ${isFreePlan ? 'bg-gradient-to-br from-primary/5 to-secondary/5' : 'bg-base-100 ring-2 ring-primary'}`}
-			>
-				<div class="flex items-center justify-between">
-					<h4 class="text-lg font-semibold">{$t('billing.proPlan')}</h4>
-					<div class="flex items-center gap-2">
-						{#if isProPlan}
-							<span class="badge badge-sm badge-primary">{$t('billing.current')}</span>
-						{:else}
-							<span class="badge badge-sm badge-accent">{$t('billing.recommended')}</span>
-						{/if}
-						<Sparkles class="size-5 text-primary" />
-					</div>
-				</div>
-				<p class="mt-2 text-3xl font-bold">
-					$29<span class="text-base font-normal">{$t('billing.perMonth')}</span>
-				</p>
-				<ul class="mt-4 space-y-2">
-					<li class="flex items-start gap-2">
-						<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
-						<span class="text-sm">{$t('billing.allFreeFeatures')}</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
-						<span class="text-sm">{$t('billing.advancedFeatures')}</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
-						<span class="text-sm">{$t('billing.prioritySupport')}</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<CheckCircle2 class="mt-0.5 size-5 flex-shrink-0 text-success" />
-						<span class="text-sm">{$t('billing.customIntegrations')}</span>
-					</li>
-				</ul>
-
-				{#if isFreePlan && canManageBilling}
-					<button
-						class="btn mt-4 btn-block gap-2 btn-primary"
-						onclick={upgradeToPro}
-						disabled={loading}
-					>
-						{#if loading}
-							<span class="loading loading-spinner"></span>
-						{:else}
-							<Sparkles class="size-4" />
-						{/if}
-						{$t('billing.getPro')}
-					</button>
-				{/if}
-			</div>
-		</div>
-
-		{#if error}
-			<div role="alert" class="alert alert-error">
-				<span>{error}</span>
-			</div>
-		{/if}
-	</div>
-
-	<SettingsCardActions>
-		{#if isProPlan}
+	</Card.Content>
+	{#if isProPlan}
+		<Card.Action>
 			<button
 				class="btn btn-neutral"
 				onclick={manageBilling}
@@ -284,6 +287,6 @@
 				{/if}
 				{$t('billing.manageSubscription')}
 			</button>
-		{/if}
-	</SettingsCardActions>
-</SettingsCard>
+		</Card.Action>
+	{/if}
+</Card.Root>

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import SettingsCard from '$lib/components/Settings/SettingsCard.svelte';
-	import SettingsCardTitle from '$lib/components/Settings/SettingsCardTitle.svelte';
-	import SettingsCardActions from '$lib/components/Settings/SettingsCardActions.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Alert from '$lib/components/ui/alert';
 	import { post } from '$lib';
 	import {
 		createStripeDashboardLinkResponseSchema,
@@ -48,33 +47,35 @@
 	}
 </script>
 
-<SettingsCard>
-	<SettingsCardTitle>{$t('payments.title')}</SettingsCardTitle>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{$t('payments.title')}</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<div class="space-y-4">
+			<p class="text-base-content/70 text-sm">
+				{$t('payments.description')}
+			</p>
 
-	<div class="space-y-4">
-		<p class="text-sm text-base-content/70">
-			{$t('payments.description')}
-		</p>
-
-		{#if error}
-			<div class="alert alert-error">
-				<span>{error}</span>
-			</div>
-		{/if}
-
-		<SettingsCardActions>
-			<button
-				class="btn btn-primary"
-				onclick={openStripeDashboard}
-				disabled={loading || !canAccessStripe}
-			>
-				{#if loading}
-					<span class="loading loading-sm loading-spinner"></span>
-				{:else}
-					<ExternalLink class="h-4 w-4" />
-				{/if}
-				{$t('payments.openStripeDashboard')}
-			</button>
-		</SettingsCardActions>
-	</div>
-</SettingsCard>
+			{#if error}
+				<Alert.Root variant="destructive">
+					<span>{error}</span>
+				</Alert.Root>
+			{/if}
+		</div>
+	</Card.Content>
+	<Card.Action>
+		<button
+			class="btn btn-primary"
+			onclick={openStripeDashboard}
+			disabled={loading || !canAccessStripe}
+		>
+			{#if loading}
+				<span class="loading loading-sm loading-spinner"></span>
+			{:else}
+				<ExternalLink class="h-4 w-4" />
+			{/if}
+			{$t('payments.openStripeDashboard')}
+		</button>
+	</Card.Action>
+</Card.Root>

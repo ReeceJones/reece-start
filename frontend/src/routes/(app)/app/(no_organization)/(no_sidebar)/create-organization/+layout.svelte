@@ -19,10 +19,10 @@
 		isBusinessDetailsValid,
 		isContactInformationValid
 	} from '$lib/organization-onboarding';
-	import Card from '$lib/components/Card/Card.svelte';
-	import CardBody from '$lib/components/Card/CardBody.svelte';
-	import CardTitle from '$lib/components/Card/CardTitle.svelte';
+	import * as Card from '$lib/components/ui/card';
 	import { t, locale } from '$lib/i18n';
+	import { Progress } from '$lib/components/ui/progress';
+	import { buttonVariants } from '$lib/components/ui/button';
 
 	const { children, data }: LayoutProps = $props();
 
@@ -55,7 +55,7 @@
 	];
 
 	let submitting = $state(false);
-	let onboardingState = $state<CreateOrganizationFormData>({
+	let onboardingState = $derived<CreateOrganizationFormData>({
 		name: '',
 		description: '',
 		logo: undefined,
@@ -100,23 +100,26 @@
 	});
 </script>
 
-<a class="btn m-1 btn-ghost" href="/app">
+<a
+	class={buttonVariants({
+		variant: 'ghost',
+		class: 'm-1'
+	})}
+	href="/app"
+>
 	<ArrowLeft class="size-4" />
 	{$t('onboarding.back')}
 </a>
 
-<Card class="mx-auto mb-10 max-w-2xl space-y-6">
-	<CardBody>
-		<div class="space-y-2">
-			<CardTitle>
-				{activeStep?.label} ({activeStep?.index ? activeStep.index + 1 : 1} of {steps.length})
-			</CardTitle>
-			<progress
-				class="progress w-full progress-primary transition-all duration-500"
-				value={activeStep?.index ?? 0}
-				max={steps.length - 1}
-			></progress>
-		</div>
+<Card.Root class="mx-auto mb-10 max-w-2xl space-y-6">
+	<Card.Header class="mb-0 space-y-3">
+		<Card.Title
+			>{activeStep?.label} ({activeStep?.index ? activeStep.index + 1 : 1} of {steps.length})</Card.Title
+		>
+		<Progress value={activeStep?.index ?? 0} max={steps.length - 1}></Progress>
+		{@render children?.()}
+	</Card.Header>
+	<Card.Content>
 		<form
 			id="create-organization-form"
 			class="space-y-6"
@@ -137,8 +140,6 @@
 				};
 			}}
 		>
-			{@render children?.()}
-
 			<OnboardingBasicInformation
 				hidden={page.url.pathname !== '/app/create-organization/basic-information'}
 				bind:onboardingState
@@ -167,7 +168,7 @@
 				</div>
 			{/if}
 
-			<div class="flex gap-3">
+			<div class="flex items-center gap-2">
 				{#if activeStep && activeStep.index > 0}
 					<OnboardingBackButton disabled={submitting} step={steps[activeStep.index - 1]} />
 				{/if}
@@ -179,5 +180,5 @@
 				{/if}
 			</div>
 		</form>
-	</CardBody>
-</Card>
+	</Card.Content>
+</Card.Root>
