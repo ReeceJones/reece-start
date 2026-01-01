@@ -1,19 +1,14 @@
 <script lang="ts">
 	import { CircleCheck, CircleX } from 'lucide-svelte';
 	import * as Alert from '$lib/components/ui/alert';
+	import type { FormResult } from '$lib/schemas/form';
 
 	const {
 		form,
 		success,
 		failure
 	}: {
-		form:
-			| {
-					success: boolean;
-					message: string;
-			  }
-			| null
-			| undefined;
+		form: FormResult | null | undefined;
 		success: string;
 		failure: string;
 	} = $props();

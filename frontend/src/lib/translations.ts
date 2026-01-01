@@ -274,7 +274,9 @@ export const translations = {
 			getPro: 'Get Pro',
 			manageSubscription: 'Manage Subscription',
 			failedToStartCheckout: 'Failed to start checkout. Please try again.',
+			successfullyStartedCheckout: 'You will be redirected soon...',
 			failedToOpenBillingPortal: 'Failed to open billing portal. Please try again.',
+			successfullyOpenedBillingPortal: 'You will be redirected soon...',
 			perMonth: '/month'
 		},
 

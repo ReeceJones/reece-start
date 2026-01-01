@@ -40,7 +40,7 @@
 			<Card.Title>{$t('noOrganization.admin.debug.userScopes')}</Card.Title>
 		</Card.Header>
 		<Card.Content>
-			<ul class="list-inside list-disc">
+			<ul class="list-inside list-disc text-sm">
 				{#each scopes as scope (scope)}
 					<li class="font-mono">{scope}</li>
 				{/each}

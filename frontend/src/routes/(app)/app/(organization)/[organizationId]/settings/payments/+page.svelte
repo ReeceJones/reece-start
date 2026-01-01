@@ -11,6 +11,8 @@
 	import { UserScope } from '$lib/schemas/jwt';
 	import { z } from 'zod';
 	import { t } from '$lib/i18n';
+	import { Button } from '$lib/components/ui/button';
+	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
 
 	const { data }: { data: { organization: Organization } } = $props();
 
@@ -53,7 +55,7 @@
 	</Card.Header>
 	<Card.Content>
 		<div class="space-y-4">
-			<p class="text-base-content/70 text-sm">
+			<p class="text-muted-foreground text-sm">
 				{$t('payments.description')}
 			</p>
 
@@ -64,18 +66,14 @@
 			{/if}
 		</div>
 	</Card.Content>
-	<Card.Action>
-		<button
-			class="btn btn-primary"
-			onclick={openStripeDashboard}
-			disabled={loading || !canAccessStripe}
-		>
-			{#if loading}
-				<span class="loading loading-sm loading-spinner"></span>
-			{:else}
-				<ExternalLink class="h-4 w-4" />
-			{/if}
+	<Card.Action class="px-6">
+		<Button variant="default" onclick={openStripeDashboard} disabled={loading || !canAccessStripe}>
+			<LoadingIcon {loading}>
+				{#snippet icon()}
+					<ExternalLink class="h-4 w-4" />
+				{/snippet}
+			</LoadingIcon>
 			{$t('payments.openStripeDashboard')}
-		</button>
+		</Button>
 	</Card.Action>
 </Card.Root>

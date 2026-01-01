@@ -7,7 +7,13 @@ import { sentrySvelteKit } from '@sentry/sveltekit';
 
 export default defineConfig({
 	// follow instructions here to get sourcemaps with sentry: https://docs.sentry.io/platforms/javascript/guides/sveltekit/manual-setup/#step-3-add-readable-stack-traces-with-source-maps-optional
-	plugins: [tailwindcss(), sentrySvelteKit(), sveltekit(), devtoolsJson(), svelteTesting()],
+	plugins: [
+		tailwindcss(),
+		sentrySvelteKit({ telemetry: false }),
+		sveltekit(),
+		devtoolsJson(),
+		svelteTesting()
+	],
 	define: {
 		// Eliminate in-source test code
 		'import.meta.vitest': 'undefined'
