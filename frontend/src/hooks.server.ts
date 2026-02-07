@@ -38,7 +38,9 @@ function isSvelteKitError(error: unknown): error is Redirect | HttpError {
 }
 
 const paraglideHandle: Handle = ({ event, resolve }) =>
-	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
+	// Use a cloned request so Paraglide's internal request normalization
+	// never consumes the original action/body stream used by SvelteKit.
+	paraglideMiddleware(event.request.clone(), ({ request: localizedRequest, locale }) => {
 		event.request = localizedRequest;
 		return resolve(event, {
 			transformPageChunk: ({ html }) => {
