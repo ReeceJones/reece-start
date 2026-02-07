@@ -3,41 +3,33 @@
 	import * as Card from '$lib/components/ui/card';
 	import * as Select from '$lib/components/ui/select';
 	import * as Alert from '$lib/components/ui/alert';
-	import { t, locale, locales } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { getLocale, locales } from '$lib/paraglide/runtime';
 
 	const scopes = $derived(getScopes());
 	let submitting = $state(false);
 	let error = $state('');
 
-	let selectedLocale = $state($locale);
+	let selectedLocale = $state(getLocale());
 	let formElement: HTMLFormElement;
-	let previousLocale = $state($locale);
+	let previousLocale = $state(getLocale());
 
-	// Sync selectedLocale with locale store
-	$effect(() => {
-		selectedLocale = $locale;
-		previousLocale = $locale;
-	});
-
-	// Auto-submit form when locale changes (but not on initial mount or store sync)
+	// Auto-submit form when locale changes
 	$effect(() => {
 		if (!formElement || selectedLocale === previousLocale) {
 			return;
 		}
-		// Only submit if the change is user-initiated (selectedLocale differs from store)
-		if (selectedLocale !== $locale) {
-			previousLocale = selectedLocale;
-			formElement.requestSubmit();
-		}
+		previousLocale = selectedLocale;
+		formElement.requestSubmit();
 	});
 </script>
 
 <div class="grid grid-cols-3 gap-6">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{$t('noOrganization.admin.debug.userScopes')}</Card.Title>
+			<Card.Title>{m.no_organization__admin__debug__user_scopes()}</Card.Title>
 		</Card.Header>
 		<Card.Content>
 			<ul class="list-inside list-disc text-sm">

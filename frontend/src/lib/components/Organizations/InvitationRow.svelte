@@ -4,7 +4,7 @@
 	import { UserScope } from '$lib/schemas/jwt';
 	import type { OrganizationInvitation } from '$lib/schemas/organization-invitation';
 	import { Check, Copy, Trash } from 'lucide-svelte';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { copyToClipboard } from '$lib/clipboard';
 	import * as Table from '$lib/components/ui/table';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
@@ -36,7 +36,7 @@
 				setTimeout(() => {
 					copied = false;
 				}, 5000);
-				toast.success($t('invitationLinkCopied'));
+				toast.success(m.invitation_link_copied());
 			}}
 		>
 			{#if copied}
@@ -44,7 +44,7 @@
 			{:else}
 				<Copy class="size-4 transition-all" />
 			{/if}
-			<span> {$t('copyInvitationLink')} </span>
+			<span> {m.copy_invitation_link()} </span>
 		</Button>
 	</Table.Cell>
 	<Table.Cell>

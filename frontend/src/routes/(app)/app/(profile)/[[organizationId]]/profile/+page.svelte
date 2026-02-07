@@ -4,7 +4,7 @@
 	import { Save, User } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Field from '$lib/components/ui/field';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import LogoInput from '$lib/components/Logo/LogoInput.svelte';
@@ -41,7 +41,7 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('profile.title')}</Card.Title>
+		<Card.Title>{m.profile__title()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<form
@@ -60,7 +60,7 @@
 			<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
 
 			<Field.Field>
-				<Field.Label for="logo">{$t('profile.profilePicture')}</Field.Label>
+				<Field.Label for="logo">{m.profile__profile_picture()}</Field.Label>
 				<LogoPreview
 					logoFile={logo}
 					logoUrl={data.user.data.meta.logoDistributionUrl}
@@ -71,27 +71,27 @@
 					{/snippet}
 				</LogoPreview>
 				<LogoInput id="logo" name="logo" bind:logo />
-				<Field.Description>{$t('profile.uploadProfilePicture')}</Field.Description>
+				<Field.Description>{m.profile__upload_profile_picture()}</Field.Description>
 			</Field.Field>
 
 			<Field.Field>
-				<Field.Label for="name">{$t('profile.name')}</Field.Label>
+				<Field.Label for="name">{m.profile__name()}</Field.Label>
 				<Input
 					type="text"
 					id="name"
 					name="name"
 					required
 					class="input"
-					placeholder={$t('profile.namePlaceholder')}
+					placeholder={m.profile__name_placeholder()}
 					bind:value={name}
 				/>
-				<Field.Description>{$t('profile.nameDescription')}</Field.Description>
+				<Field.Description>{m.profile__name_description()}</Field.Description>
 			</Field.Field>
 
 			<FormActionStatus
 				{form}
-				success={$t('profile.profileUpdated')}
-				failure={$t('profile.profileUpdateError')}
+				success={m.profile__profile_updated()}
+				failure={m.profile__profile_update_error()}
 			/>
 
 			<Card.Action>
@@ -101,7 +101,7 @@
 							<Save />
 						{/snippet}
 					</LoadingIcon>
-					<span>{$t('save')}</span>
+					<span>{m.save()}</span>
 				</Button>
 			</Card.Action>
 		</form>

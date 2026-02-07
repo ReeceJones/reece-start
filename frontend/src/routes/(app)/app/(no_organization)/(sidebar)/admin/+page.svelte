@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 </script>
 
-<p>{$t('noOrganization.admin.welcome')}</p>
+<p>{m.no_organization__admin__welcome()}</p>

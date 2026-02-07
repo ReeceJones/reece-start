@@ -1,68 +1,68 @@
 <script lang="ts">
 	import { CircleQuestionMark } from 'lucide-svelte';
 	import * as Accordion from '$lib/components/ui/accordion';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	const faqs = $derived([
 		{
-			question: $t('faq.questions.whySvelte.question'),
-			answer: $t('faq.questions.whySvelte.answer')
+			question: m.faq__questions__why_svelte__question(),
+			answer: m.faq__questions__why_svelte__answer()
 		},
 		{
-			question: $t('faq.questions.whyDaisyui.question'),
-			answer: $t('faq.questions.whyDaisyui.answer')
+			question: m.faq__questions__why_daisyui__question(),
+			answer: m.faq__questions__why_daisyui__answer()
 		},
 		{
-			question: $t('faq.questions.whyGo.question'),
-			answer: $t('faq.questions.whyGo.answer')
+			question: m.faq__questions__why_go__question(),
+			answer: m.faq__questions__why_go__answer()
 		},
 		{
-			question: $t('faq.questions.whyPostgresql.question'),
-			answer: $t('faq.questions.whyPostgresql.answer')
+			question: m.faq__questions__why_postgresql__question(),
+			answer: m.faq__questions__why_postgresql__answer()
 		},
 		{
-			question: $t('faq.questions.whyRailway.question'),
-			answer: $t('faq.questions.whyRailway.answer')
+			question: m.faq__questions__why_railway__question(),
+			answer: m.faq__questions__why_railway__answer()
 		},
 		{
-			question: $t('faq.questions.whyCustomAuth.question'),
-			answer: $t('faq.questions.whyCustomAuth.answer')
+			question: m.faq__questions__why_custom_auth__question(),
+			answer: m.faq__questions__why_custom_auth__answer()
 		},
 		{
-			question: $t('faq.questions.whatIsOrgModel.question'),
-			answer: $t('faq.questions.whatIsOrgModel.answer')
+			question: m.faq__questions__what_is_org_model__question(),
+			answer: m.faq__questions__what_is_org_model__answer()
 		},
 		{
-			question: $t('faq.questions.whyMakefile.question'),
-			answer: $t('faq.questions.whyMakefile.answer')
+			question: m.faq__questions__why_makefile__question(),
+			answer: m.faq__questions__why_makefile__answer()
 		},
 		{
-			question: $t('faq.questions.howToStart.question'),
-			answer: $t('faq.questions.howToStart.answer'),
+			question: m.faq__questions__how_to_start__question(),
+			answer: m.faq__questions__how_to_start__answer(),
 			html: true
 		},
 		{
-			question: $t('faq.questions.withoutOrgs.question'),
-			answer: $t('faq.questions.withoutOrgs.answer')
+			question: m.faq__questions__without_orgs__question(),
+			answer: m.faq__questions__without_orgs__answer()
 		},
 		{
-			question: $t('faq.questions.addOauth.question'),
-			answer: $t('faq.questions.addOauth.answer')
+			question: m.faq__questions__add_oauth__question(),
+			answer: m.faq__questions__add_oauth__answer()
 		},
 		{
-			question: $t('faq.questions.otherPlatforms.question'),
-			answer: $t('faq.questions.otherPlatforms.answer')
+			question: m.faq__questions__other_platforms__question(),
+			answer: m.faq__questions__other_platforms__answer()
 		},
 		{
-			question: $t('faq.questions.billingIncluded.question'),
-			answer: $t('faq.questions.billingIncluded.answer')
+			question: m.faq__questions__billing_included__question(),
+			answer: m.faq__questions__billing_included__answer()
 		}
 	]);
 </script>
 
 <svelte:head>
-	<title>{$t('faq.meta.title')}</title>
-	<meta name="description" content={$t('faq.meta.description')} />
+	<title>{m.faq__meta__title()}</title>
+	<meta name="description" content={m.faq__meta__description()} />
 </svelte:head>
 
 <!-- FAQ Header -->
@@ -74,9 +74,9 @@
 					<CircleQuestionMark class="text-info size-12" />
 				</div>
 			</div>
-			<h1 class="mb-6 text-2xl font-bold md:text-4xl">{$t('faq.header.title')}</h1>
+			<h1 class="mb-6 text-2xl font-bold md:text-4xl">{m.faq__header__title()}</h1>
 			<p class="text-base-content/70 mx-auto max-w-2xl text-xl leading-relaxed">
-				{$t('faq.header.subtitle')}
+				{m.faq__header__subtitle()}
 			</p>
 		</div>
 

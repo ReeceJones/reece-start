@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ArrowRight } from 'lucide-svelte';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 
 	const {
@@ -15,6 +15,6 @@
 </script>
 
 <Button href={step.path} variant="default" {disabled}>
-	<span>{$t('next')}</span>
+	<span>{m.next()}</span>
 	<ArrowRight />
 </Button>

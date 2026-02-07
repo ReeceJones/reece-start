@@ -4,7 +4,7 @@
 	import { Save, Building2 } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Field from '$lib/components/ui/field';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import LogoInput from '$lib/components/Logo/LogoInput.svelte';
@@ -33,7 +33,7 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('settings.organization.general.title')}</Card.Title>
+		<Card.Title>{m.settings__organization__general__title()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<form
@@ -52,7 +52,7 @@
 			<input type="hidden" tabindex="-1" name="organizationId" value={data.organization.data.id} />
 
 			<Field.Field>
-				<Field.Label for="logo">{$t('settings.organization.general.logo.label')}</Field.Label>
+				<Field.Label for="logo">{m.settings__organization__general__logo__label()}</Field.Label>
 				<LogoPreview
 					logoFile={logo}
 					logoUrl={data.organization.data.meta.logoDistributionUrl}
@@ -63,49 +63,49 @@
 					{/snippet}
 				</LogoPreview>
 				<LogoInput id="logo" name="logo" bind:logo disabled={!canUpdate} />
-				<Field.Description>{$t('settings.organization.general.logo.description')}</Field.Description
+				<Field.Description>{m.settings__organization__general__logo__description()}</Field.Description
 				>
 			</Field.Field>
 
 			<Field.Field>
-				<Field.Label for="name">{$t('settings.organization.general.name.label')}</Field.Label>
+				<Field.Label for="name">{m.settings__organization__general__name__label()}</Field.Label>
 				<Input
 					type="text"
 					id="name"
 					name="name"
 					required
 					class="input"
-					placeholder={$t('settings.organization.general.name.placeholder')}
+					placeholder={m.settings__organization__general__name__placeholder()}
 					bind:value={name}
 					disabled={!canUpdate}
 				/>
-				<Field.Description>{$t('settings.organization.general.name.description')}</Field.Description
+				<Field.Description>{m.settings__organization__general__name__description()}</Field.Description
 				>
 			</Field.Field>
 
 			<Field.Field>
 				<Field.Label for="description"
-					>{$t('settings.organization.general.description.label')}</Field.Label
+					>{m.settings__organization__general__description__label()}</Field.Label
 				>
 				<textarea
 					id="description"
 					name="description"
 					class="textarea min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-base shadow-xs ring-offset-background transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
-					placeholder={$t('settings.organization.general.description.placeholder')}
+					placeholder={m.settings__organization__general__description__placeholder()}
 					bind:value={description}
 					maxlength={255}
 					disabled={!canUpdate}
 				></textarea>
 				<Field.Description
-					>{$t('settings.organization.general.description.description')}</Field.Description
+					>{m.settings__organization__general__description__description()}</Field.Description
 				>
 			</Field.Field>
 
 			<FormActionStatus
 				{form}
-				success={$t('settings.organization.general.success.organizationUpdated')}
+				success={m.settings__organization__general__success__organization_updated()}
 				failure={form?.message ??
-					$t('settings.organization.general.success.organizationUpdateError')}
+					m.settings__organization__general__success__organization_update_error()}
 			/>
 
 			<Card.Action>
@@ -115,7 +115,7 @@
 							<Save />
 						{/snippet}
 					</LoadingIcon>
-					<span>{$t('save')}</span>
+					<span>{m.save()}</span>
 				</Button>
 			</Card.Action>
 		</form>

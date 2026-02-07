@@ -4,7 +4,7 @@
 	import OnboardingStepContainer from './OnboardingStepContainer.svelte';
 	import StateOptions from '../StateOptions.svelte';
 	import { State } from 'country-state-city';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import * as Field from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
 
@@ -16,7 +16,7 @@
 
 <OnboardingStepContainer {hidden}>
 	<Field.Field>
-		<Field.Label for="addressCountry">{$t('onboarding.addressStep.country')}</Field.Label>
+		<Field.Label for="addressCountry">{m.onboarding__address_step__country()}</Field.Label>
 		<select
 			id="addressCountry"
 			name="addressCountry"
@@ -26,55 +26,55 @@
 		>
 			<CountryOptions />
 		</select>
-		<Field.Description>{$t('onboarding.addressStep.selectCountry')}</Field.Description>
+		<Field.Description>{m.onboarding__address_step__select_country()}</Field.Description>
 	</Field.Field>
 
 	<Field.Field>
-		<Field.Label for="addressLine1">{$t('onboarding.addressStep.address')}</Field.Label>
+		<Field.Label for="addressLine1">{m.onboarding__address_step__address()}</Field.Label>
 		<Input
 			type="text"
 			id="addressLine1"
 			name="addressLine1"
 			required
 			class="input"
-			placeholder={$t('onboarding.addressStep.address')}
+			placeholder={m.onboarding__address_step__address()}
 			bind:value={onboardingState.addressLine1}
 		/>
-		<Field.Description>{$t('onboarding.addressStep.enterStreetAddress')}</Field.Description>
+		<Field.Description>{m.onboarding__address_step__enter_street_address()}</Field.Description>
 	</Field.Field>
 
 	<Field.Field>
-		<Field.Label for="addressLine2">{$t('onboarding.addressStep.addressLine2')}</Field.Label>
+		<Field.Label for="addressLine2">{m.onboarding__address_step__address_line2()}</Field.Label>
 		<Input
 			type="text"
 			id="addressLine2"
 			name="addressLine2"
 			class="input"
-			placeholder={$t('onboarding.addressStep.addressLine2')}
+			placeholder={m.onboarding__address_step__address_line2()}
 			bind:value={onboardingState.addressLine2}
 		/>
 		<Field.Description>
-			{$t('onboarding.addressStep.addressLine2Description')}
+			{m.onboarding__address_step__address_line2_description()}
 		</Field.Description>
 	</Field.Field>
 
 	<Field.Field>
-		<Field.Label for="addressCity">{$t('onboarding.addressStep.city')}</Field.Label>
+		<Field.Label for="addressCity">{m.onboarding__address_step__city()}</Field.Label>
 		<Input
 			type="text"
 			id="addressCity"
 			name="addressCity"
 			required
 			class="input"
-			placeholder={$t('onboarding.addressStep.city')}
+			placeholder={m.onboarding__address_step__city()}
 			bind:value={onboardingState.addressCity}
 		/>
-		<Field.Description>{$t('onboarding.addressStep.enterCity')}</Field.Description>
+		<Field.Description>{m.onboarding__address_step__enter_city()}</Field.Description>
 	</Field.Field>
 
 	{#if onboardingState.addressCountry && State.getStatesOfCountry(onboardingState.addressCountry).length > 0}
 		<Field.Field>
-			<Field.Label for="addressStateOrProvince">{$t('onboarding.addressStep.state')}</Field.Label>
+			<Field.Label for="addressStateOrProvince">{m.onboarding__address_step__state()}</Field.Label>
 			<select
 				id="addressStateOrProvince"
 				name="addressStateOrProvince"
@@ -85,21 +85,21 @@
 					<StateOptions countryCode={onboardingState.addressCountry} />
 				{/if}
 			</select>
-			<Field.Description>{$t('onboarding.addressStep.selectStateOrProvince')}</Field.Description>
+			<Field.Description>{m.onboarding__address_step__select_state_or_province()}</Field.Description>
 		</Field.Field>
 	{/if}
 
 	<Field.Field>
-		<Field.Label for="addressZip">{$t('onboarding.addressStep.zip')}</Field.Label>
+		<Field.Label for="addressZip">{m.onboarding__address_step__zip()}</Field.Label>
 		<Input
 			type="text"
 			id="addressZip"
 			name="addressZip"
 			required
 			class="input"
-			placeholder={$t('onboarding.addressStep.zip')}
+			placeholder={m.onboarding__address_step__zip()}
 			bind:value={onboardingState.addressZip}
 		/>
-		<Field.Description>{$t('onboarding.addressStep.enterZip')}</Field.Description>
+		<Field.Description>{m.onboarding__address_step__enter_zip()}</Field.Description>
 	</Field.Field>
 </OnboardingStepContainer>

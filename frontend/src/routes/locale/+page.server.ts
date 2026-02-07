@@ -1,15 +1,11 @@
 import type { Actions } from './$types';
 import { env } from '$env/dynamic/private';
-import { locales } from '$lib/i18n';
+import { cookieName, locales } from '$lib/paraglide/runtime';
 import { z } from 'zod';
 import { isParseSuccess, parseFormData } from '$lib/server/schema';
 
-const LOCALE_COOKIE_NAME = 'app-locale';
-
 const setLocaleFormSchema = z.object({
-	locale: z.string().refine((val) => locales.includes(val), {
-		message: 'Unsupported locale'
-	})
+	locale: z.enum(locales)
 });
 
 export const actions = {
@@ -23,7 +19,7 @@ export const actions = {
 		const { locale } = formData;
 
 		// Set the locale cookie with httpOnly, secure, and sameSite settings
-		cookies.set(LOCALE_COOKIE_NAME, locale, {
+		cookies.set(cookieName, locale, {
 			path: '/',
 			httpOnly: true,
 			secure: env.NODE_ENV === 'production',

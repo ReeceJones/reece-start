@@ -1,16 +1,16 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { initializeLocale } from '$lib/i18n';
+	import { assertIsLocale, setLocale } from '$lib/paraglide/runtime';
 	import type { LayoutData } from './$types';
 	import type { Snippet } from 'svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
-	// Initialize locale from server-provided value and keep it in sync
+	// Keep client locale in sync with the server-provided locale.
 	$effect(() => {
-		initializeLocale(data.locale);
+		setLocale(assertIsLocale(data.locale), { reload: false });
 	});
 </script>
 

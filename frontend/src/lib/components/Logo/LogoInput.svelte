@@ -2,7 +2,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import type { InputProps } from '../ui/input/input.svelte';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import LogoCrop from './LogoCrop.svelte';
 
 	export type LogoInputProps = InputProps & {
@@ -47,10 +47,10 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>
-				{$t('profile.updateImage')}
+				{m.profile__update_image()}
 			</Dialog.Title>
 			<Dialog.Description>
-				{$t('profile.editImageDescription')}
+				{m.profile__edit_image_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 		{#if uncroppedLogo && uncroppedLogo.length > 0}

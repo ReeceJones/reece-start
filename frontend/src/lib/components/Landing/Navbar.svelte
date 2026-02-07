@@ -3,7 +3,7 @@
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { env } from '$env/dynamic/public';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '../ui/button';
@@ -44,7 +44,7 @@
 					href="/faq"
 					class={buttonVariants({
 						variant: 'ghost'
-					})}>{$t('footer.faq')}</a
+					})}>{m.footer__faq()}</a
 				>
 			</NavigationMenu.Item>
 			<NavigationMenu.Item>
@@ -52,7 +52,7 @@
 					href="/pricing"
 					class={buttonVariants({
 						variant: 'ghost'
-					})}>{$t('footer.pricing')}</a
+					})}>{m.footer__pricing()}</a
 				>
 			</NavigationMenu.Item>
 
@@ -64,7 +64,7 @@
 					})}
 				>
 					<DoorOpen class="size-5" />
-					{$t('dashboard')}
+					{m.dashboard()}
 				</a>
 			{:else if !isSignInDisabled}
 				<a
@@ -73,9 +73,9 @@
 						variant: 'outline'
 					})}
 				>
-					{$t('signIn')}
+					{m.sign_in()}
 				</a>
-				<a href="/signup" class={buttonVariants({ variant: 'default' })}> {$t('getStarted')} </a>
+				<a href="/signup" class={buttonVariants({ variant: 'default' })}> {m.get_started()} </a>
 			{/if}
 		</NavigationMenu.List>
 	</NavigationMenu.Root>
@@ -94,13 +94,13 @@
 						href="/faq"
 						class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
 					>
-						{$t('footer.faq')}
+						{m.footer__faq()}
 					</a>
 					<a
 						href="/pricing"
 						class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
 					>
-						{$t('footer.pricing')}
+						{m.footer__pricing()}
 					</a>
 					{#if isLoggedIn}
 						<a
@@ -108,20 +108,20 @@
 							class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
 						>
 							<DoorOpen class="mr-2 inline size-5" />
-							{$t('dashboard')}
+							{m.dashboard()}
 						</a>
 					{:else}
 						<a
 							href="/signin"
 							class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
 						>
-							{$t('signIn')}
+							{m.sign_in()}
 						</a>
 						<a
 							href="/signup"
 							class={cn(buttonVariants({ variant: 'ghost' }), 'w-full justify-end text-lg')}
 						>
-							{$t('getStarted')}
+							{m.get_started()}
 						</a>
 					{/if}
 					<Sheet.Close class="w-full">

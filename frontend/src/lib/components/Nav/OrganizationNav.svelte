@@ -9,7 +9,7 @@
 		ArrowLeftRight,
 		ChevronsUpDown
 	} from 'lucide-svelte';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { page } from '$app/state';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -40,7 +40,7 @@
 								<Building2 class="size-6" />
 							</div>
 						{/if}
-						<span>{organization.data.attributes.name || $t('nav.organization')}</span>
+						<span>{organization.data.attributes.name || m.nav__organization()}</span>
 						<ChevronsUpDown class="ms-auto" />
 					</Sidebar.MenuButton>
 				{/snippet}
@@ -54,7 +54,7 @@
 					{#snippet child({ props })}
 						<a href="/app/{organization.data.id}/settings" {...props}>
 							<Settings class="size-4" />
-							{$t('nav.settings')}
+							{m.nav__settings()}
 						</a>
 					{/snippet}
 				</DropdownMenu.Item>
@@ -62,20 +62,20 @@
 					{#snippet child({ props })}
 						<a href="/app" {...props}>
 							<ArrowLeftRight class="size-4" />
-							{$t('nav.switchOrganization')}
+							{m.nav__switch_organization()}
 						</a>
 					{/snippet}
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</Sidebar.MenuItem>
-	<Sidebar.GroupLabel>{$t('nav.application')}</Sidebar.GroupLabel>
+	<Sidebar.GroupLabel>{m.nav__application()}</Sidebar.GroupLabel>
 	<Sidebar.MenuItem>
 		<Sidebar.MenuButton isActive={currentPath === `/app/${organization.data.id}`}>
 			{#snippet child({ props })}
 				<a href="/app/{organization.data.id}" {...props}>
 					<House class="size-4" />
-					<span>{$t('nav.dashboard')}</span>
+					<span>{m.nav__dashboard()}</span>
 				</a>
 			{/snippet}
 		</Sidebar.MenuButton>
@@ -85,7 +85,7 @@
 			{#snippet child({ props })}
 				<a href="/app/{organization.data.id}/foo" {...props}>
 					<Folder class="size-4" />
-					<span>{$t('nav.foo')}</span>
+					<span>{m.nav__foo()}</span>
 				</a>
 			{/snippet}
 		</Sidebar.MenuButton>
@@ -95,7 +95,7 @@
 			{#snippet child({ props })}
 				<a href="/app/{organization.data.id}/bar" {...props}>
 					<DollarSign class="size-4" />
-					<span>{$t('nav.bar')}</span>
+					<span>{m.nav__bar()}</span>
 				</a>
 			{/snippet}
 		</Sidebar.MenuButton>
@@ -105,7 +105,7 @@
 			{#snippet child({ props })}
 				<a href="/app/{organization.data.id}/settings" {...props}>
 					<Settings class="size-4" />
-					<span>{$t('nav.settings')}</span>
+					<span>{m.nav__settings()}</span>
 				</a>
 			{/snippet}
 		</Sidebar.MenuButton>

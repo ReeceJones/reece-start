@@ -3,29 +3,29 @@
 	import type { LayoutProps } from './$types';
 	import { page } from '$app/state';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	const { children, params }: LayoutProps = $props();
 	const url = $derived(page.url.pathname);
 	const baseUrl = $derived(`/app/${params.organizationId}/settings`);
 	const routes = $derived([
 		{
-			name: $t('settings.general'),
+			name: m.settings__general(),
 			icon: Settings,
 			href: baseUrl
 		},
 		{
-			name: $t('settings.members'),
+			name: m.settings__members(),
 			icon: Users,
 			href: `${baseUrl}/members`
 		},
 		{
-			name: $t('settings.billing'),
+			name: m.settings__billing(),
 			icon: Receipt,
 			href: `${baseUrl}/billing`
 		},
 		{
-			name: $t('settings.payments'),
+			name: m.settings__payments(),
 			icon: DollarSign,
 			href: `${baseUrl}/payments`
 		}
@@ -35,7 +35,7 @@
 
 <div class="flex flex-col gap-6">
 	<div class="space-y-4">
-		<h1 class="text-3xl font-bold">{$t('settings.title')}</h1>
+		<h1 class="text-3xl font-bold">{m.settings__title()}</h1>
 		<Tabs.Root value={activeRoute?.href}>
 			<Tabs.List>
 				{#each routes as route (route.href)}

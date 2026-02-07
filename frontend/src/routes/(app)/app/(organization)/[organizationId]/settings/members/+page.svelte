@@ -10,7 +10,7 @@
 	import InvitationRow from '$lib/components/Organizations/InvitationRow.svelte';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import RoleBadge from '$lib/components/Organizations/RoleBadge.svelte';
 
 	const { data, params }: PageProps = $props();
@@ -29,7 +29,7 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('settings.organization.members.title')}</Card.Title>
+		<Card.Title>{m.settings__organization__members__title()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<InviteMember
@@ -41,11 +41,11 @@
 			<Alert.Root variant="success" class="my-1">
 				<CircleCheck class="size-4" />
 				<span>
-					{$t('members.invitationSent')}
+					{m.members__invitation_sent()}
 					<strong
 						><a href={`mailto:${invitedMemberEmail}`} class="link">{invitedMemberEmail}</a></strong
 					>
-					{$t('members.withInstructionsToJoin')}
+					{m.members__with_instructions_to_join()}
 				</span>
 			</Alert.Root>
 		{/if}
@@ -53,8 +53,8 @@
 		<Table.Root class="table">
 			<Table.Header>
 				<Table.Row>
-					<Table.Head>{$t('members.name')}</Table.Head>
-					<Table.Head>{$t('members.role')}</Table.Head>
+					<Table.Head>{m.members__name()}</Table.Head>
+					<Table.Head>{m.members__role()}</Table.Head>
 					<Table.Head></Table.Head>
 				</Table.Row>
 			</Table.Header>
@@ -62,7 +62,7 @@
 				{#if memberships.length === 0}
 					<Table.Row>
 						<Table.Cell colspan={3} class="text-center"
-							>{$t('members.noMembershipsFound')}</Table.Cell
+							>{m.members__no_memberships_found()}</Table.Cell
 						>
 					</Table.Row>
 				{/if}
@@ -116,13 +116,13 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('members.pendingInvitations')}</Card.Title>
+		<Card.Title>{m.members__pending_invitations()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<Table.Root class="table">
 			<Table.Header>
 				<Table.Row>
-					<Table.Head>{$t('members.email')}</Table.Head>
+					<Table.Head>{m.members__email()}</Table.Head>
 					<Table.Head></Table.Head>
 					<Table.Head></Table.Head>
 				</Table.Row>
@@ -131,7 +131,7 @@
 				{#if data.invitations.data.length === 0}
 					<Table.Row>
 						<Table.Cell colspan={3} class="text-center"
-							>{$t('members.noInvitationsFound')}</Table.Cell
+							>{m.members__no_invitations_found()}</Table.Cell
 						>
 					</Table.Row>
 				{/if}

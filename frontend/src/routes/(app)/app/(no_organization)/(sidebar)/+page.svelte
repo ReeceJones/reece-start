@@ -3,7 +3,7 @@
 	import type { PageProps } from './$types';
 	import * as Card from '$lib/components/ui/card';
 	import * as Empty from '$lib/components/ui/empty';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { buttonVariants } from '$lib/components/ui/button';
 
 	const { data }: PageProps = $props();
@@ -16,12 +16,12 @@
 			<Empty.Media variant="icon">
 				<Users class="size-6" />
 			</Empty.Media>
-			<Empty.Title>{$t('noOrganization.noOrganizations.title')}</Empty.Title>
-			<Empty.Description>{$t('noOrganization.noOrganizations.description')}</Empty.Description>
+			<Empty.Title>{m.no_organization__no_organizations__title()}</Empty.Title>
+			<Empty.Description>{m.no_organization__no_organizations__description()}</Empty.Description>
 		</Empty.Header>
 		<Empty.Content>
 			<a href="/app/create-organization/basic-information" class={buttonVariants()}
-				><Plus /> {$t('noOrganization.createOrganization')}</a
+				><Plus /> {m.no_organization__create_organization()}</a
 			>
 		</Empty.Content>
 	</Empty.Root>
@@ -30,10 +30,10 @@
 		<Card.Header>
 			<Card.Title class="flex items-end gap-2">
 				<Users class="size-6" />
-				{$t('noOrganization.organizations')}
+				{m.no_organization__organizations()}
 			</Card.Title>
 			<Card.Description>
-				{$t('noOrganization.selectOrganization')}
+				{m.no_organization__select_organization()}
 			</Card.Description>
 		</Card.Header>
 		<Card.Content>
@@ -63,7 +63,7 @@
 												{organization.attributes.description}
 											</p>
 										{:else}
-											<p class="text-transparent">{$t('noOrganization.noDescription')}</p>
+											<p class="text-transparent">{m.no_organization__no_description()}</p>
 										{/if}
 									</div>
 								</div>
@@ -77,7 +77,7 @@
 		<Card.Footer>
 			<Card.Action>
 				<a href="/app/create-organization/basic-information" class={buttonVariants()}
-					><Plus /> {$t('noOrganization.createOrganization')}</a
+					><Plus /> {m.no_organization__create_organization()}</a
 				>
 			</Card.Action>
 		</Card.Footer>

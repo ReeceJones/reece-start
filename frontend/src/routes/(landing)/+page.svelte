@@ -1,12 +1,12 @@
 <script>
 	import { CircleCheck, Code, BookOpenIcon } from 'lucide-svelte';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { buttonVariants } from '$lib/components/ui/button';
 </script>
 
 <svelte:head>
-	<title>{$t('landing.meta.title')}</title>
-	<meta name="description" content={$t('landing.meta.description')} />
+	<title>{m.landing__meta__title()}</title>
+	<meta name="description" content={m.landing__meta__description()} />
 </svelte:head>
 
 <!-- Hero Section -->
@@ -15,7 +15,7 @@
 		<div class="space-y-6">
 			<h1 class="text-lg font-light tracking-normal md:text-2xl">
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-				{@html $t('landing.hero.title')}
+				{@html m.landing__hero__title()}
 			</h1>
 			<div class="flex flex-wrap gap-4">
 				<a
@@ -23,11 +23,11 @@
 					class={buttonVariants({ variant: 'default' })}
 				>
 					<Code class="size-4" />
-					{$t('landing.hero.getCode')}
+					{m.landing__hero__get_code()}
 				</a>
 				<a href="/faq" class={buttonVariants({ variant: 'outline' })}>
 					<BookOpenIcon class="size-4" />
-					{$t('landing.hero.faq')}
+					{m.landing__hero__faq()}
 				</a>
 			</div>
 		</div>
@@ -37,35 +37,35 @@
 			<div class="flex flex-col gap-x-8 gap-y-3">
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
-					<span>{$t('landing.hero.features.authentication')}</span>
+					<span>{m.landing__hero__features__authentication()}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
-					<span>{$t('landing.hero.features.billing')}</span>
+					<span>{m.landing__hero__features__billing()}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
-					<span>{$t('landing.hero.features.stripeConnect')}</span>
+					<span>{m.landing__hero__features__stripe_connect()}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
-					<span>{$t('landing.hero.features.analytics')}</span>
+					<span>{m.landing__hero__features__analytics()}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
-					<span>{$t('landing.hero.features.monitoring')}</span>
+					<span>{m.landing__hero__features__monitoring()}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
-					<span>{$t('landing.hero.features.i18n')}</span>
+					<span>{m.landing__hero__features__i18n()}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<CircleCheck class="size-4 text-success" />
-					<span>{$t('landing.hero.features.landingAndDashboard')}</span>
+					<span>{m.landing__hero__features__landing_and_dashboard()}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					&hellip;
-					<span class="text-primary/70">{$t('landing.hero.features.andMore')}</span>
+					<span class="text-primary/70">{m.landing__hero__features__and_more()}</span>
 				</div>
 			</div>
 		</div>

@@ -6,7 +6,7 @@
 	import type { PageProps } from './$types';
 	import { enhance } from '$app/forms';
 	import * as Card from '$lib/components/ui/card';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
 
@@ -35,13 +35,13 @@
 		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-1">
 				<Card.Title class="text-center">
-					{$t('noOrganization.invitation.invitedBy', {
+					{m.no_organization__invitation__invited_by({
 						inviterName: invitingUser?.attributes.name || '',
 						organizationName: organization?.attributes.name || ''
 					})}
 				</Card.Title>
 				<Card.Description class="text-center">
-					{$t('noOrganization.invitation.invitationDescription')}
+					{m.no_organization__invitation__invitation_description()}
 				</Card.Description>
 			</div>
 		</Card.Header>
@@ -74,7 +74,7 @@
 									<X class="size-4" />
 								{/snippet}
 							</LoadingIcon>
-							{$t('noOrganization.invitation.decline')}
+							{m.no_organization__invitation__decline()}
 						</Button>
 					</form>
 					<form
@@ -95,7 +95,7 @@
 									<Check class="size-4" />
 								{/snippet}
 							</LoadingIcon>
-							{$t('noOrganization.invitation.accept')}
+							{m.no_organization__invitation__accept()}
 						</Button>
 					</form>
 				</div>
@@ -110,38 +110,38 @@
 	{:else if status === 'accepted'}
 		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<Card.Title class="text-center">{$t('noOrganization.invitation.accepted.title')}</Card.Title
+				<Card.Title class="text-center">{m.no_organization__invitation__accepted__title()}</Card.Title
 				>
 				<Card.Description class="text-center">
-					{$t('noOrganization.invitation.accepted.description')}
+					{m.no_organization__invitation__accepted__description()}
 				</Card.Description>
 			</div>
 		</Card.Header>
 	{:else if status === 'declined'}
 		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<Card.Title class="text-center">{$t('noOrganization.invitation.declined.title')}</Card.Title
+				<Card.Title class="text-center">{m.no_organization__invitation__declined__title()}</Card.Title
 				>
 				<Card.Description class="text-center">
-					{$t('noOrganization.invitation.declined.description')}
+					{m.no_organization__invitation__declined__description()}
 				</Card.Description>
 			</div>
 		</Card.Header>
 	{:else if status === 'expired'}
 		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<Card.Title class="text-center">{$t('noOrganization.invitation.expired.title')}</Card.Title>
+				<Card.Title class="text-center">{m.no_organization__invitation__expired__title()}</Card.Title>
 				<Card.Description class="text-center">
-					{$t('noOrganization.invitation.expired.description')}
+					{m.no_organization__invitation__expired__description()}
 				</Card.Description>
 			</div>
 		</Card.Header>
 	{:else if status === 'revoked'}
 		<Card.Header>
 			<div class="flex flex-col items-center justify-center gap-6">
-				<Card.Title class="text-center">{$t('noOrganization.invitation.revoked.title')}</Card.Title>
+				<Card.Title class="text-center">{m.no_organization__invitation__revoked__title()}</Card.Title>
 				<Card.Description class="text-center">
-					{$t('noOrganization.invitation.revoked.description')}
+					{m.no_organization__invitation__revoked__description()}
 				</Card.Description>
 			</div>
 		</Card.Header>

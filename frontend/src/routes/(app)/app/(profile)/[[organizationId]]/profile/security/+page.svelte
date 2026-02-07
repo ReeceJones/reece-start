@@ -4,7 +4,7 @@
 	import { Save } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Field from '$lib/components/ui/field';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import FormActionStatus from '$lib/components/Form/FormActionStatus.svelte';
@@ -33,7 +33,7 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('settings.security')}</Card.Title>
+		<Card.Title>{m.settings__security()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<form
@@ -52,33 +52,33 @@
 			<input type="hidden" tabindex="-1" name="userId" value={userProfile.id} />
 
 			<Field.Field>
-				<Field.Label for="email">{$t('settings.fields.email.label')}</Field.Label>
+				<Field.Label for="email">{m.settings__fields__email__label()}</Field.Label>
 				<Input
 					type="email"
 					id="email"
 					name="email"
 					required
 					class="input"
-					placeholder={$t('settings.fields.email.placeholder')}
+					placeholder={m.settings__fields__email__placeholder()}
 					bind:value={email}
 				/>
-				<Field.Description>{$t('settings.fields.email.description')}</Field.Description>
+				<Field.Description>{m.settings__fields__email__description()}</Field.Description>
 			</Field.Field>
 
 			<Field.Field>
-				<Field.Label for="password">{$t('settings.fields.updatePassword.label')}</Field.Label>
+				<Field.Label for="password">{m.settings__fields__update_password__label()}</Field.Label>
 				<Input
 					type="password"
 					id="password"
 					name="password"
 					class="input"
-					placeholder={$t('settings.fields.updatePassword.placeholder')}
+					placeholder={m.settings__fields__update_password__placeholder()}
 					bind:value={password}
 				/>
-				<Field.Description>{$t('settings.fields.updatePassword.description')}</Field.Description>
+				<Field.Description>{m.settings__fields__update_password__description()}</Field.Description>
 				{#if password.length > 0 && password.length < 8}
 					<Field.Description class="text-error">
-						{$t('settings.fields.updatePassword.passwordTooShort')}
+						{m.settings__fields__update_password__password_too_short()}
 					</Field.Description>
 				{/if}
 			</Field.Field>
@@ -86,7 +86,7 @@
 			{#if password !== ''}
 				<Field.Field>
 					<Field.Label for="confirmPassword"
-						>{$t('settings.fields.confirmPassword.label')}</Field.Label
+						>{m.settings__fields__confirm_password__label()}</Field.Label
 					>
 					<Input
 						type="password"
@@ -94,12 +94,12 @@
 						name="confirmPassword"
 						class="input"
 						aria-invalid={password !== confirmPassword && confirmPassword !== ''}
-						placeholder={$t('settings.fields.confirmPassword.placeholder')}
+						placeholder={m.settings__fields__confirm_password__placeholder()}
 						bind:value={confirmPassword}
 					/>
 					{#if password !== confirmPassword && confirmPassword !== ''}
 						<Field.Description class="text-error">
-							{$t('settings.fields.confirmPassword.passwordDoesNotMatch')}
+							{m.settings__fields__confirm_password__password_does_not_match()}
 						</Field.Description>
 					{/if}
 				</Field.Field>
@@ -107,8 +107,8 @@
 
 			<FormActionStatus
 				{form}
-				success={$t('settings.success.profileUpdated')}
-				failure={form?.message ?? $t('settings.success.profileUpdateError')}
+				success={m.settings__success__profile_updated()}
+				failure={form?.message ?? m.settings__success__profile_update_error()}
 			/>
 
 			<Card.Action>
@@ -118,7 +118,7 @@
 							<Save />
 						{/snippet}
 					</LoadingIcon>
-					<span>{$t('save')}</span>
+					<span>{m.save()}</span>
 				</Button>
 			</Card.Action>
 		</form>

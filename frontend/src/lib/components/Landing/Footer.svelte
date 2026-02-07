@@ -1,5 +1,5 @@
 <script>
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '../ui/button';
 </script>
@@ -7,10 +7,10 @@
 <footer class="text-base-content sm:footer-horizontal bg-footer p-16 text-footer-foreground">
 	<aside>
 		<p>
-			<b>reece-start</b> - {$t('footer.description')}
+			<b>reece-start</b> - {m.footer__description()}
 		</p>
 		<p>
-			{$t('footer.copyright')}
+			{m.footer__copyright()}
 		</p>
 	</aside>
 	<nav>
@@ -20,21 +20,21 @@
 				class={cn(
 					buttonVariants({ variant: 'link' }),
 					'text-primary-foreground hover:text-primary-foreground'
-				)}>{$t('footer.pricing')}</a
+				)}>{m.footer__pricing()}</a
 			>
 			<a
 				href="/faq"
 				class={cn(
 					buttonVariants({ variant: 'link' }),
 					'text-primary-foreground hover:text-primary-foreground'
-				)}>{$t('footer.faq')}</a
+				)}>{m.footer__faq()}</a
 			>
 			<a
 				href="https://github.com/reecejones/reece-start"
 				class={cn(
 					buttonVariants({ variant: 'link' }),
 					'text-primary-foreground hover:text-primary-foreground'
-				)}>{$t('footer.github')}</a
+				)}>{m.footer__github()}</a
 			>
 		</div>
 	</nav>

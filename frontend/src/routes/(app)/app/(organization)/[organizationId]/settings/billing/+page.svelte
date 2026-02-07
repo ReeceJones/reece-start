@@ -4,7 +4,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import type { PageProps } from './$types';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
@@ -43,7 +43,7 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('billing.title')}</Card.Title>
+		<Card.Title>{m.billing__title()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<div class="space-y-6">
@@ -56,21 +56,21 @@
 								{#if isProPlan}
 									<span class="flex items-center gap-2">
 										<Sparkles class="text-primary size-6" />
-										{$t('billing.proPlan')}
+										{m.billing__pro_plan()}
 									</span>
 								{:else}
-									{$t('billing.freePlan')}
+									{m.billing__free_plan()}
 								{/if}
 							</h3>
 						</div>
 
 						{#if isProPlan}
 							<p class="text-muted-foreground mt-2">
-								{$t('billing.proDescription')}
+								{m.billing__pro_description()}
 							</p>
 						{:else}
 							<p class="text-muted-foreground mt-2">
-								{$t('billing.freeDescription')}
+								{m.billing__free_description()}
 							</p>
 						{/if}
 
@@ -102,17 +102,17 @@
 											<Sparkles class="size-5" />
 										{/snippet}
 									</LoadingIcon>
-									{$t('billing.upgradeToPro')}
+									{m.billing__upgrade_to_pro()}
 								</Button>
 								<span class="text-muted-foreground/80 text-sm font-medium"
-									>{$t('billing.getStartedInMinutes')}</span
+									>{m.billing__get_started_in_minutes()}</span
 								>
 							</form>
 							<div class="mt-4">
 								<FormActionStatus
 									form={checkoutFormHeaderResult}
-									success={$t('billing.successfullyStartedCheckout')}
-									failure={$t('billing.failedToStartCheckout')}
+									success={m.billing__successfully_started_checkout()}
+									failure={m.billing__failed_to_start_checkout()}
 								/>
 							</div>
 						{/if}
@@ -121,7 +121,7 @@
 					{#if isProPlan}
 						<Badge variant="default" class="gap-2 px-3 py-1.5 text-sm">
 							<CheckCircle2 class="size-4" />
-							{$t('billing.active')}
+							{m.billing__active()}
 						</Badge>
 					{/if}
 				</div>
@@ -129,13 +129,13 @@
 				{#if isProPlan && data.subscription.data.attributes.billingPeriodEnd}
 					<div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<div>
-							<p class="text-muted-foreground text-sm">{$t('billing.billingAmount')}</p>
+							<p class="text-muted-foreground text-sm">{m.billing__billing_amount()}</p>
 							<p class="text-lg font-semibold">
-								{formattedBillingAmount}{$t('billing.perMonth')}
+								{formattedBillingAmount}{m.billing__per_month()}
 							</p>
 						</div>
 						<div>
-							<p class="text-muted-foreground text-sm">{$t('billing.nextBillingDate')}</p>
+							<p class="text-muted-foreground text-sm">{m.billing__next_billing_date()}</p>
 							<p class="text-lg font-semibold">
 								{formatDate(data.subscription.data.attributes.billingPeriodEnd)}
 							</p>
@@ -149,28 +149,28 @@
 				<div class="grid gap-4 md:grid-cols-2">
 					<!-- Free Plan Card -->
 					<div class="border-border bg-background rounded-lg border p-6">
-						<h4 class="text-lg font-semibold">{$t('billing.freePlan')}</h4>
+						<h4 class="text-lg font-semibold">{m.billing__free_plan()}</h4>
 						<p class="mt-2 text-3xl font-bold">
-							$0<span class="text-base font-normal">{$t('billing.perMonth')}</span>
+							$0<span class="text-base font-normal">{m.billing__per_month()}</span>
 						</p>
 						<ul class="mt-4 space-y-2">
 							<li class="flex items-start gap-2">
 								<CheckCircle2
 									class="mt-0.5 size-5 flex-shrink-0 text-green-600 dark:text-green-400"
 								/>
-								<span class="text-sm">{$t('billing.basicFeatures')}</span>
+								<span class="text-sm">{m.billing__basic_features()}</span>
 							</li>
 							<li class="flex items-start gap-2">
 								<CheckCircle2
 									class="mt-0.5 size-5 flex-shrink-0 text-green-600 dark:text-green-400"
 								/>
-								<span class="text-sm">{$t('billing.standardSupport')}</span>
+								<span class="text-sm">{m.billing__standard_support()}</span>
 							</li>
 							<li class="flex items-start gap-2">
 								<CheckCircle2
 									class="mt-0.5 size-5 flex-shrink-0 text-green-600 dark:text-green-400"
 								/>
-								<span class="text-sm">{$t('billing.communityAccess')}</span>
+								<span class="text-sm">{m.billing__community_access()}</span>
 							</li>
 						</ul>
 					</div>
@@ -178,43 +178,43 @@
 					<!-- Pro Plan Card -->
 					<div class="border-primary rounded-lg border-2 p-6 shadow-lg transition-all">
 						<div class="flex items-center justify-between">
-							<h4 class="text-lg font-semibold">{$t('billing.proPlan')}</h4>
+							<h4 class="text-lg font-semibold">{m.billing__pro_plan()}</h4>
 							<div class="flex items-center gap-2">
 								{#if isProPlan}
-									<Badge variant="default" class="text-xs">{$t('billing.current')}</Badge>
+									<Badge variant="default" class="text-xs">{m.billing__current()}</Badge>
 								{:else}
-									<Badge variant="accent" class="text-xs">{$t('billing.recommended')}</Badge>
+									<Badge variant="accent" class="text-xs">{m.billing__recommended()}</Badge>
 								{/if}
 								<Sparkles class="text-primary size-5" />
 							</div>
 						</div>
 						<p class="mt-2 text-3xl font-bold">
-							$29<span class="text-base font-normal">{$t('billing.perMonth')}</span>
+							$29<span class="text-base font-normal">{m.billing__per_month()}</span>
 						</p>
 						<ul class="mt-4 space-y-2">
 							<li class="flex items-start gap-2">
 								<CheckCircle2
 									class="mt-0.5 size-5 flex-shrink-0 text-green-600 dark:text-green-400"
 								/>
-								<span class="text-sm">{$t('billing.allFreeFeatures')}</span>
+								<span class="text-sm">{m.billing__all_free_features()}</span>
 							</li>
 							<li class="flex items-start gap-2">
 								<CheckCircle2
 									class="mt-0.5 size-5 flex-shrink-0 text-green-600 dark:text-green-400"
 								/>
-								<span class="text-sm">{$t('billing.advancedFeatures')}</span>
+								<span class="text-sm">{m.billing__advanced_features()}</span>
 							</li>
 							<li class="flex items-start gap-2">
 								<CheckCircle2
 									class="mt-0.5 size-5 flex-shrink-0 text-green-600 dark:text-green-400"
 								/>
-								<span class="text-sm">{$t('billing.prioritySupport')}</span>
+								<span class="text-sm">{m.billing__priority_support()}</span>
 							</li>
 							<li class="flex items-start gap-2">
 								<CheckCircle2
 									class="mt-0.5 size-5 flex-shrink-0 text-green-600 dark:text-green-400"
 								/>
-								<span class="text-sm">{$t('billing.customIntegrations')}</span>
+								<span class="text-sm">{m.billing__custom_integrations()}</span>
 							</li>
 						</ul>
 
@@ -240,14 +240,14 @@
 											<Sparkles class="size-4" />
 										{/snippet}
 									</LoadingIcon>
-									{$t('billing.getPro')}
+									{m.billing__get_pro()}
 								</Button>
 							</form>
 							<div class="mt-4">
 								<FormActionStatus
 									form={checkoutFormCardResult}
-									success={$t('billing.successfullyStartedCheckout')}
-									failure={$t('billing.failedToStartCheckout')}
+									success={m.billing__successfully_started_checkout()}
+									failure={m.billing__failed_to_start_checkout()}
 								/>
 							</div>
 						{/if}
@@ -278,14 +278,14 @@
 							<CreditCard class="size-4" />
 						{/snippet}
 					</LoadingIcon>
-					{$t('billing.manageSubscription')}
+					{m.billing__manage_subscription()}
 				</Button>
 			</form>
 			<div class="mt-4">
 				<FormActionStatus
 					form={portalFormResult}
-					success={$t('billing.successfullyOpenedBillingPortal')}
-					failure={$t('billing.failedToOpenBillingPortal')}
+					success={m.billing__successfully_opened_billing_portal()}
+					failure={m.billing__failed_to_open_billing_portal()}
 				/>
 			</div>
 		</Card.Action>

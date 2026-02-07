@@ -4,7 +4,7 @@
 	import type { z } from 'zod';
 	import { page } from '$app/state';
 	import { getIsImpersonatingUser } from '$lib/auth';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 
@@ -48,7 +48,7 @@
 							</div>
 						{/if}
 						<div class="flex flex-col items-start">
-							<span>{user.data.attributes.name || $t('nav.profile')}</span>
+							<span>{user.data.attributes.name || m.nav__profile()}</span>
 							<span class="text-xs text-sidebar-foreground/70">{user.data.attributes.email}</span>
 						</div>
 						<ChevronsUpDown class="ms-auto" />
@@ -60,19 +60,19 @@
 					{#snippet child({ props })}
 						<a href={profileHref} {...props}>
 							<Settings class="size-4" />
-							{$t('nav.settings')}
+							{m.nav__settings()}
 						</a>
 					{/snippet}
 				</DropdownMenu.Item>
 				{#if isImpersonatingUser}
 					<DropdownMenu.Item onSelect={handleStopImpersonation} variant="destructive">
 						<EyeOff class="size-4" />
-						{$t('nav.stopImpersonation')}
+						{m.nav__stop_impersonation()}
 					</DropdownMenu.Item>
 				{/if}
 				<DropdownMenu.Item onSelect={handleSignOut} variant="destructive">
 					<LogOut class="size-4" />
-					{$t('nav.logout')}
+					{m.nav__logout()}
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

@@ -2,6 +2,7 @@ import { performAuthenticationCheck } from '$lib/server/auth';
 import { type Handle, type HandleServerError, type Redirect, type HttpError } from '@sveltejs/kit';
 import * as Sentry from '@sentry/sveltekit';
 import { sequence } from '@sveltejs/kit/hooks';
+import { paraglideMiddleware } from '$lib/paraglide/server';
 
 interface ErrorWithLocation extends Error {
 	location: string;
@@ -36,6 +37,16 @@ function isSvelteKitError(error: unknown): error is Redirect | HttpError {
 	return false;
 }
 
+const paraglideHandle: Handle = ({ event, resolve }) =>
+	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
+		event.request = localizedRequest;
+		return resolve(event, {
+			transformPageChunk: ({ html }) => {
+				return html.replace('%lang%', locale);
+			}
+		});
+	});
+
 const defaultHandle: Handle = async ({ event, resolve }) => {
 	const startTime = Date.now();
 	console.log(`[Server Request] ${event.request.method} ${event.url.pathname}${event.url.search}`);
@@ -64,7 +75,7 @@ const defaultHandle: Handle = async ({ event, resolve }) => {
 	}
 };
 
-export const handle = sequence(Sentry.sentryHandle(), defaultHandle);
+export const handle = sequence(paraglideHandle, Sentry.sentryHandle(), defaultHandle);
 
 interface ErrorWithOptionalStatus extends Error {
 	status?: number;

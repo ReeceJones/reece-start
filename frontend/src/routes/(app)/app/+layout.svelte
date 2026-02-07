@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { setIsImpersonatingUser, setScopes } from '$lib/auth';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	const { children, data } = $props();
 
@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>{$t('dashboard')} - reece-start</title>
+	<title>{m.dashboard()} - reece-start</title>
 	<meta name="description" content="Dashboard for reece-start" />
 </svelte:head>
 

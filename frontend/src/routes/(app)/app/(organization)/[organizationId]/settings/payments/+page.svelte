@@ -10,7 +10,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import { z } from 'zod';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
 
@@ -42,7 +42,7 @@
 			window.open(response.data.attributes.url, '_blank');
 		} catch (err) {
 			console.error('Failed to create Stripe dashboard link:', err);
-			error = $t('payments.failedToOpenStripeDashboard');
+			error = m.payments__failed_to_open_stripe_dashboard();
 		} finally {
 			loading = false;
 		}
@@ -51,12 +51,12 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('payments.title')}</Card.Title>
+		<Card.Title>{m.payments__title()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<div class="space-y-4">
 			<p class="text-muted-foreground text-sm">
-				{$t('payments.description')}
+				{m.payments__description()}
 			</p>
 
 			{#if error}
@@ -73,7 +73,7 @@
 					<ExternalLink class="h-4 w-4" />
 				{/snippet}
 			</LoadingIcon>
-			{$t('payments.openStripeDashboard')}
+			{m.payments__open_stripe_dashboard()}
 		</Button>
 	</Card.Action>
 </Card.Root>

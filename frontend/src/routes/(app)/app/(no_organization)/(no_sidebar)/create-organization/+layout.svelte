@@ -20,7 +20,8 @@
 		isContactInformationValid
 	} from '$lib/organization-onboarding';
 	import * as Card from '$lib/components/ui/card';
-	import { t, locale } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
+	import { getLocale } from '$lib/paraglide/runtime';
 	import { Progress } from '$lib/components/ui/progress';
 	import { buttonVariants } from '$lib/components/ui/button';
 
@@ -29,27 +30,27 @@
 	const steps = [
 		{
 			path: '/app/create-organization/basic-information',
-			label: $t('createOrganizationPages.steps.basicInformation'),
+			label: m.create_organization_pages__steps__basic_information(),
 			index: 0
 		},
 		{
 			path: '/app/create-organization/contact-information',
-			label: $t('createOrganizationPages.steps.contactInformation'),
+			label: m.create_organization_pages__steps__contact_information(),
 			index: 1
 		},
 		{
 			path: '/app/create-organization/address',
-			label: $t('createOrganizationPages.steps.address'),
+			label: m.create_organization_pages__steps__address(),
 			index: 2
 		},
 		{
 			path: '/app/create-organization/business-details',
-			label: $t('createOrganizationPages.steps.businessDetails'),
+			label: m.create_organization_pages__steps__business_details(),
 			index: 3
 		},
 		{
 			path: '/app/create-organization/review',
-			label: $t('createOrganizationPages.steps.review'),
+			label: m.create_organization_pages__steps__review(),
 			index: 4
 		}
 	];
@@ -59,7 +60,7 @@
 		name: '',
 		description: '',
 		logo: undefined,
-		locale: $locale,
+		locale: getLocale(),
 		entityType: 'individual',
 		addressCity: '',
 		addressStateOrProvince: '',
@@ -108,7 +109,7 @@
 	href="/app"
 >
 	<ArrowLeft class="size-4" />
-	{$t('onboarding.back')}
+	{m.onboarding__back()}
 </a>
 
 <Card.Root class="mx-auto mb-10 max-w-2xl space-y-6">

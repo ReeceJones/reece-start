@@ -1,3 +1,4 @@
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import devtoolsJson from 'vite-plugin-devtools-json';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -8,6 +9,7 @@ import { sentrySvelteKit } from '@sentry/sveltekit';
 export default defineConfig({
 	// follow instructions here to get sourcemaps with sentry: https://docs.sentry.io/platforms/javascript/guides/sveltekit/manual-setup/#step-3-add-readable-stack-traces-with-source-maps-optional
 	plugins: [
+		paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide' }),
 		tailwindcss(),
 		sentrySvelteKit({ telemetry: false }),
 		sveltekit(),

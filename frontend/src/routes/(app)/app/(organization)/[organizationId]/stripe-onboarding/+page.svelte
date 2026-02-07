@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import * as Card from '$lib/components/ui/card';
@@ -21,7 +21,7 @@
 <div class="mx-auto max-w-80">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{$t('payments.redirectingToStripe')}</Card.Title>
+			<Card.Title>{m.payments__redirecting_to_stripe()}</Card.Title>
 		</Card.Header>
 		<Card.Content>
 			{#if loading}

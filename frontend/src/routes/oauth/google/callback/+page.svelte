@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
@@ -74,16 +74,16 @@
 			{#if loading}
 				<div class="flex flex-col items-center justify-center gap-4 text-center">
 					<Spinner class="size-8" />
-					<Card.Title class="mt-4">{$t('oauth.completingSignIn')}</Card.Title>
-					<Card.Description>{$t('oauth.pleaseWait')}</Card.Description>
+					<Card.Title class="mt-4">{m.oauth__completing_sign_in()}</Card.Title>
+					<Card.Description>{m.oauth__please_wait()}</Card.Description>
 				</div>
 			{:else if error}
 				<div class="flex flex-col items-center gap-4 text-center">
-					<Card.Title class="text-destructive">{$t('oauth.authenticationError')}</Card.Title>
+					<Card.Title class="text-destructive">{m.oauth__authentication_error()}</Card.Title>
 					<Card.Description class="mb-4">{error}</Card.Description>
 					<Card.Footer class="w-full">
 						<Button href="/signin" class="w-full" variant="default">
-							{$t('oauth.tryAgain')}
+							{m.oauth__try_again()}
 						</Button>
 					</Card.Footer>
 				</div>

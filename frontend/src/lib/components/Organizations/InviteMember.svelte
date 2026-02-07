@@ -3,7 +3,7 @@
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
 	import { CircleX, UserPlus, X } from 'lucide-svelte';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Field from '$lib/components/ui/field';
@@ -37,7 +37,7 @@
 		{#snippet child({ props })}
 			<Button {...props} variant="default" class="w-fit" disabled={!canAddMember}>
 				<UserPlus class="size-5" />
-				{$t('addMember')}
+				{m.add_member()}
 			</Button>
 		{/snippet}
 	</Dialog.Trigger>
@@ -66,38 +66,38 @@
 		>
 			<Dialog.Header>
 				<Dialog.Title>
-					{$t('inviteMember')}
+					{m.invite_member()}
 				</Dialog.Title>
 			</Dialog.Header>
 			<div class="my-6 space-y-3">
 				<Field.Field>
-					<Field.Label for="invite-member-email">{$t('email')}</Field.Label>
+					<Field.Label for="invite-member-email">{m.email()}</Field.Label>
 					<Input
 						class="input w-full"
 						type="email"
 						bind:value={email}
-						placeholder={$t('email')}
+						placeholder={m.email()}
 						required
 						name="email"
 						id="invite-member-email"
 					/>
 				</Field.Field>
 				<Field.Set>
-					<Field.Label>{$t('role')}</Field.Label>
+					<Field.Label>{m.role()}</Field.Label>
 					<RadioGroup.Root required bind:value={role} name="role">
 						<Field.Field orientation="horizontal">
 							<RadioGroup.Item value="admin" id="invite-member-role-admin" />
 							<div class="ml-3">
-								<Field.Label for="invite-member-role-admin">{$t('roles.admin.title')}</Field.Label>
-								<Field.Description>{$t('roles.admin.description')}</Field.Description>
+								<Field.Label for="invite-member-role-admin">{m.roles__admin__title()}</Field.Label>
+								<Field.Description>{m.roles__admin__description()}</Field.Description>
 							</div>
 						</Field.Field>
 						<Field.Field orientation="horizontal">
 							<RadioGroup.Item value="member" id="invite-member-role-member" />
 							<div class="ml-3">
-								<Field.Label for="invite-member-role-member">{$t('roles.member.title')}</Field.Label
+								<Field.Label for="invite-member-role-member">{m.roles__member__title()}</Field.Label
 								>
-								<Field.Description>{$t('roles.member.description')}</Field.Description>
+								<Field.Description>{m.roles__member__description()}</Field.Description>
 							</div>
 						</Field.Field>
 					</RadioGroup.Root>
@@ -112,14 +112,14 @@
 			<Dialog.Footer>
 				<Button variant="outline" type="button" onclick={() => (dialogOpen = false)}>
 					<X class="size-4" />
-					{$t('close')}
+					{m.close()}
 				</Button>
 				<Button variant="default" type="submit" disabled={submitting}>
 					{#if submitting}
 						<span class="loading loading-xs loading-spinner"></span>
 					{:else}
 						<UserPlus class="size-4" />
-						{$t('invite')}
+						{m.invite()}
 					{/if}
 				</Button>
 			</Dialog.Footer>

@@ -5,8 +5,7 @@
 	import { enhance } from '$app/forms';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
-	import { t } from '$lib/i18n';
-	import { get } from 'svelte/store';
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '../ui/button';
 	import { Spinner } from '../ui/spinner';
 
@@ -23,11 +22,11 @@
 		<Alert.Title>Complete stripe setup</Alert.Title>
 		<Alert.Description>
 			<p>
-				{$t('onboarding.stripeAlert.missingRequirements')}
+				{m.onboarding__stripe_alert__missing_requirements()}
 			</p>
 			{#if !canAccessStripe}
 				<p>
-					{$t('onboarding.stripeAlert.adminPermissionsRequired')}
+					{m.onboarding__stripe_alert__admin_permissions_required()}
 				</p>
 			{/if}
 		</Alert.Description>
@@ -39,15 +38,14 @@
 				error = '';
 				return ({ result, update }) => {
 					update();
-					const translate = get(t);
 					if (result.type === 'failure') {
 						loading = false;
 						error =
 							(result.data?.message as string) ??
-							translate('onboarding.stripeAlert.somethingWentWrong');
+							m.onboarding__stripe_alert__something_went_wrong();
 					} else if (result.type === 'error') {
 						loading = false;
-						error = result.error ?? translate('onboarding.stripeAlert.somethingWentWrong');
+						error = result.error ?? m.onboarding__stripe_alert__something_went_wrong();
 					}
 				};
 			}}
@@ -58,7 +56,7 @@
 				{:else}
 					<ExternalLink class="size-4" />
 				{/if}
-				<span class="ml-1">{$t('onboarding.stripeAlert.openStripe')}</span>
+				<span class="ml-1">{m.onboarding__stripe_alert__open_stripe()}</span>
 			</Button>
 		</form>
 		{#if error}
@@ -76,7 +74,7 @@
 	<Alert.Root class="mb-6">
 		<Alert.Description>
 			<p class="font-semibold">
-				{$t('onboarding.stripeAlert.settingUp')}
+				{m.onboarding__stripe_alert__setting_up()}
 			</p>
 		</Alert.Description>
 	</Alert.Root>

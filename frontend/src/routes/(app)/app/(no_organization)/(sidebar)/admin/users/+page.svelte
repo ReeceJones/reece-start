@@ -13,7 +13,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Link } from '$lib/components/ui/link';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 
@@ -41,7 +41,7 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('noOrganization.admin.users.title')}</Card.Title>
+		<Card.Title>{m.no_organization__admin__users__title()}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<form class="flex gap-2" method="GET" id="search-form">
@@ -50,21 +50,21 @@
 			<Input
 				type="search"
 				class="max-w-96 flex-1"
-				placeholder={$t('noOrganization.admin.users.searchPlaceholder')}
+				placeholder={m.no_organization__admin__users__search_placeholder()}
 				name="search"
 				defaultValue={defaultSearch}
 			/>
 			<Button type="submit">
 				<Search class="size-4" />
-				{$t('noOrganization.admin.users.search')}
+				{m.no_organization__admin__users__search()}
 			</Button>
 		</form>
 		<div>
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>{$t('noOrganization.admin.users.name')}</Table.Head>
-						<Table.Head>{$t('noOrganization.admin.users.email')}</Table.Head>
+						<Table.Head>{m.no_organization__admin__users__name()}</Table.Head>
+						<Table.Head>{m.no_organization__admin__users__email()}</Table.Head>
 						<Table.Head class="text-right"></Table.Head>
 					</Table.Row>
 				</Table.Header>
@@ -115,7 +115,7 @@
 											}}
 										>
 											<HatGlasses class="size-4" />
-											{$t('noOrganization.admin.users.impersonate')}
+											{m.no_organization__admin__users__impersonate()}
 										</DropdownMenu.Item>
 
 										<form
@@ -138,12 +138,12 @@
 					{#if users.links.prev}
 						<Button size="sm" variant="ghost" onclick={loadPreviousPage}>
 							<ChevronLeft class="size-4" />
-							{$t('noOrganization.admin.users.previous')}
+							{m.no_organization__admin__users__previous()}
 						</Button>
 					{/if}
 					{#if users.links.next}
 						<Button size="sm" variant="ghost" onclick={loadNextPage}>
-							{$t('noOrganization.admin.users.next')}
+							{m.no_organization__admin__users__next()}
 							<ChevronRight class="size-4" />
 						</Button>
 					{/if}

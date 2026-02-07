@@ -13,7 +13,7 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { Link } from '$lib/components/ui/link';
 	import { Spinner } from '$lib/components/ui/spinner';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	let { form }: PageProps = $props();
 
@@ -27,16 +27,16 @@
 </script>
 
 <svelte:head>
-	<title>{$t('auth.signUp.title')} - reece-start</title>
-	<meta name="description" content={$t('auth.signUp.description')} />
+	<title>{m.auth__sign_up__title()} - reece-start</title>
+	<meta name="description" content={m.auth__sign_up__description()} />
 </svelte:head>
 
 <main class="mx-auto my-8 max-w-80">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{$t('auth.signUp.title')}</Card.Title>
+			<Card.Title>{m.auth__sign_up__title()}</Card.Title>
 			<Card.Description class="text-muted-foreground"
-				>{$t('auth.signUp.description')}</Card.Description
+				>{m.auth__sign_up__description()}</Card.Description
 			>
 		</Card.Header>
 		<Card.Content>
@@ -63,14 +63,14 @@
 							<Spinner class="h-4 w-4" />
 						{:else}
 							<Google />
-							{$t('auth.signUp.signUpWithGoogle')}
+							{m.auth__sign_up__sign_up_with_google()}
 						{/if}
 					</Button>
 				</form>
 
 				<div class="my-5 flex items-center gap-2">
 					<Separator class="flex-1" />
-					<span class="text-sm text-muted-foreground">{$t('auth.signUp.orContinueWith')}</span>
+					<span class="text-sm text-muted-foreground">{m.auth__sign_up__or_continue_with()}</span>
 					<Separator class="flex-1" />
 				</div>
 
@@ -88,35 +88,35 @@
 					class="space-y-4"
 				>
 					<Field.Field>
-						<Field.Label for="name">{$t('auth.signUp.name')}</Field.Label>
+						<Field.Label for="name">{m.auth__sign_up__name()}</Field.Label>
 						<Input
 							id="name"
 							type="text"
 							name="name"
 							required
-							placeholder={$t('auth.signUp.name')}
+							placeholder={m.auth__sign_up__name()}
 						/>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="email">{$t('auth.signUp.email')}</Field.Label>
+						<Field.Label for="email">{m.auth__sign_up__email()}</Field.Label>
 						<Input
 							id="email"
 							type="email"
 							name="email"
 							required
-							placeholder={$t('auth.signUp.email')}
+							placeholder={m.auth__sign_up__email()}
 						/>
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label for="password">{$t('auth.signUp.password')}</Field.Label>
+						<Field.Label for="password">{m.auth__sign_up__password()}</Field.Label>
 						<Input
 							id="password"
 							type="password"
 							name="password"
 							required
-							placeholder={$t('auth.signUp.password')}
+							placeholder={m.auth__sign_up__password()}
 						/>
 					</Field.Field>
 
@@ -132,26 +132,26 @@
 							{:else}
 								<LogIn class="h-4 w-4" />
 							{/if}
-							<span>{$t('auth.signUp.signUpButton')}</span>
+							<span>{m.auth__sign_up__sign_up_button()}</span>
 						</Button>
 
 						{#if form?.success}
 							<Alert.Root>
 								<CircleCheck class="h-4 w-4" />
-								<Alert.Description>{$t('auth.signUp.successMessage')}</Alert.Description>
+								<Alert.Description>{m.auth__sign_up__success_message()}</Alert.Description>
 							</Alert.Root>
 						{:else if form?.success === false}
 							<Alert.Root variant="destructive">
 								<CircleX class="h-4 w-4" />
-								<Alert.Description>{$t('auth.signUp.errorMessage')}</Alert.Description>
+								<Alert.Description>{m.auth__sign_up__error_message()}</Alert.Description>
 							</Alert.Root>
 						{/if}
 
 						<div class="mt-3 text-center text-sm">
 							<p>
-								{$t('auth.signUp.hasAccount')}
+								{m.auth__sign_up__has_account()}
 								<Link href="/signin{redirect ? `?redirect=${redirect}` : ''}">
-									{$t('auth.signUp.signInLink')}
+									{m.auth__sign_up__sign_in_link()}
 								</Link>
 							</p>
 						</div>

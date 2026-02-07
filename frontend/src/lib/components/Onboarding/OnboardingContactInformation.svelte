@@ -2,7 +2,7 @@
 	import type { CreateOrganizationFormData } from '$lib/schemas/organization';
 	import OnboardingStepContainer from './OnboardingStepContainer.svelte';
 	import { getPhoneCodeOptions, type PhoneCodeOption } from '$lib/phone-utils';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import * as Field from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
 
@@ -17,7 +17,7 @@
 <OnboardingStepContainer {hidden}>
 	<Field.Field>
 		<Field.Label for="contactEmail"
-			>{$t('onboarding.contactInformationStep.contactEmail')}</Field.Label
+			>{m.onboarding__contact_information_step__contact_email()}</Field.Label
 		>
 		<Input
 			type="email"
@@ -25,15 +25,15 @@
 			name="contactEmail"
 			required
 			class="input"
-			placeholder={$t('onboarding.contactInformationStep.email')}
+			placeholder={m.onboarding__contact_information_step__email()}
 			bind:value={onboardingState.contactEmail}
 		/>
-		<Field.Description>{$t('onboarding.contactInformationStep.emailDescription')}</Field.Description
+		<Field.Description>{m.onboarding__contact_information_step__email_description()}</Field.Description
 		>
 	</Field.Field>
 	<Field.Field>
 		<Field.Label for="contactPhone"
-			>{$t('onboarding.contactInformationStep.contactPhone')}</Field.Label
+			>{m.onboarding__contact_information_step__contact_phone()}</Field.Label
 		>
 		<div class="flex gap-2">
 			<select
@@ -54,11 +54,11 @@
 				id="contactPhone"
 				name="contactPhone"
 				class="input flex-1"
-				placeholder={$t('onboarding.contactInformationStep.phoneNumber')}
+				placeholder={m.onboarding__contact_information_step__phone_number()}
 				bind:value={onboardingState.contactPhone}
 			/>
 		</div>
-		<Field.Description>{$t('onboarding.contactInformationStep.phoneDescription')}</Field.Description
+		<Field.Description>{m.onboarding__contact_information_step__phone_description()}</Field.Description
 		>
 	</Field.Field>
 </OnboardingStepContainer>

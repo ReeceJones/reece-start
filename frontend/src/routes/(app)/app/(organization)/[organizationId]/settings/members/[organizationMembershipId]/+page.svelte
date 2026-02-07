@@ -6,7 +6,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { hasScope } from '$lib/auth';
 	import { UserScope } from '$lib/schemas/jwt';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import * as Field from '$lib/components/ui/field';
 	import LoadingIcon from '$lib/components/Icons/LoadingIcon.svelte';
@@ -31,12 +31,12 @@
 <div class="space-y-10">
 	<Button variant="ghost" onclick={() => history.back()}>
 		<ArrowLeft class="size-4" />
-		{$t('back')}
+		{m.back()}
 	</Button>
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{$t('settings.organization.members.memberInformation')}</Card.Title>
+			<Card.Title>{m.settings__organization__members__member_information()}</Card.Title>
 		</Card.Header>
 		<Card.Content class="space-y-2">
 			<div class="flex gap-3">
@@ -73,18 +73,20 @@
 			>
 				<Field.Field>
 					<Field.Label for="member-role"
-						>{$t('settings.organization.members.role.label')}</Field.Label
+						>{m.settings__organization__members__role__label()}</Field.Label
 					>
 					<Select.Root name="role" type="single" bind:value={role} disabled={!canUpdateMembership}>
 						<Select.Trigger id="member-role">
-							{$t(`settings.organization.members.role.${role}`)}
+							{role === 'admin'
+								? m.settings__organization__members__role__admin()
+								: m.settings__organization__members__role__member()}
 						</Select.Trigger>
 						<Select.Content>
 							<Select.Item value="admin"
-								>{$t('settings.organization.members.role.admin')}</Select.Item
+								>{m.settings__organization__members__role__admin()}</Select.Item
 							>
 							<Select.Item value="member"
-								>{$t('settings.organization.members.role.member')}</Select.Item
+								>{m.settings__organization__members__role__member()}</Select.Item
 							>
 						</Select.Content>
 					</Select.Root>
@@ -92,8 +94,8 @@
 
 				<FormActionStatus
 					{form}
-					success={$t('settings.organization.members.success.memberUpdated')}
-					failure={$t('settings.organization.members.success.memberUpdateError')}
+					success={m.settings__organization__members__success__member_updated()}
+					failure={m.settings__organization__members__success__member_update_error()}
 				/>
 
 				<Button type="submit" disabled={!canSubmit || submitting || !canUpdateMembership}>
@@ -102,7 +104,7 @@
 							<Save class="size-4" />
 						{/snippet}
 					</LoadingIcon>
-					{$t('save')}
+					{m.save()}
 				</Button>
 			</form>
 		</Card.Content>
@@ -110,7 +112,7 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{$t('settings.organization.members.dangerZone')}</Card.Title>
+			<Card.Title>{m.settings__organization__members__danger_zone()}</Card.Title>
 		</Card.Header>
 		<Card.Content>
 			<form
@@ -132,7 +134,7 @@
 								<Trash class="size-4" />
 							{/snippet}
 						</LoadingIcon>
-						{$t('settings.organization.members.removeMember')}
+						{m.settings__organization__members__remove_member()}
 					</Button>
 				</Card.Action>
 			</form>

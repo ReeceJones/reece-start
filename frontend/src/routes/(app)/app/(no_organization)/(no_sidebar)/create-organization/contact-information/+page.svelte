@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 </script>
 
 <div class="space-y-3 text-sm text-primary/90">
-	<p>{$t('createOrganizationPages.descriptions.contactInformation.intro')}</p>
+	<p>{m.create_organization_pages__descriptions__contact_information__intro()}</p>
 </div>
