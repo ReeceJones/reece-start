@@ -21,7 +21,7 @@
 			</Sidebar.Group>
 		</Sidebar.Footer>
 	</Sidebar.Root>
-	<main class="container mx-auto mt-4 inline-block flex-1 px-4">
+	<main class="container m-4 mx-auto inline-block flex-1 px-4">
 		{@render children?.()}
 	</main>
 </Sidebar.Provider>

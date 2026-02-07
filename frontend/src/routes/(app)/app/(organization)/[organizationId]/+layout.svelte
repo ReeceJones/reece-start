@@ -26,7 +26,7 @@
 			</Sidebar.Group>
 		</Sidebar.Footer>
 	</Sidebar.Root>
-	<main class="container mx-auto mt-4 flex-1 px-4">
+	<main class="container m-4 mx-auto flex-1 px-4">
 		<OnboardingStripeAlert {organization} />
 		{@render children?.()}
 	</main>
