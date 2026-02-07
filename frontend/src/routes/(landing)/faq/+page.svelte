@@ -9,10 +9,6 @@
 			answer: m.faq__questions__why_svelte__answer()
 		},
 		{
-			question: m.faq__questions__why_daisyui__question(),
-			answer: m.faq__questions__why_daisyui__answer()
-		},
-		{
 			question: m.faq__questions__why_go__question(),
 			answer: m.faq__questions__why_go__answer()
 		},

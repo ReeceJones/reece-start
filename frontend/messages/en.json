@@ -348,8 +348,6 @@
   "faq__header__subtitle": "Have questions? We have answers.",
   "faq__questions__why_svelte__question": "Why Svelte over React?",
   "faq__questions__why_svelte__answer": "Modern react libraries are far too complicated. Nowadays many are VC backed and want you to use their cloud hosting service which introduces even more complexity. At the same time, SvelteKit provides a nicer interface for reactive UIs and supports impler data loading and mutation patterns.",
-  "faq__questions__why_daisyui__question": "Why DaisyUI for styling?",
-  "faq__questions__why_daisyui__answer": "I thought it was neat and easy to use. If you don't like DaisyUI styles, you can always defined your own components and ignore DaisyUI altogether.",
   "faq__questions__why_go__question": "Why Go for the backend?",
   "faq__questions__why_go__answer": "Go has what I need for most of my projects: minimal resource usage, fast build times, simple developer experience.",
   "faq__questions__why_postgresql__question": "Why PostgreSQL?",
