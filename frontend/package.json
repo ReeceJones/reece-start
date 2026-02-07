@@ -64,7 +64,6 @@
 		"vitest-browser-svelte": "^2.0.1"
 	},
 	"dependencies": {
-		"@sentry/sveltekit": "10.26.0",
 		"bits-ui": "2.14.4",
 		"countries-list": "3.1.1",
 		"country-state-city": "3.2.1",

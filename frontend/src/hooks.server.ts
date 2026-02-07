@@ -1,6 +1,5 @@
 import { performAuthenticationCheck } from '$lib/server/auth';
 import { type Handle, type HandleServerError, type Redirect, type HttpError } from '@sveltejs/kit';
-import * as Sentry from '@sentry/sveltekit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 
@@ -77,7 +76,7 @@ const defaultHandle: Handle = async ({ event, resolve }) => {
 	}
 };
 
-export const handle = sequence(paraglideHandle, Sentry.sentryHandle(), defaultHandle);
+export const handle = sequence(paraglideHandle, defaultHandle);
 
 interface ErrorWithOptionalStatus extends Error {
 	status?: number;
@@ -109,4 +108,4 @@ const defaultHandleError: HandleServerError = ({ error, event }) => {
 	};
 };
 
-export const handleError = Sentry.handleErrorWithSentry(defaultHandleError);
+export const handleError = defaultHandleError;

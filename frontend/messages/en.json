@@ -279,7 +279,6 @@
   "landing__features__user_experience__responsive_design": "Responsive design",
   "landing__features__analytics__title": "Analytics & Monitoring",
   "landing__features__analytics__posthog": "PostHog integration",
-  "landing__features__analytics__sentry": "Sentry error tracking",
   "landing__features__analytics__performance_monitoring": "Performance monitoring",
   "landing__features__analytics__user_analytics": "User analytics",
   "landing__tech_stack__title": "Built with modern, production-ready technologies",

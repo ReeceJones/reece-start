@@ -12,8 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/getsentry/sentry-go"
-	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/labstack/echo/v4"
@@ -67,11 +65,6 @@ func main() {
 		slog.Info("Body dump", "request", string(reqBody), "response", string(resBody))
 	}))
 
-	// Add sentry middleware
-	if config.SentryDsn != "" {
-		e.Use(sentryecho.New(sentryecho.Options{}))
-	}
-
 	// Start HTTP server in a goroutine
 	serverErr := make(chan error, 1)
 	go func() {
@@ -98,20 +91,6 @@ func main() {
 func setupLogger() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
-}
-
-func setupSentry(config *configuration.Config) {
-	if config.SentryDsn == "" {
-		return
-	}
-
-	err := sentry.Init(sentry.ClientOptions{
-		Dsn: config.SentryDsn,
-	})
-
-	if err != nil {
-		log.Fatalf("Error initializing sentry, %s", err)
-	}
 }
 
 func createDatabaseConnectionPool(config *configuration.Config) (*sql.DB, *gorm.DB) {

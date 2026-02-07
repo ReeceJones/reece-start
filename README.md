@@ -31,7 +31,6 @@ Starter kit for building B2B applications using Stripe connect. It is based on S
 - Structured logging
 - Railway deployment template
 - Posthog integration
-- Sentry integration
 
 ## Getting started
 
@@ -106,5 +105,4 @@ The project is intended to be deployed to railway, however you can easily adapt 
 - https://echo.labstack.com/
 - https://resend.com/
 - https://posthog.com/
-- https://sentry.io/
 - https://stripe.com/
